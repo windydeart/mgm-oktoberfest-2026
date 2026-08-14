@@ -556,27 +556,33 @@ function initRegistrationModal() {
       e.preventDefault();
       clearFeedback();
 
-      const fullName = (document.getElementById('regFullName')?.value || '').trim();
+      const firstName = (document.getElementById('regFirstName')?.value || '').trim();
+      const middleName = (document.getElementById('regMiddleName')?.value || '').trim();
+      const lastName = (document.getElementById('regLastName')?.value || '').trim();
       const email = (document.getElementById('regEmail')?.value || '').trim().toLowerCase();
       const office = regForm.querySelector('input[name="office"]:checked')?.value || 'danang';
-      const dietaryPref = document.getElementById('regDietary')?.value || 'Bavarian Feast';
-      const beerPref = document.getElementById('regBeer')?.value || 'German Craft Beer';
-      const attireOption = document.getElementById('regAttire')?.value || 'Casual / mgm Outfit';
-      const shirtSize = document.getElementById('regShirtSize')?.value || 'L';
       const notes = (document.getElementById('regNotes')?.value || '').trim();
 
       // Validation
-      if (!fullName) {
-        showFeedback('Vui lòng nhập họ và tên của bạn.');
-        document.getElementById('regFullName')?.focus();
+      if (!firstName) {
+        showFeedback('Please enter your First Name.');
+        document.getElementById('regFirstName')?.focus();
+        return;
+      }
+
+      if (!lastName) {
+        showFeedback('Please enter your Last Name.');
+        document.getElementById('regLastName')?.focus();
         return;
       }
 
       if (!email || !email.includes('@')) {
-        showFeedback('Vui lòng nhập địa chỉ email hợp lệ (ví dụ: name@mgm-tp.com).');
+        showFeedback('Please enter a valid work email address (e.g. name@mgm-tp.com).');
         document.getElementById('regEmail')?.focus();
         return;
       }
+
+      const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
 
       // Set Loading State
       const btnText = submitBtn?.querySelector('.btn-text');
@@ -590,10 +596,6 @@ function initRegistrationModal() {
           full_name: fullName,
           email: email,
           office: office,
-          dietary_pref: dietaryPref,
-          beer_pref: beerPref,
-          attire_option: attireOption,
-          shirt_size: shirtSize,
           notes: notes || null
         };
 

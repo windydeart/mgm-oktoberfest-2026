@@ -19,7 +19,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=25">
+  <link rel="stylesheet" href="./css/styles.css?v=26">
 </head>
 <body class="dark-theme">
 
@@ -1254,7 +1254,7 @@
   </footer>
 
   <!-- ═══════════════════════════════════════════════════════
-       REGISTRATION POP-UP MODAL (SUPABASE INTEGRATED)
+       REGISTRATION POP-UP MODAL (100% EXACT JOTFORM SYNC)
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="registrationModal">
     <div class="modal-content glass-card reg-modal-content">
@@ -1262,95 +1262,77 @@
         <i data-lucide="x"></i>
       </button>
 
-      <div class="reg-modal-header text-center">
-        <span class="pill-badge gold"><i data-lucide="ticket"></i> OFFICIAL REGISTRATION</span>
-        <h2 class="modal-title lowercase-brand">Join mgm <span class="font-oktoberfest">Oktoberfest</span> 2026</h2>
-        <p class="modal-subtitle">Confirm your attendance for Saturday, 19 Sep 2026 across Danang & HCMC offices!</p>
+      <div class="reg-modal-header">
+        <h2 class="modal-title lowercase-brand">mgm <span class="font-oktoberfest">Oktoberfest</span> 2026</h2>
       </div>
 
-      <!-- Native Form (Direct to Supabase) -->
+      <!-- Event Description Box (Exactly from JotForm) -->
+      <div class="jotform-event-info">
+        <p class="event-info-headline">Oktoberfest is calling!</p>
+        <p class="event-info-text">Get ready for an evening of authentic German vibes, delicious food, refreshing beer, fun games, and great people.</p>
+        
+        <div class="event-info-details">
+          <div class="info-row"><strong>Date:</strong> Saturday, 19 September 2026</div>
+          <div class="info-row"><strong>Time:</strong> 5:30 pm – 10 pm</div>
+          <div class="info-row"><strong>Venue:</strong></div>
+          <ul class="info-venue-list">
+            <li>Da Nang: mgm Office | 71 Quang Trung, Hải Châu Ward</li>
+            <li>Ho Chi Minh City: mgm Office | 195A Hai Bà Trưng, Xuân Hòa Ward</li>
+          </ul>
+        </div>
+
+        <p class="event-info-subtext">We can't wait to celebrate with you! Please reserve your spot by filling out the registration form below.</p>
+        <p class="event-info-rsvp">RSVP by Friday, 30 August 2026</p>
+      </div>
+
+      <!-- Native Form (Exact 4 Questions Matching JotForm) -->
       <form id="oktoberfestRegForm" class="reg-form" novalidate>
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="regFullName" class="form-label">Full Name <span class="req">*</span></label>
-            <input type="text" id="regFullName" name="full_name" class="form-input" placeholder="e.g. Nguyen Van A" required>
-          </div>
-          <div class="form-group">
-            <label for="regEmail" class="form-label">Work / mgm Email <span class="req">*</span></label>
-            <input type="email" id="regEmail" name="email" class="form-input" placeholder="name@mgm-tp.com" required>
+        <!-- Question 1: Your name -->
+        <div class="form-group">
+          <label class="form-label">Your name <span class="req">*</span></label>
+          <div class="form-row-3">
+            <div class="form-sub-field">
+              <input type="text" id="regFirstName" name="first_name" class="form-input" required>
+              <span class="sub-label">First Name</span>
+            </div>
+            <div class="form-sub-field">
+              <input type="text" id="regMiddleName" name="middle_name" class="form-input">
+              <span class="sub-label">Middle Name</span>
+            </div>
+            <div class="form-sub-field">
+              <input type="text" id="regLastName" name="last_name" class="form-input" required>
+              <span class="sub-label">Last Name</span>
+            </div>
           </div>
         </div>
 
+        <!-- Question 2: Your work email -->
         <div class="form-group">
-          <label class="form-label">Your Office Venue <span class="req">*</span></label>
-          <div class="office-selector-row">
-            <label class="office-radio-card">
+          <label for="regEmail" class="form-label">Your work email <span class="req">*</span></label>
+          <input type="email" id="regEmail" name="email" class="form-input" placeholder="name@mgm-tp.com" required>
+        </div>
+
+        <!-- Question 3: Which office will you attend the party at? -->
+        <div class="form-group">
+          <label class="form-label">Which office will you attend the party at? <span class="req">*</span></label>
+          <div class="jot-radio-group">
+            <label class="jot-radio-label">
               <input type="radio" name="office" value="danang" checked>
-              <div class="radio-card-body highlight-blue-border">
-                <i data-lucide="map-pin" class="radio-icon text-blue"></i>
-                <div class="radio-card-info">
-                  <strong class="lowercase-brand">mgm Danang</strong>
-                  <span>71 Quang Trung & 7 Phan Chau Trinh</span>
-                </div>
-              </div>
+              <span class="jot-radio-custom"></span>
+              <span class="jot-radio-text lowercase-brand">mgm Da Nang</span>
             </label>
-            <label class="office-radio-card">
+            <label class="jot-radio-label">
               <input type="radio" name="office" value="hcmc">
-              <div class="radio-card-body highlight-gold-border">
-                <i data-lucide="map-pin" class="radio-icon text-gold"></i>
-                <div class="radio-card-info">
-                  <strong class="lowercase-brand">mgm HCMC</strong>
-                  <span>195A Hai Ba Trung, District 3</span>
-                </div>
-              </div>
+              <span class="jot-radio-custom"></span>
+              <span class="jot-radio-text lowercase-brand">mgm Ho Chi Minh City</span>
             </label>
           </div>
         </div>
 
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="regDietary" class="form-label">Dietary Preference</label>
-            <select id="regDietary" name="dietary_pref" class="form-select">
-              <option value="Bavarian Feast" selected>🍖 Bavarian Feast (Pork knuckle, Bratwurst)</option>
-              <option value="Vegetarian">🥗 Vegetarian / Vegan</option>
-              <option value="No Pork / Halal">🥩 No Pork / Halal Options</option>
-              <option value="Other">🍽️ Other / Special</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="regBeer" class="form-label">Drink Preference</label>
-            <select id="regBeer" name="beer_pref" class="form-select">
-              <option value="German Craft Beer" selected>🍺 German Craft Beers</option>
-              <option value="Cider & Fruit Beer">🍎 Cider & Light Fruit Beer</option>
-              <option value="Non-Alcoholic">🥤 Non-Alcoholic / Soft Drinks</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="regAttire" class="form-label">Attire Plan</label>
-            <select id="regAttire" name="attire_option" class="form-select">
-              <option value="Casual / mgm Outfit" selected>👕 Casual / mgm Outfit</option>
-              <option value="Traditional Lederhosen / Dirndl">🥨 Traditional Lederhosen / Dirndl</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="regShirtSize" class="form-label">Souvenir Shirt Size</label>
-            <select id="regShirtSize" name="shirt_size" class="form-select">
-              <option value="S">Size S</option>
-              <option value="M">Size M</option>
-              <option value="L" selected>Size L</option>
-              <option value="XL">Size XL</option>
-              <option value="2XL">Size 2XL</option>
-              <option value="3XL">Size 3XL</option>
-            </select>
-          </div>
-        </div>
-
+        <!-- Question 4: Do you have other concerns? -->
         <div class="form-group">
-          <label for="regNotes" class="form-label">Special Notes / Message to Event Team</label>
-          <textarea id="regNotes" name="notes" class="form-textarea" rows="2" placeholder="Let us know if you have any questions, music requests, or special notes..."></textarea>
+          <label for="regNotes" class="form-label">Do you have other concerns?</label>
+          <textarea id="regNotes" name="notes" class="form-textarea" rows="3" placeholder=""></textarea>
         </div>
 
         <!-- Form Error / Feedback Box -->
@@ -1358,24 +1340,21 @@
 
         <div class="form-submit-row">
           <button type="submit" class="btn btn-hero-primary btn-submit-reg" id="submitRegBtn">
-            <span class="btn-text"><i data-lucide="check-circle-2"></i> Confirm Registration</span>
-            <span class="btn-spinner" style="display: none;"><i data-lucide="loader-2" class="spin-icon"></i> Registering...</span>
+            <span class="btn-text">Submit</span>
+            <span class="btn-spinner" style="display: none;"><i data-lucide="loader-2" class="spin-icon"></i> Submitting...</span>
           </button>
         </div>
       </form>
 
       <!-- Success State (Shown after registration) -->
       <div id="regSuccessState" class="reg-success-card text-center" style="display: none;">
-        <div class="success-icon-box">
-          <i data-lucide="sparkles"></i>
-        </div>
-        <h3 class="success-title">Prost! You're In! 🍻</h3>
-        <p class="success-desc">Thank you, <strong id="successGuestName">mgmie</strong>! Your registration for <strong>mgm Oktoberfest 2026</strong> has been confirmed.</p>
+        <h3 class="success-title">Thank You!</h3>
+        <p class="success-desc">Thank you, <strong id="successGuestName">mgmie</strong>! Your registration for <strong>mgm Oktoberfest 2026</strong> has been received.</p>
         <div class="success-actions">
           <button type="button" class="btn btn-hero-secondary" onclick="addToCalendar()">
-            <i data-lucide="calendar-plus"></i> Add Event to Calendar
+            Add Event to Calendar
           </button>
-          <button type="button" class="btn btn-ghost" id="closeSuccessModalBtn">
+          <button type="button" class="btn btn-hero-primary" id="closeSuccessModalBtn">
             Done
           </button>
         </div>
@@ -1413,6 +1392,6 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=7"></script>
+  <script src="./js/app.js?v=8"></script>
 </body>
 </html>

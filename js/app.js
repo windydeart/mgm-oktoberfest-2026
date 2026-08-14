@@ -7,7 +7,25 @@
    - Scroll Reveal Animations
    ═════════════════════════════════════════════════════════════════ */
 
+// 0. Disable browser automatic scroll restoration so page ALWAYS opens at Hero Section (Top)
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+window.addEventListener('pageshow', (e) => {
+  if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+  window.scrollTo(0, 0);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Always start at top on DOM ready
+  if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+  window.scrollTo(0, 0);
+
   // 1. Initialize Lucide Icons
   if (window.lucide) {
     lucide.createIcons();
@@ -23,27 +41,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 3. Mobile Navigation Toggle
+  // 3. Mobile Navigation Toggle & Smooth Scrolling
   const mobileToggle = document.getElementById('mobileToggle');
   const navMenu = document.getElementById('navMenu');
   if (mobileToggle && navMenu) {
     mobileToggle.addEventListener('click', () => {
       navMenu.classList.toggle('active');
     });
-
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', (e) => {
-        if (link.classList.contains('nav-link-minigame') || link.getAttribute('href') === '#minigame') {
-          e.preventDefault();
-          showComingSoonToast(
-            'Minigame Coming Soon! 🎮',
-            'Our Oktoberfest mini-game is currently under brewing. Stay tuned for exciting challenges and prizes!'
-          );
-        }
-        navMenu.classList.remove('active');
-      });
-    });
   }
+
+  // Smooth scroll handler for all internal anchor links (Prevents sticky hashes on reload)
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', (e) => {
+      const href = anchor.getAttribute('href');
+      if (!href || href === '#') return;
+
+      if (anchor.classList.contains('nav-link-minigame') || href === '#minigame') {
+        e.preventDefault();
+        showComingSoonToast(
+          'Minigame Coming Soon! 🎮',
+          'Our Oktoberfest mini-game is currently under brewing. Stay tuned for exciting challenges and prizes!'
+        );
+        if (navMenu) navMenu.classList.remove('active');
+        return;
+      }
+
+      if (anchor.classList.contains('open-reg-modal') || href === '#registration') {
+        if (navMenu) navMenu.classList.remove('active');
+        return;
+      }
+
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        const navHeight = document.getElementById('navbar')?.offsetHeight || 70;
+        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
+        if (navMenu) navMenu.classList.remove('active');
+      }
+    });
+  });
 
   // 4. Hero Beer Bubbles Canvas Animation
   initBeerBubbles();

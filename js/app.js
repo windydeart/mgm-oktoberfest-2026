@@ -32,7 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', () => {
+      link.addEventListener('click', (e) => {
+        if (link.classList.contains('nav-link-minigame') || link.getAttribute('href') === '#minigame') {
+          e.preventDefault();
+          showComingSoonToast(
+            'Minigame Coming Soon! 🎮',
+            'Our Oktoberfest mini-game is currently under brewing. Stay tuned for exciting challenges and prizes!'
+          );
+        }
         navMenu.classList.remove('active');
       });
     });
@@ -797,4 +804,49 @@ function initCharacterGreetings() {
     clearTimeout(timerHoa);
     clearTimeout(timerLoan);
   });
+}
+
+/* ─── TOAST NOTIFICATION SYSTEM (COMING SOON) ─── */
+function showComingSoonToast(title = 'Minigame Coming Soon! 🎮', message = 'Our Oktoberfest mini-game is currently under brewing. Stay tuned!') {
+  let toastContainer = document.getElementById('toastContainer');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toastContainer';
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-item toast-coming-soon';
+  toast.innerHTML = `
+    <div class="toast-icon-circle">
+      <i data-lucide="gamepad-2"></i>
+    </div>
+    <div class="toast-body">
+      <strong class="toast-title">${title}</strong>
+      <p class="toast-msg">${message}</p>
+    </div>
+    <button class="toast-close-btn" aria-label="Close">&times;</button>
+  `;
+
+  toastContainer.appendChild(toast);
+  if (window.lucide) window.lucide.createIcons();
+
+  // Animation in
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  const removeToast = () => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 350);
+  };
+
+  const closeBtn = toast.querySelector('.toast-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', removeToast);
+
+  // Auto dismiss after 4.5 seconds
+  setTimeout(removeToast, 4500);
 }

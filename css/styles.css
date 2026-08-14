@@ -361,6 +361,25 @@ h1, h2, h3, h4 {
   color: var(--text-gold);
 }
 
+.nav-link-minigame {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-badge-soon {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark));
+  color: #0b132b;
+  padding: 0.12rem 0.48rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  line-height: 1.2;
+}
+
 .mobile-toggle {
   display: none;
   color: #fff;
@@ -368,6 +387,103 @@ h1, h2, h3, h4 {
 .mobile-toggle i {
   width: 28px;
   height: 28px;
+}
+
+/* ─── TOAST NOTIFICATIONS (COMING SOON & ALERTS) ─── */
+.toast-container {
+  position: fixed;
+  top: 5.2rem;
+  right: 1.5rem;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+  max-width: 400px;
+  width: calc(100vw - 2.5rem);
+}
+
+@media (max-width: 600px) {
+  .toast-container {
+    top: 4.8rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+}
+
+.toast-item {
+  pointer-events: auto;
+  background: linear-gradient(145deg, rgba(16, 26, 56, 0.95), rgba(11, 19, 43, 0.98));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.2rem;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.2);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(-15px) scale(0.96);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast-item.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-amber);
+  flex-shrink: 0;
+}
+
+.toast-icon-circle i {
+  width: 20px;
+  height: 20px;
+}
+
+.toast-body {
+  flex: 1;
+}
+
+.toast-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.toast-msg {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.toast-close-btn:hover {
+  color: #fff;
 }
 
 /* ─── HERO SECTION ─── */

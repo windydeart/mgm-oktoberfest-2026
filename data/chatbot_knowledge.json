@@ -1,0 +1,118 @@
+{
+  "event": {
+    "name": "mgm Oktoberfest 2026",
+    "full_title": "mgm — Oktoberfest 2026",
+    "tagline": "Cheers to Memories — Unleash the Vibes",
+    "slogan": "O'zapft is!",
+    "description": "Annual Oktoberfest celebration exclusively for mgm technology partners Vietnam employees (mgmies). A night of Bavarian culture, craft beer, traditional food, live music, and unforgettable memories.",
+    "date": "Saturday, 19 September 2026",
+    "time": "5:00 PM — Late (approximately until 10:00 PM or later)",
+    "rsvp_deadline": "Friday, 30 August 2026",
+    "target_audience": "mgm technology partners Vietnam employees (mgmies) and team members"
+  },
+  "venues": [
+    {
+      "name": "mgm Da Nang",
+      "full_name": "mgm Danang Office & Terrace",
+      "address": "71 Quang Trung, Hai Chau District, Da Nang",
+      "secondary_address": "7 Phan Chau Trinh, Hai Chau District, Da Nang"
+    },
+    {
+      "name": "mgm Ho Chi Minh City",
+      "full_name": "mgm HCMC Lounge",
+      "address": "195A Hai Ba Trung, Ward 6, District 3, Ho Chi Minh City"
+    }
+  ],
+  "dress_code": {
+    "mandatory": false,
+    "note": "No mandatory dress code! Casual / mgm outfits are completely fine and welcome.",
+    "encouraged": "Traditional Bavarian attire is highly encouraged for the festive spirit.",
+    "options": [
+      {
+        "name": "Lederhosen",
+        "description": "Traditional Bavarian menswear — leather shorts with suspenders"
+      },
+      {
+        "name": "Dirndl",
+        "description": "Traditional Bavarian womenswear — elegant dress with apron"
+      },
+      {
+        "name": "Casual / mgm Outfit",
+        "description": "Comfortable and free — any casual attire or mgm branded clothing"
+      }
+    ]
+  },
+  "food_and_drinks": {
+    "beer": "Premium curated authentic German-style craft beers with cold fresh foam",
+    "food": [
+      "Schweinhaxe — Crispy pork knuckle, a Bavarian classic",
+      "Bratwurst — Grilled traditional German sausages",
+      "Warm Pretzels with specialty mustard"
+    ],
+    "note": "Authentic Bavarian feast featuring the finest German cuisine and craft beer selection"
+  },
+  "activities": [
+    "Live Music & High Energy performances from 5:00 PM till late",
+    "Beer stein holding challenges",
+    "Interactive mini-games and fun activities",
+    "Celebratory photo booth",
+    "In-browser Oktoberfest Minigame (coming soon)"
+  ],
+  "registration": {
+    "method": "Online registration via the event website",
+    "deadline": "Friday, 30 August 2026",
+    "fields": ["Your name (First, Middle, Last)", "Your work email", "Which office will you attend (mgm Da Nang or mgm Ho Chi Minh City)", "Any other concerns (optional)"],
+    "how_to": "Click the 'Register Now' button on the website or navigate to the Registration section to fill out the form."
+  },
+  "faq": [
+    {
+      "q": "Who can attend?",
+      "a": "The event is exclusively for mgm technology partners Vietnam employees (mgmies) and team members."
+    },
+    {
+      "q": "Is there a dress code?",
+      "a": "No mandatory dress code! You can wear anything comfortable. However, traditional Bavarian attire (Lederhosen or Dirndl) is highly encouraged to enhance the festive atmosphere."
+    },
+    {
+      "q": "How do I register?",
+      "a": "Click the 'Register Now' button on the website to fill out the registration form. You will need your name, work email, and preferred office location."
+    },
+    {
+      "q": "What is the registration deadline?",
+      "a": "The RSVP deadline is Friday, 30 August 2026. Make sure to register before this date!"
+    },
+    {
+      "q": "Where is the event held?",
+      "a": "The event takes place simultaneously at two locations: mgm Danang Office & Terrace (71 Quang Trung, Hai Chau District) and mgm HCMC Lounge (195A Hai Ba Trung, District 3)."
+    },
+    {
+      "q": "What time does the event start?",
+      "a": "The event starts at 5:00 PM on Saturday, 19 September 2026 and goes on until late."
+    },
+    {
+      "q": "Is there food and drinks?",
+      "a": "Yes! Enjoy premium German-style craft beers, crispy Schweinhaxe (pork knuckle), grilled Bratwurst sausages, warm pretzels with specialty mustard, and more."
+    },
+    {
+      "q": "What activities are planned?",
+      "a": "Live music performances, beer stein holding challenges, interactive mini-games, a photo booth, and more fun activities throughout the evening."
+    },
+    {
+      "q": "Can I attend at a different office than where I work?",
+      "a": "Please select the office where you plan to attend during registration. If you have special circumstances, contact the event team."
+    },
+    {
+      "q": "Who organizes the event?",
+      "a": "The event is organized by the mgm Vietnam marketing team. Contact vn_marketing@mgm-tp.com for any questions."
+    }
+  ],
+  "contact": {
+    "email": "vn_marketing@mgm-tp.com",
+    "team": ["Hoa Hoang", "Van Nguyen"],
+    "company": "mgm technology partners Vietnam"
+  },
+  "history": {
+    "past_seasons": ["2016", "2017", "2018", "2019", "2022", "2023"],
+    "note": "Over 62 curated memories from past Oktoberfest celebrations. Browse the Memories section on the website to relive the highlights."
+  }
+}

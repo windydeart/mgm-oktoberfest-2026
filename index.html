@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=28">
+  <link rel="stylesheet" href="./css/styles.css?v=29">
 </head>
 <body class="dark-theme">
 
@@ -1374,6 +1374,47 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════
+       CHATBOT WIDGET — BIERLY AI ASSISTANT
+       ═══════════════════════════════════════════════════════ -->
+  <!-- Chat FAB (Floating Action Button) -->
+  <button class="chat-fab" id="chatFab" aria-label="Open Bierly chatbot">
+    <i data-lucide="beer" class="chat-fab-icon"></i>
+    <i data-lucide="x" class="chat-fab-close"></i>
+  </button>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <div class="chat-avatar">🍺</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">Bierly</div>
+        <div class="chat-header-status">Oktoberfest AI Assistant</div>
+      </div>
+      <button class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-welcome">
+        <div class="chat-welcome-title">🍻 Prost!</div>
+        <div class="chat-welcome-sub">Hi! I'm Bierly, your Oktoberfest guide. Ask me anything about the event!</div>
+      </div>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="chat-chip" data-q="When is the event?">🗓️ When is the event?</button>
+      <button class="chat-chip" data-q="What should I wear?">👗 What should I wear?</button>
+      <button class="chat-chip" data-q="How do I register?">📝 How do I register?</button>
+      <button class="chat-chip" data-q="What food & drinks?">🍺 What food & drinks?</button>
+    </div>
+    <div class="chat-input-bar">
+      <textarea class="chat-input" id="chatInput" placeholder="Ask Bierly about the event..." rows="1"></textarea>
+      <button class="chat-send-btn" id="chatSendBtn" disabled aria-label="Send message">
+        <i data-lucide="send"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
        LIGHTBOX MODAL FOR GALLERY
        ═══════════════════════════════════════════════════════ -->
   <div class="lightbox-backdrop" id="lightbox">
@@ -1403,6 +1444,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=10"></script>
+  <script src="./js/app.js?v=11"></script>
 </body>
 </html>
+

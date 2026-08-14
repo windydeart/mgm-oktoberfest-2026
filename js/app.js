@@ -102,6 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 9. Character Greetings (Hoa & Loan Talk Frames)
   initCharacterGreetings();
+
+  // 10. Chatbot Widget (Bierly AI Assistant)
+  initChatbot();
 });
 
 /* ─── SCROLL REVEAL OBSERVER ─── */
@@ -935,4 +938,176 @@ function showComingSoonToast(title = 'Minigame Coming Soon! 🎮', message = 'Ou
 
   // Auto dismiss after 4.5 seconds
   setTimeout(removeToast, 4500);
+}
+
+/* ─── CHATBOT WIDGET — BIERLY AI ASSISTANT ─── */
+function initChatbot() {
+  const fab = document.getElementById('chatFab');
+  const panel = document.getElementById('chatPanel');
+  const closeBtn = document.getElementById('chatCloseBtn');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  const messagesEl = document.getElementById('chatMessages');
+  const suggestionsEl = document.getElementById('chatSuggestions');
+
+  if (!fab || !panel) return;
+
+  const conversationHistory = [];
+  let isWaiting = false;
+
+  // Determine API endpoint (local dev vs production)
+  const chatApiUrl = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? '/api/chat'
+    : '/api/chat';
+
+  // Toggle chat panel
+  function toggleChat() {
+    const isOpen = panel.classList.contains('open');
+    if (isOpen) {
+      panel.classList.remove('open');
+      fab.classList.remove('active');
+    } else {
+      panel.classList.add('open');
+      fab.classList.add('active');
+      if (input) input.focus();
+    }
+  }
+
+  fab.addEventListener('click', toggleChat);
+  if (closeBtn) closeBtn.addEventListener('click', toggleChat);
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('open')) {
+      toggleChat();
+    }
+  });
+
+  // Enable/disable send button based on input
+  if (input && sendBtn) {
+    input.addEventListener('input', () => {
+      sendBtn.disabled = input.value.trim().length === 0 || isWaiting;
+      // Auto-resize textarea
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+    });
+
+    // Send on Enter (Shift+Enter for new line)
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!sendBtn.disabled) handleSend();
+      }
+    });
+
+    sendBtn.addEventListener('click', handleSend);
+  }
+
+  // Suggestion chips
+  if (suggestionsEl) {
+    suggestionsEl.querySelectorAll('.chat-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const q = chip.getAttribute('data-q');
+        if (q) {
+          appendMessage('user', q);
+          sendToAI(q);
+          suggestionsEl.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  function handleSend() {
+    const text = input.value.trim();
+    if (!text || isWaiting) return;
+
+    appendMessage('user', text);
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    // Hide suggestions after first message
+    if (suggestionsEl) suggestionsEl.style.display = 'none';
+
+    sendToAI(text);
+  }
+
+  function appendMessage(role, text) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'chat-msg-avatar';
+    avatar.textContent = role === 'bot' ? '🍺' : '👤';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg-bubble';
+    bubble.textContent = text;
+
+    msgDiv.appendChild(avatar);
+    msgDiv.appendChild(bubble);
+    messagesEl.appendChild(msgDiv);
+
+    // Auto-scroll to bottom
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function showTyping() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-typing';
+    typingDiv.id = 'chatTyping';
+    typingDiv.innerHTML = `
+      <div class="chat-msg-avatar" style="background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark)); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">🍺</div>
+      <div class="chat-typing-dots"><span></span><span></span><span></span></div>
+    `;
+    messagesEl.appendChild(typingDiv);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function hideTyping() {
+    const t = document.getElementById('chatTyping');
+    if (t) t.remove();
+  }
+
+  async function sendToAI(userMessage) {
+    isWaiting = true;
+    sendBtn.disabled = true;
+    showTyping();
+
+    // Add to history
+    conversationHistory.push({ role: 'user', text: userMessage });
+
+    // Trim history to last 20 turns
+    const historyToSend = conversationHistory.slice(-20);
+
+    try {
+      const response = await fetch(chatApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          history: historyToSend.slice(0, -1) // exclude current message (already in 'message')
+        })
+      });
+
+      const data = await response.json();
+
+      hideTyping();
+
+      if (response.ok && data.reply) {
+        appendMessage('bot', data.reply);
+        conversationHistory.push({ role: 'model', text: data.reply });
+      } else {
+        const errMsg = data.error || 'Oops! Something went wrong. Please try again. 🍺';
+        appendMessage('bot', errMsg);
+      }
+    } catch (err) {
+      hideTyping();
+      appendMessage('bot', 'Could not connect to Bierly right now. Please try again later! 🍻');
+      console.error('Chatbot fetch error:', err);
+    }
+
+    isWaiting = false;
+    if (input.value.trim().length > 0) sendBtn.disabled = false;
+  }
 }

@@ -165,7 +165,10 @@ module.exports = async function handler(req, res) {
             temperature: 0.7,
             topP: 0.9,
             topK: 40,
-            maxOutputTokens: 512
+            maxOutputTokens: 2048,
+            thinkingConfig: {
+              thinkingBudget: 0
+            }
           }
         })
       });

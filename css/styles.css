@@ -592,45 +592,51 @@ h1, h2, h3, h4 {
   .hero-section {
     padding: 7rem 1.2rem 4rem;
   }
+  .countdown-flank-wrapper {
+    max-width: 580px;
+  }
   .countdown-container {
-    padding: 1.8rem 4rem;
+    padding: 1.6rem 3.8rem 1.4rem;
   }
   .countdown-flank.flank-left {
-    left: -20px;
+    left: -12px;
   }
   .countdown-flank.flank-right {
-    right: -20px;
+    right: -12px;
   }
   .flank-img {
-    height: 250px;
+    height: 230px;
   }
 }
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 6rem 1rem 3.5rem;
+    padding: 5.8rem 1rem 3.5rem;
   }
   .countdown-flank-wrapper {
     margin: 1rem auto 2rem;
-    padding: 0 0.5rem;
-    max-width: 520px;
+    padding: 0;
+    max-width: 440px;
   }
   .countdown-container {
-    padding: 1.4rem 2.8rem 1.1rem;
+    padding: 1.3rem 2.6rem 1.1rem;
   }
   .countdown-flank {
     display: block;
-    bottom: -12px;
+    bottom: -10px;
     z-index: 10;
   }
   .countdown-flank.flank-left {
-    left: -10px;
+    left: -8px;
   }
   .countdown-flank.flank-right {
-    right: -10px;
+    right: -8px;
   }
-  .flank-img {
-    height: 165px;
+  .flank-left .flank-img {
+    height: 160px;
+  }
+  .flank-right .flank-img {
+    height: 145px;
   }
   .character-speech-bubble {
     top: -36px;
@@ -641,80 +647,96 @@ h1, h2, h3, h4 {
 
 @media (max-width: 480px) {
   .hero-section {
-    padding: 5.2rem 0.65rem 3rem;
+    padding: 5.2rem 0.75rem 3rem;
   }
   .hero-title {
-    font-size: 1.75rem;
+    font-size: 1.65rem;
     line-height: 1.2;
-    margin: 0.8rem 0 0.5rem;
+    margin: 0.8rem 0 0.4rem;
   }
   .hero-subheading {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     letter-spacing: 0.3px;
   }
   .hero-description {
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     line-height: 1.45;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.4rem;
   }
   .countdown-flank-wrapper {
-    max-width: 360px;
+    width: calc(100% - 20px);
+    max-width: 320px;
     margin: 0.5rem auto 1.8rem;
-    padding: 0 0.2rem;
+    padding: 0;
   }
   .countdown-container {
-    padding: 1.1rem 1.2rem 0.9rem;
+    padding: 1rem 1.5rem 0.85rem;
     border-radius: 14px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
   }
   .countdown-header {
-    font-size: 0.8rem;
-    margin-bottom: 0.6rem;
+    font-size: 0.76rem;
+    margin-bottom: 0.5rem;
     gap: 0.3rem;
   }
   .countdown-flank.flank-left {
-    left: -8px;
-    bottom: -8px;
+    left: -14px;
+    bottom: -6px;
   }
   .countdown-flank.flank-right {
-    right: -8px;
-    bottom: -8px;
+    right: -10px;
+    bottom: -6px;
   }
-  .flank-img {
-    height: 125px;
+  .flank-left .flank-img {
+    height: 120px;
+  }
+  .flank-right .flank-img {
+    height: 108px;
   }
   .character-speech-bubble {
     top: -30px;
-    font-size: 0.68rem;
-    padding: 0.22rem 0.5rem;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.45rem;
   }
   .countdown-grid {
-    gap: 0.25rem;
+    gap: 0.15rem;
+    width: 100%;
+    justify-content: center;
   }
   .countdown-card {
-    min-width: 44px;
-    padding: 0.35rem 0.35rem;
+    min-width: 36px;
+    flex: 1 1 0;
+    max-width: 44px;
+    padding: 0.35rem 0.1rem;
     border-radius: 6px;
   }
   .count-num {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
+    line-height: 1.05;
   }
   .count-label {
-    font-size: 0.58rem;
-    margin-top: 0.15rem;
+    font-size: 0.54rem;
+    margin-top: 0.1rem;
+    letter-spacing: 0;
   }
   .count-colon {
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin: 0 -1px;
+    padding: 0;
   }
   .event-date-pill {
-    font-size: 0.74rem;
-    padding: 0.3rem 0.7rem;
-    margin-top: 0.7rem;
-    gap: 0.3rem;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.6rem;
+    margin-top: 0.65rem;
+    gap: 0.25rem;
   }
   .btn-hero-primary {
-    padding: 0.8rem 1.8rem;
-    font-size: 0.95rem;
+    padding: 0.75rem 1.6rem;
+    font-size: 0.92rem;
+  }
+  .btn-hero-secondary {
+    padding: 0.75rem 1.4rem;
+    font-size: 0.92rem;
   }
 }
 

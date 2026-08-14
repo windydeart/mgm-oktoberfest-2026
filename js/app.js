@@ -768,6 +768,36 @@ function initCharacterGreetings() {
   const bubbleHoa = document.getElementById('bubbleHoa');
   const bubbleLoan = document.getElementById('bubbleLoan');
 
+  const textHoaEl = bubbleHoa ? bubbleHoa.querySelector('.speech-text') : null;
+  const textLoanEl = bubbleLoan ? bubbleLoan.querySelector('.speech-text') : null;
+
+  // Danh sách câu chào xen kẽ (giữ 2 câu ban đầu ở đầu mảng)
+  const hoaQuotes = [
+    'Welcome to the event!',
+    'Chào mừng tới lễ hội bia lớn nhất! 🍻',
+    'Cùng nâng ly, cháy hết mình nào!',
+    'Chào bạn! Sẵn sàng nạp bia chưa?',
+    'Lễ hội bắt đầu, cạn ly!',
+    'Chào mừng quý khách tới Oktoberfest!',
+    'Chúc một đêm lễ hội tuyệt vời!',
+    'Đang khát ư? Vào đây nào!',
+    'Đừng ngại, nhập tiệc cùng chúng tôi!'
+  ];
+
+  const loanQuotes = [
+    "Can't wait to see you!",
+    'Grab a glass, join the party!',
+    'Cheers to cold beer!',
+    'Welcome to the beer fest!',
+    "Prost! Let’s drink and dance!",
+    'Step in, enjoy the finest brew!',
+    'Raise your steins, have a blast!',
+    'Ready for the best beer in town?',
+    'Grab a seat, the madness begins!'
+  ];
+
+  let hoaIndex = 0;
+  let loanIndex = 0;
   let timerHoa = null;
   let timerLoan = null;
 
@@ -779,28 +809,36 @@ function initCharacterGreetings() {
       clearTimeout(timerLoan);
 
       if (isActive) {
+        // Chuyển sang câu tiếp theo khi đang mở
+        hoaIndex = (hoaIndex + 1) % hoaQuotes.length;
+        if (textHoaEl) textHoaEl.textContent = hoaQuotes[hoaIndex];
         bubbleHoa.classList.remove('active');
-        clearTimeout(timerHoa);
-      } else {
+        void bubbleHoa.offsetWidth; // kích hoạt animation pop lại
         bubbleHoa.classList.add('active');
-        // Playful confetti burst
-        if (window.confetti) {
-          const rect = flankHoa.getBoundingClientRect();
-          window.confetti({
-            particleCount: 18,
-            spread: 45,
-            origin: {
-              x: (rect.left + rect.width / 2) / window.innerWidth,
-              y: (rect.top + 40) / window.innerHeight
-            },
-            colors: ['#f59e0b', '#fbbf24', '#ffffff']
-          });
-        }
-        clearTimeout(timerHoa);
-        timerHoa = setTimeout(() => {
-          bubbleHoa.classList.remove('active');
-        }, 4000);
+      } else {
+        if (textHoaEl) textHoaEl.textContent = hoaQuotes[hoaIndex];
+        hoaIndex = (hoaIndex + 1) % hoaQuotes.length;
+        bubbleHoa.classList.add('active');
       }
+
+      // Hiệu ứng pháo hoa giấy vui tươi
+      if (window.confetti) {
+        const rect = flankHoa.getBoundingClientRect();
+        window.confetti({
+          particleCount: 20,
+          spread: 50,
+          origin: {
+            x: (rect.left + rect.width / 2) / window.innerWidth,
+            y: (rect.top + 40) / window.innerHeight
+          },
+          colors: ['#f59e0b', '#fbbf24', '#ffffff']
+        });
+      }
+
+      clearTimeout(timerHoa);
+      timerHoa = setTimeout(() => {
+        bubbleHoa.classList.remove('active');
+      }, 4500);
     });
   }
 
@@ -812,28 +850,36 @@ function initCharacterGreetings() {
       clearTimeout(timerHoa);
 
       if (isActive) {
+        // Chuyển sang câu tiếp theo khi đang mở
+        loanIndex = (loanIndex + 1) % loanQuotes.length;
+        if (textLoanEl) textLoanEl.textContent = loanQuotes[loanIndex];
         bubbleLoan.classList.remove('active');
-        clearTimeout(timerLoan);
-      } else {
+        void bubbleLoan.offsetWidth; // kích hoạt animation pop lại
         bubbleLoan.classList.add('active');
-        // Playful confetti burst
-        if (window.confetti) {
-          const rect = flankLoan.getBoundingClientRect();
-          window.confetti({
-            particleCount: 18,
-            spread: 45,
-            origin: {
-              x: (rect.left + rect.width / 2) / window.innerWidth,
-              y: (rect.top + 40) / window.innerHeight
-            },
-            colors: ['#f59e0b', '#0284c7', '#ffffff']
-          });
-        }
-        clearTimeout(timerLoan);
-        timerLoan = setTimeout(() => {
-          bubbleLoan.classList.remove('active');
-        }, 4000);
+      } else {
+        if (textLoanEl) textLoanEl.textContent = loanQuotes[loanIndex];
+        loanIndex = (loanIndex + 1) % loanQuotes.length;
+        bubbleLoan.classList.add('active');
       }
+
+      // Hiệu ứng pháo hoa giấy vui tươi
+      if (window.confetti) {
+        const rect = flankLoan.getBoundingClientRect();
+        window.confetti({
+          particleCount: 20,
+          spread: 50,
+          origin: {
+            x: (rect.left + rect.width / 2) / window.innerWidth,
+            y: (rect.top + 40) / window.innerHeight
+          },
+          colors: ['#f59e0b', '#0284c7', '#ffffff']
+        });
+      }
+
+      clearTimeout(timerLoan);
+      timerLoan = setTimeout(() => {
+        bubbleLoan.classList.remove('active');
+      }, 4500);
     });
   }
 

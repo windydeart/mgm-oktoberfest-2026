@@ -888,6 +888,8 @@ h1, h2, h3, h4 {
   background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  user-select: none;
 }
 
 .gallery-item img {
@@ -903,13 +905,15 @@ h1, h2, h3, h4 {
 .gallery-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(11, 19, 43, 0.95) 0%, rgba(11, 19, 43, 0.3) 60%, transparent 100%);
-  padding: 1.5rem;
+  background: linear-gradient(to top, rgba(11, 19, 43, 0.8) 0%, rgba(11, 19, 43, 0.15) 35%, transparent 70%);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  align-items: flex-start;
   opacity: 0;
   transition: opacity var(--transition-normal);
+  pointer-events: none;
 }
 .gallery-item:hover .gallery-overlay {
   opacity: 1;
@@ -920,41 +924,20 @@ h1, h2, h3, h4 {
   background: var(--accent-amber);
   color: #0b132b;
   font-weight: 800;
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  margin-bottom: 0.5rem;
-}
-
-.gallery-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.3rem;
-}
-
-.gallery-desc {
   font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
-.gallery-zoom-btn {
-  align-self: flex-start;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.5px;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  color: #fff;
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--radius-full);
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: background var(--transition-fast);
 }
-.gallery-zoom-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
+
+/* Ẩn các thông tin chữ thừa (tiêu đề, tên file, nút zoom chữ) */
+.gallery-title,
+.gallery-desc,
+.gallery-zoom-btn {
+  display: none !important;
 }
 
 .slider-btn {

@@ -410,6 +410,19 @@ function initMemoriesSlider() {
     });
   });
 
+  // Gắn sự kiện click/tap cho toàn bộ khung ảnh để mở trực tiếp Lightbox Zoom
+  document.querySelectorAll('.gallery-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const img = item.querySelector('img');
+      const tag = item.querySelector('.gallery-tag');
+      const year = tag ? tag.textContent.trim() : '';
+      const caption = year ? `mgm Oktoberfest ${year}` : '';
+      if (img && (img.currentSrc || img.src)) {
+        openLightbox(img.currentSrc || img.src, caption);
+      }
+    });
+  });
+
   // Init position & controls
   updateControlsVisibility();
   updateSliderPosition();

@@ -139,59 +139,61 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Chatbot is temporarily unavailable. Please try again later.' });
   }
 
-  const modelName = 'gemini-2.5-flash';
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+  const candidateModels = [
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3.1-flash-lite'
+  ];
 
-  try {
-    const geminiResponse = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        contents: contents,
-        generationConfig: {
-          temperature: 0.7,
-          topP: 0.9,
-          topK: 40,
-          maxOutputTokens: 512
-        },
-        safetySettings: [
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
-        ]
-      })
-    });
+  let reply = null;
+  let lastError = null;
 
-    if (!geminiResponse.ok) {
-      const errBody = await geminiResponse.text();
-      console.error('Gemini API error:', geminiResponse.status, errBody);
-      return res.status(502).json({
-        error: 'Bierly đang bận chút xíu, thử lại sau nhé! 🍺'
+  for (const model of candidateModels) {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const geminiResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents: contents,
+          generationConfig: {
+            temperature: 0.7,
+            topP: 0.9,
+            topK: 40,
+            maxOutputTokens: 512
+          }
+        })
       });
+
+      if (!geminiResponse.ok) {
+        const errText = await geminiResponse.text();
+        console.warn(`Model ${model} failed with ${geminiResponse.status}: ${errText.slice(0, 100)}`);
+        lastError = errText;
+        continue; // Try next model
+      }
+
+      const data = await geminiResponse.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text && text.trim().length > 0) {
+        reply = text.trim();
+        break; // Success!
+      }
+    } catch (err) {
+      console.warn(`Error connecting to model ${model}:`, err.message);
+      lastError = err.message;
     }
-
-    const data = await geminiResponse.json();
-
-    // Extract text from response
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!reply) {
-      console.error('No reply from Gemini:', JSON.stringify(data));
-      return res.status(502).json({
-        error: 'Bierly không hiểu câu hỏi lắm, bạn thử hỏi lại nhé! 🤔'
-      });
-    }
-
-    return res.status(200).json({ reply: reply.trim() });
-
-  } catch (err) {
-    console.error('Chatbot error:', err);
-    return res.status(500).json({
-      error: 'Có lỗi xảy ra rồi. Bạn thử lại sau nhé! 🍺'
-    });
   }
+
+  if (reply) {
+    return res.status(200).json({ reply });
+  }
+
+  console.error('All Gemini models failed. Last error:', lastError);
+  return res.status(502).json({
+    error: 'Bierly đang bận chút xíu, bạn thử gửi lại câu hỏi nhé! 🍺'
+  });
 }

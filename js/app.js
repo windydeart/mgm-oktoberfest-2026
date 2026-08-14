@@ -1032,6 +1032,21 @@ function initChatbot() {
     sendToAI(text);
   }
 
+  function formatChatText(rawText) {
+    if (!rawText) return '';
+    // 1. Escape HTML entities
+    const escaped = rawText
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    // 2. Format **bold**
+    const bolded = escaped.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-gold); font-weight:700;">$1</strong>');
+    // 3. Format *italic*
+    const italicized = bolded.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // 4. Convert double newlines to paragraph breaks, single newlines to <br>
+    return italicized.replace(/\n\n/g, '<div style="height:8px;"></div>').replace(/\n/g, '<br>');
+  }
+
   function appendMessage(role, text) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-msg ${role}`;
@@ -1042,7 +1057,7 @@ function initChatbot() {
 
     const bubble = document.createElement('div');
     bubble.className = 'chat-msg-bubble';
-    bubble.textContent = text;
+    bubble.innerHTML = formatChatText(text);
 
     msgDiv.appendChild(avatar);
     msgDiv.appendChild(bubble);

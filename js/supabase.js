@@ -4,8 +4,8 @@
  */
 
 const SUPABASE_CONFIG = {
-  url: 'https://hxwuaxklrhfmzfnvwaez.supabase.co',
-  key: 'sb_publishable_2hS5dPOE3HEpGW_pPz3cIA_7Pjhuzve'
+  url: 'https://jijngdphviddhdtnyhwr.supabase.co',
+  key: 'sb_publishable_2hS5dPOE3HEpGW_pPz3cIA_7Pjhuzve' // Cần cập nhật Anon key của project jijngdphviddhdtnyhwr
 };
 
 let _supabaseClient = null;

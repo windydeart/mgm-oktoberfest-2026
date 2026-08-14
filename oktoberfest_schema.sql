@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- MGM OKTOBERFEST 2026 - SUPABASE DATABASE SCHEMA
 -- Run this script in your Supabase SQL Editor:
--- https://supabase.com/dashboard/project/hxwuaxklrhfmzfnvwaez/sql/new
+-- https://supabase.com/dashboard/project/jijngdphviddhdtnyhwr/sql/new
 -- ==============================================================================
 
 -- 1. Table: oktoberfest_registrations

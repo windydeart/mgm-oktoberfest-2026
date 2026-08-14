@@ -767,6 +767,9 @@ h1, h2, h3, h4 {
     border-radius: 9999px;
     border: 1px solid rgba(255, 255, 255, 0.16);
   }
+  .reg-cta-card {
+    padding: 2.8rem 1.25rem;
+  }
 }
 
 .countdown-header {
@@ -1486,12 +1489,35 @@ h1, h2, h3, h4 {
   margin-top: 2.5rem;
 }
 
-/* ─── REGISTRATION CTA CARD ─── */
+/* ─── REGISTRATION CTA CARD (WITH OKTOBERFEST WATERMARK PATTERN INSIDE) ─── */
 .reg-cta-card {
-  padding: 4rem 2rem;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-glow), var(--shadow-lg);
+  position: relative;
+  padding: 4.5rem 2.5rem;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.18), var(--shadow-lg);
   border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(16, 26, 56, 0.95), rgba(11, 19, 43, 0.98));
+}
+
+.reg-cta-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('../assets/images/oktoberfest_pattern.png');
+  background-repeat: repeat;
+  background-size: 380px 380px;
+  background-position: center center;
+  opacity: 0.085;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.4) 80%, rgba(0,0,0,0) 100%);
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.4) 80%, rgba(0,0,0,0) 100%);
+}
+
+.reg-cta-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .reg-action-wrapper {

@@ -1493,11 +1493,12 @@ h1, h2, h3, h4 {
 .reg-cta-card {
   position: relative;
   padding: 4.5rem 2.5rem;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  box-shadow: 0 0 35px rgba(245, 158, 11, 0.18), var(--shadow-lg);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(245, 158, 11, 0.1);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(145deg, rgba(16, 26, 56, 0.95), rgba(11, 19, 43, 0.98));
+  background: linear-gradient(145deg, rgba(8, 14, 28, 0.96), rgba(4, 8, 18, 0.98));
+  backdrop-filter: blur(20px);
 }
 
 .reg-cta-card::before {
@@ -1508,11 +1509,11 @@ h1, h2, h3, h4 {
   background-repeat: repeat;
   background-size: 380px 380px;
   background-position: center center;
-  opacity: 0.085;
+  opacity: 0.04;
   pointer-events: none;
   z-index: 0;
-  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.4) 80%, rgba(0,0,0,0) 100%);
-  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.4) 80%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0) 100%);
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0) 100%);
 }
 
 .reg-cta-card > * {

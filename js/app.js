@@ -774,14 +774,14 @@ function initCharacterGreetings() {
   // Danh sách câu chào xen kẽ (giữ 2 câu ban đầu ở đầu mảng)
   const hoaQuotes = [
     'Welcome to the event!',
-    'Chào mừng tới lễ hội bia lớn nhất! 🍻',
-    'Cùng nâng ly, cháy hết mình nào!',
-    'Chào bạn! Sẵn sàng nạp bia chưa?',
-    'Lễ hội bắt đầu, cạn ly!',
-    'Chào mừng quý khách tới Oktoberfest!',
-    'Chúc một đêm lễ hội tuyệt vời!',
-    'Đang khát ư? Vào đây nào!',
-    'Đừng ngại, nhập tiệc cùng chúng tôi!'
+    'Welcome to the biggest beer fest! 🍻',
+    "Raise your glass, let's party hard!",
+    'Hey there! Ready for some cold beer?',
+    'Nhậu đeee...!',
+    'Welcome to Oktoberfest!',
+    'Sẽ là một đêm lễ hội tuyệt vời',
+    'Feeling thirsty? Come on in!',
+    "Don't be shy, join the party!"
   ];
 
   const loanQuotes = [

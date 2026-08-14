@@ -410,8 +410,9 @@ function initMemoriesSlider() {
     });
   });
 
-  // Gắn sự kiện click/tap cho toàn bộ khung ảnh để mở trực tiếp Lightbox Zoom
+  // Gắn sự kiện click/tap cho toàn bộ khung ảnh để mở trực tiếp Lightbox Zoom (ngoại trừ thẻ video đã có handler riêng)
   document.querySelectorAll('.gallery-item').forEach(item => {
+    if (item.classList.contains('gallery-video-item')) return;
     item.addEventListener('click', () => {
       const img = item.querySelector('img');
       const tag = item.querySelector('.gallery-tag');
@@ -429,23 +430,62 @@ function initMemoriesSlider() {
   startTimer();
 }
 
-/* ─── LIGHTBOX MODAL ─── */
+/* ─── LIGHTBOX MODAL (PHOTO & VIDEO SUPPORT) ─── */
 function openLightbox(imgUrl, captionText) {
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxVideo = document.getElementById('lightboxVideo');
   const lightboxCaption = document.getElementById('lightboxCaption');
 
-  if (lightbox && lightboxImg) {
-    lightboxImg.src = imgUrl;
-    lightboxCaption.textContent = captionText || '';
+  if (lightbox) {
+    if (lightboxVideo) {
+      lightboxVideo.pause();
+      lightboxVideo.style.display = 'none';
+      lightboxVideo.src = '';
+    }
+    if (lightboxImg) {
+      lightboxImg.style.display = 'block';
+      lightboxImg.src = imgUrl;
+    }
+    if (lightboxCaption) {
+      lightboxCaption.textContent = captionText || '';
+    }
+    lightbox.classList.add('active');
+  }
+}
+
+function openVideoLightbox(videoUrl, captionText) {
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+
+  if (lightbox) {
+    if (lightboxImg) {
+      lightboxImg.style.display = 'none';
+      lightboxImg.src = '';
+    }
+    if (lightboxVideo) {
+      lightboxVideo.style.display = 'block';
+      lightboxVideo.src = videoUrl;
+      lightboxVideo.play().catch(() => {});
+    }
+    if (lightboxCaption) {
+      lightboxCaption.textContent = captionText || '';
+    }
     lightbox.classList.add('active');
   }
 }
 
 function closeLightbox() {
   const lightbox = document.getElementById('lightbox');
+  const lightboxVideo = document.getElementById('lightboxVideo');
   if (lightbox) {
     lightbox.classList.remove('active');
+    if (lightboxVideo) {
+      lightboxVideo.pause();
+      lightboxVideo.src = '';
+    }
   }
 }
 

@@ -19,7 +19,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=22">
+  <link rel="stylesheet" href="./css/styles.css?v=23">
 </head>
 <body class="dark-theme">
 
@@ -149,7 +149,7 @@
        ═══════════════════════════════════════════════════════ -->
   <section class="section memories-section" id="memories">
     <div class="section-container">
-      <div class="section-header reveal">
+      <div class="section-header text-center reveal">
         <span class="section-tag"><i data-lucide="history"></i> FLASHBACK <span class="font-oktoberfest">OKTOBERFEST</span></span>
         <h2 class="section-title lowercase-brand">Our mgm journey in memories</h2>
         <p class="section-subtitle">Smiles, clinking beer steins, and unforgettable moments shared with colleagues over the years.</p>
@@ -640,6 +640,21 @@
                   <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526236/oktoberfest/2019/DSC7039.webp', 'mgm Oktoberfest 2019 - DSC7039')">
                     <i data-lucide="maximize-2"></i> Zoom
                   </button>
+                </div>
+              </div>
+            </div>
+            <!-- 2022 Official Video Highlight (Cloudflare R2) -->
+            <div class="slider-item" data-category="2022">
+              <div class="gallery-item gallery-video-item" onclick="openVideoLightbox('https://pub-a8460b3580e04baf852732dbabcd7e00.r2.dev/videos/oktoberfest_2022.mp4', 'mgm Oktoberfest 2022 — Official Recap Video')">
+                <img src="https://pub-a8460b3580e04baf852732dbabcd7e00.r2.dev/videos/oktoberfest_2022_thumb.jpg" alt="mgm Oktoberfest 2022 - Official Video Highlight" loading="lazy">
+                <div class="video-play-badge">
+                  <div class="play-icon-circle">
+                    <i data-lucide="play"></i>
+                  </div>
+                  <span class="video-badge-text">Watch Video</span>
+                </div>
+                <div class="gallery-overlay">
+                  <span class="gallery-tag">2022 • Video</span>
                 </div>
               </div>
             </div>
@@ -1377,6 +1392,7 @@
     </button>
     <div class="lightbox-content">
       <img src="" id="lightboxImg" alt="Enlarged photo">
+      <video id="lightboxVideo" controls playsinline preload="metadata" style="display:none; max-width: 90vw; max-height: 75vh; border-radius: var(--radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85); width: 100%;"></video>
       <p class="lightbox-caption" id="lightboxCaption"></p>
     </div>
   </div>
@@ -1397,6 +1413,6 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=5"></script>
+  <script src="./js/app.js?v=7"></script>
 </body>
 </html>

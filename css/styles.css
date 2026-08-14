@@ -990,8 +990,9 @@ h1, h2, h3, h4 {
 .filter-bar {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 2.2rem;
+  margin-bottom: 2.5rem;
   overflow-x: auto;
   padding: 0.4rem 0.2rem 0.6rem;
   scrollbar-width: none; /* Firefox */
@@ -1003,6 +1004,14 @@ h1, h2, h3, h4 {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .filter-bar {
+    justify-content: flex-start;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 }
 
 .filter-tab {
@@ -1087,6 +1096,68 @@ h1, h2, h3, h4 {
 }
 .gallery-item:hover .gallery-overlay {
   opacity: 1;
+}
+
+/* ─── VIDEO HIGHLIGHT CARD IN MEMORIES SLIDER ─── */
+.gallery-video-item {
+  position: relative;
+}
+
+.video-play-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  z-index: 5;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.play-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b132b;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.65), 0 0 20px rgba(245, 158, 11, 0.6);
+  transition: all var(--transition-fast);
+}
+
+.play-icon-circle i {
+  width: 26px;
+  height: 26px;
+  margin-left: 3px;
+  stroke: #0b132b;
+  fill: #0b132b;
+}
+
+.video-badge-text {
+  background: rgba(11, 19, 43, 0.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.gallery-video-item:hover .video-play-badge {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.gallery-video-item:hover .play-icon-circle {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 30px rgba(245, 158, 11, 0.9);
 }
 
 .gallery-tag {

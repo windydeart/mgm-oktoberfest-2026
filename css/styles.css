@@ -980,10 +980,9 @@ h1, h2, h3, h4 {
 .section-subtitle {
   font-size: 1.1rem;
   color: var(--text-muted);
-  max-width: 680px;
-}
-.section-header.text-center .section-subtitle {
+  max-width: 860px;
   margin: 0 auto;
+  text-wrap: balance;
 }
 
 /* ─── MEMORIES SLIDER (AUTO 4s) ─── */
@@ -1570,6 +1569,11 @@ h1, h2, h3, h4 {
   overflow: hidden;
   background: linear-gradient(145deg, rgba(12, 20, 44, 0.96), rgba(8, 14, 32, 0.98));
   backdrop-filter: blur(20px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .reg-cta-card::before {
@@ -1592,8 +1596,24 @@ h1, h2, h3, h4 {
   z-index: 1;
 }
 
+.reg-cta-card .section-tag {
+  margin-bottom: 0.8rem;
+}
+
+.reg-cta-card .section-title {
+  margin-bottom: 0.8rem;
+}
+
+.reg-cta-card .section-subtitle {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
 .reg-action-wrapper {
   margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 /* ─── POP-UP REGISTRATION MODAL (SUPABASE INTEGRATED) ─── */

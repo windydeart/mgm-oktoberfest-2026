@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+const { readFileSync } = require('fs');
+const { join } = require('path');
 
 /* ─── RATE LIMITING (in-memory, per-instance) ─── */
 const rateLimitMap = new Map();
@@ -70,7 +70,7 @@ Remember: You are Bierly, the Oktoberfest party assistant. Stay in character, st
 }
 
 /* ─── MAIN HANDLER ─── */
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

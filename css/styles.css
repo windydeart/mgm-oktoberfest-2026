@@ -475,13 +475,34 @@ h1, h2, h3, h4 {
 
 .countdown-container {
   position: relative;
-  background: var(--card-bg);
+  background: linear-gradient(145deg, rgba(16, 26, 56, 0.88), rgba(11, 19, 43, 0.92));
   border: 1px solid var(--card-border);
   backdrop-filter: blur(16px);
   border-radius: var(--radius-lg);
   padding: 1.8rem 7rem;
   box-shadow: var(--shadow-glow), var(--shadow-lg);
   z-index: 5;
+  overflow: hidden;
+}
+
+.countdown-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('../assets/images/oktoberfest_pattern.png');
+  background-repeat: repeat;
+  background-size: 340px 340px;
+  background-position: center center;
+  opacity: 0.055;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%);
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%);
+}
+
+.countdown-container > * {
+  position: relative;
+  z-index: 1;
 }
 
 .countdown-flank {

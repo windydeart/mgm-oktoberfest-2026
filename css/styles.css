@@ -1800,6 +1800,54 @@ h1, h2, h3, h4 {
   scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
 }
 
+/* ─── JOTFORM EMBED MODAL ─── */
+.reg-modal-content.jotform-modal-content {
+  max-width: 780px;
+  width: 95%;
+  height: 92vh;
+  max-height: 880px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(12, 20, 44, 0.98), rgba(8, 14, 32, 0.99));
+}
+
+.jotform-modal-content .modal-close {
+  top: 14px;
+  right: 16px;
+  z-index: 20;
+  background: rgba(11, 19, 43, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.jotform-iframe-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.jotform-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .reg-modal-content.jotform-modal-content {
+    width: 100%;
+    height: 95vh;
+    max-height: 95vh;
+    border-radius: var(--radius-md);
+  }
+}
+
 .reg-modal-content::before {
   content: '';
   position: absolute;

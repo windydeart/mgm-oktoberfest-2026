@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=33">
+  <link rel="stylesheet" href="./css/styles.css?v=34">
 </head>
 <body class="dark-theme">
 
@@ -511,110 +511,26 @@
   </footer>
 
   <!-- ═══════════════════════════════════════════════════════
-       REGISTRATION POP-UP MODAL (100% EXACT JOTFORM SYNC)
+       REGISTRATION POP-UP MODAL (JOTFORM IFRAME EMBED)
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="registrationModal">
-    <div class="modal-content glass-card reg-modal-content">
+    <div class="modal-content glass-card reg-modal-content jotform-modal-content">
       <button class="modal-close" id="closeRegModalBtn" aria-label="Close Registration Form">
         <i data-lucide="x"></i>
       </button>
 
-      <div class="reg-modal-header">
-        <h2 class="modal-title lowercase-brand">mgm <span class="font-oktoberfest">Oktoberfest</span> 2026</h2>
-      </div>
-
-      <!-- Event Description Box (Exactly from JotForm) -->
-      <div class="jotform-event-info">
-        <p class="event-info-headline">Oktoberfest is calling!</p>
-        <p class="event-info-text">Get ready for an evening of authentic German vibes, delicious food, refreshing beer, fun games, and great people.</p>
-        
-        <div class="event-info-details">
-          <div class="info-row"><strong>Date:</strong> Saturday, 19 September 2026</div>
-          <div class="info-row"><strong>Time:</strong> 5:30 pm – 10 pm</div>
-          <div class="info-row"><strong>Venue:</strong></div>
-          <ul class="info-venue-list">
-            <li>Da Nang: mgm Office | 71 Quang Trung, Hải Châu Ward</li>
-            <li>Ho Chi Minh City: mgm Office | 195A Hai Bà Trưng, Xuân Hòa Ward</li>
-          </ul>
-        </div>
-
-        <p class="event-info-subtext">We can't wait to celebrate with you! Please reserve your spot by filling out the registration form below.</p>
-        <p class="event-info-rsvp">RSVP by Friday, 30 August 2026</p>
-      </div>
-
-      <!-- Native Form (Exact 4 Questions Matching JotForm) -->
-      <form id="oktoberfestRegForm" class="reg-form" novalidate>
-        <!-- Question 1: Your name -->
-        <div class="form-group">
-          <label class="form-label">Your name <span class="req">*</span></label>
-          <div class="form-row-3">
-            <div class="form-sub-field">
-              <input type="text" id="regFirstName" name="first_name" class="form-input" required>
-              <span class="sub-label">First Name</span>
-            </div>
-            <div class="form-sub-field">
-              <input type="text" id="regMiddleName" name="middle_name" class="form-input">
-              <span class="sub-label">Middle Name</span>
-            </div>
-            <div class="form-sub-field">
-              <input type="text" id="regLastName" name="last_name" class="form-input" required>
-              <span class="sub-label">Last Name</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Question 2: Your work email -->
-        <div class="form-group">
-          <label for="regEmail" class="form-label">Your work email <span class="req">*</span></label>
-          <input type="email" id="regEmail" name="email" class="form-input" placeholder="name@mgm-tp.com" required>
-        </div>
-
-        <!-- Question 3: Which office will you attend the party at? -->
-        <div class="form-group">
-          <label class="form-label">Which office will you attend the party at? <span class="req">*</span></label>
-          <div class="jot-radio-group">
-            <label class="jot-radio-label">
-              <input type="radio" name="office" value="danang" checked>
-              <span class="jot-radio-custom"></span>
-              <span class="jot-radio-text lowercase-brand">mgm Da Nang</span>
-            </label>
-            <label class="jot-radio-label">
-              <input type="radio" name="office" value="hcmc">
-              <span class="jot-radio-custom"></span>
-              <span class="jot-radio-text lowercase-brand">mgm Ho Chi Minh City</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Question 4: Do you have other concerns? -->
-        <div class="form-group">
-          <label for="regNotes" class="form-label">Do you have other concerns?</label>
-          <textarea id="regNotes" name="notes" class="form-textarea" rows="3" placeholder=""></textarea>
-        </div>
-
-        <!-- Form Error / Feedback Box -->
-        <div id="regFormFeedback" class="form-feedback-box" style="display: none;"></div>
-
-        <div class="form-submit-row">
-          <button type="submit" class="btn btn-hero-primary btn-submit-reg" id="submitRegBtn">
-            <span class="btn-text">Submit</span>
-            <span class="btn-spinner" style="display: none;"><i data-lucide="loader-2" class="spin-icon"></i> Submitting...</span>
-          </button>
-        </div>
-      </form>
-
-      <!-- Success State (Shown after registration) -->
-      <div id="regSuccessState" class="reg-success-card text-center" style="display: none;">
-        <h3 class="success-title">Thank You!</h3>
-        <p class="success-desc">Thank you, <strong id="successGuestName">mgmie</strong>! Your registration for <strong>mgm Oktoberfest 2026</strong> has been received.</p>
-        <div class="success-actions">
-          <button type="button" class="btn btn-hero-secondary" onclick="addToCalendar()">
-            Add Event to Calendar
-          </button>
-          <button type="button" class="btn btn-hero-primary" id="closeSuccessModalBtn">
-            Done
-          </button>
-        </div>
+      <div class="jotform-iframe-container">
+        <iframe
+          id="JotFormIFrame-262091577915061"
+          title="mgm Oktoberfest 2026 Registration"
+          allowtransparency="true"
+          allow="geolocation; microphone; camera; fullscreen"
+          src="https://form.jotform.com/262091577915061"
+          frameborder="0"
+          class="jotform-iframe"
+          scrolling="yes"
+        >
+        </iframe>
       </div>
     </div>
   </div>
@@ -689,7 +605,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=15"></script>
+  <script src="./js/app.js?v=16"></script>
 </body>
 </html>
 

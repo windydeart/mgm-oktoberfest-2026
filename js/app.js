@@ -455,31 +455,12 @@ function closeLightbox() {
   }
 }
 
-/* ─── POP-UP REGISTRATION MODAL (SUPABASE CONNECTED) ─── */
+/* ─── POP-UP REGISTRATION MODAL (JOTFORM EMBED) ─── */
 function initRegistrationModal() {
   const regModal = document.getElementById('registrationModal');
   const closeRegBtn = document.getElementById('closeRegModalBtn');
-  const closeSuccessBtn = document.getElementById('closeSuccessModalBtn');
-  const regForm = document.getElementById('oktoberfestRegForm');
-  const successState = document.getElementById('regSuccessState');
-  const feedbackBox = document.getElementById('regFormFeedback');
-  const submitBtn = document.getElementById('submitRegBtn');
-  const successGuestName = document.getElementById('successGuestName');
 
   if (!regModal) return;
-
-  const showFeedback = (msg, isError = true) => {
-    if (!feedbackBox) return;
-    feedbackBox.textContent = msg;
-    feedbackBox.className = `form-feedback-box ${isError ? 'error' : 'success'}`;
-    feedbackBox.style.display = 'block';
-  };
-
-  const clearFeedback = () => {
-    if (!feedbackBox) return;
-    feedbackBox.style.display = 'none';
-    feedbackBox.textContent = '';
-  };
 
   const openModal = () => {
     regModal.classList.add('active');
@@ -490,12 +471,6 @@ function initRegistrationModal() {
   const closeModal = () => {
     regModal.classList.remove('active');
     document.body.style.overflow = '';
-    // Reset states after animation
-    setTimeout(() => {
-      if (regForm) regForm.style.display = 'flex';
-      if (successState) successState.style.display = 'none';
-      clearFeedback();
-    }, 300);
   };
 
   document.querySelectorAll('.open-reg-modal').forEach(btn => {
@@ -506,7 +481,6 @@ function initRegistrationModal() {
   });
 
   if (closeRegBtn) closeRegBtn.addEventListener('click', closeModal);
-  if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeModal);
 
   regModal.addEventListener('click', (e) => {
     if (e.target === regModal) closeModal();
@@ -515,111 +489,6 @@ function initRegistrationModal() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && regModal.classList.contains('active')) closeModal();
   });
-
-  // Handle Form Submission
-  if (regForm) {
-    regForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearFeedback();
-
-      const firstName = (document.getElementById('regFirstName')?.value || '').trim();
-      const middleName = (document.getElementById('regMiddleName')?.value || '').trim();
-      const lastName = (document.getElementById('regLastName')?.value || '').trim();
-      const email = (document.getElementById('regEmail')?.value || '').trim().toLowerCase();
-      const office = regForm.querySelector('input[name="office"]:checked')?.value || 'danang';
-      const notes = (document.getElementById('regNotes')?.value || '').trim();
-
-      // Validation
-      if (!firstName) {
-        showFeedback('Please enter your First Name.');
-        document.getElementById('regFirstName')?.focus();
-        return;
-      }
-
-      if (!lastName) {
-        showFeedback('Please enter your Last Name.');
-        document.getElementById('regLastName')?.focus();
-        return;
-      }
-
-      if (!email || !email.includes('@')) {
-        showFeedback('Please enter a valid work email address (e.g. name@mgm-tp.com).');
-        document.getElementById('regEmail')?.focus();
-        return;
-      }
-
-      const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
-
-      // Set Loading State
-      const btnText = submitBtn?.querySelector('.btn-text');
-      const btnSpinner = submitBtn?.querySelector('.btn-spinner');
-      if (submitBtn) submitBtn.disabled = true;
-      if (btnText) btnText.style.display = 'none';
-      if (btnSpinner) btnSpinner.style.display = 'inline-flex';
-
-      try {
-        const payload = {
-          full_name: fullName,
-          email: email,
-          office: office,
-          notes: notes || null
-        };
-
-        const result = window.OktoberfestDB 
-          ? await window.OktoberfestDB.submitRegistration(payload)
-          : { success: false, error: 'Database service not initialized' };
-
-        if (!result.success) {
-          showFeedback(result.error || 'Không thể lưu đăng ký. Vui lòng thử lại sau.');
-          if (submitBtn) submitBtn.disabled = false;
-          if (btnText) btnText.style.display = 'inline-flex';
-          if (btnSpinner) btnSpinner.style.display = 'none';
-          return;
-        }
-
-        // Success!
-        if (successGuestName) successGuestName.textContent = fullName;
-        regForm.style.display = 'none';
-        if (successState) {
-          successState.style.display = 'block';
-          if (window.lucide) window.lucide.createIcons();
-        }
-
-        // Celebratory Confetti!
-        if (typeof confetti === 'function') {
-          confetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#f59e0b', '#0284c7', '#ffffff', '#e11d48']
-          });
-          setTimeout(() => {
-            confetti({
-              particleCount: 50,
-              angle: 60,
-              spread: 55,
-              origin: { x: 0 }
-            });
-            confetti({
-              particleCount: 50,
-              angle: 120,
-              spread: 55,
-              origin: { x: 1 }
-            });
-          }, 300);
-        }
-
-        regForm.reset();
-      } catch (err) {
-        console.error('Registration submission error:', err);
-        showFeedback('Đã có lỗi xảy ra trong quá trình gửi. Vui lòng thử lại.');
-      } finally {
-        if (submitBtn) submitBtn.disabled = false;
-        if (btnText) btnText.style.display = 'inline-flex';
-        if (btnSpinner) btnSpinner.style.display = 'none';
-      }
-    });
-  }
 }
 
 /* ─── ADD TO CALENDAR (UNIVERSAL ICS & GOOGLE CALENDAR) ─── */

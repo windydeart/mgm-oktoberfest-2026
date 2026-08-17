@@ -44,19 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Mobile Navigation Toggle & Smooth Scrolling
   const mobileToggle = document.getElementById('mobileToggle');
   const navMenu = document.getElementById('navMenu');
-
-  function closeMobileMenu() {
-    if (navMenu && navMenu.classList.contains('active')) {
-      navMenu.classList.remove('active');
-      if (mobileToggle) {
-        mobileToggle.classList.remove('active');
-        mobileToggle.innerHTML = '<i data-lucide="menu"></i>';
-        if (window.lucide) window.lucide.createIcons();
-      }
-    }
-  }
-
   if (mobileToggle && navMenu) {
+    const closeMobileMenu = () => {
+      navMenu.classList.remove('active');
+      mobileToggle.classList.remove('active');
+      mobileToggle.innerHTML = '<i data-lucide="menu"></i>';
+      if (window.lucide) window.lucide.createIcons();
+    };
+
     mobileToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       const isActive = navMenu.classList.toggle('active');
@@ -65,53 +60,48 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) window.lucide.createIcons();
     });
 
+    // Close on outside click
     document.addEventListener('click', (e) => {
-      if (navMenu.classList.contains('active') && navbar && !navbar.contains(e.target)) {
+      if (!navMenu.contains(e.target) && !mobileToggle.contains(e.target)) {
         closeMobileMenu();
       }
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && navMenu.classList.contains('active')) {
-        closeMobileMenu();
-      }
+    // Smooth scroll handler for all internal anchor links (Prevents sticky hashes on reload)
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        const href = anchor.getAttribute('href');
+        if (!href || href === '#') return;
+
+        if (anchor.classList.contains('nav-link-minigame') || href === '#minigame') {
+          e.preventDefault();
+          showComingSoonToast(
+            'Minigame Coming Soon! 🎮',
+            'Our Oktoberfest mini-game is currently under brewing. Stay tuned for exciting challenges and prizes!'
+          );
+          closeMobileMenu();
+          return;
+        }
+
+        if (anchor.classList.contains('open-reg-modal') || href === '#registration') {
+          closeMobileMenu();
+          return;
+        }
+
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          const navHeight = document.getElementById('navbar')?.offsetHeight || 70;
+          const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
+          closeMobileMenu();
+        }
+      });
     });
   }
-
-  // Smooth scroll handler for all internal anchor links (Prevents sticky hashes on reload)
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', (e) => {
-      const href = anchor.getAttribute('href');
-      if (!href || href === '#') return;
-
-      if (anchor.classList.contains('nav-link-minigame') || href === '#minigame') {
-        e.preventDefault();
-        showComingSoonToast(
-          'Minigame Coming Soon! 🎮',
-          'Our Oktoberfest mini-game is currently under brewing. Stay tuned for exciting challenges and prizes!'
-        );
-        closeMobileMenu();
-        return;
-      }
-
-      if (anchor.classList.contains('open-reg-modal') || href === '#registration') {
-        closeMobileMenu();
-        return;
-      }
-
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        const navHeight = document.getElementById('navbar')?.offsetHeight || 70;
-        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
-        window.scrollTo({
-          top: targetPosition,
-          behavior: 'smooth'
-        });
-        closeMobileMenu();
-      }
-    });
-  });
 
   // 4. Hero Beer Bubbles Canvas Animation
   initBeerBubbles();

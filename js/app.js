@@ -515,7 +515,7 @@ function initVenueMapModal() {
     },
     hcmc: {
       title: 'mgm HCMC Office',
-      address: '195A Hai Ba Trung, Xuan Hoa Ward, District 3, HCMC',
+      address: '195A Hai Ba Trung, Xuan Hoa Ward, HCMC',
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+195A+Hai+Ba+Trung,+Ho+Chi+Minh&t=&z=16&ie=UTF8&iwloc=&output=embed',
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+195A+Hai+Ba+Trung,+Ho+Chi+Minh'
     }

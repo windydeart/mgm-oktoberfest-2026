@@ -3,4 +3,7 @@
 .system_generated
 __pycache__/
 venv/
+.env
+.env.*
 .env.local
+*.env

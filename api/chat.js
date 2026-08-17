@@ -92,12 +92,31 @@ ${knowledgeJSON}
 Remember: You are Bierly. Always detect the user's language and reply in the EXACT same language (German ➔ German, English ➔ English, Vietnamese ➔ Vietnamese)! 🍻`;
 }
 
+/* ─── BOT USER-AGENT BLOCKLIST ─── */
+const BOT_UA_PATTERNS = [
+  /sqlmap/i,
+  /nikto/i,
+  /masscan/i,
+  /nmap/i,
+  /zgrab/i,
+  /gobuster/i,
+  /dirbuster/i,
+  /scrapy/i,
+  /wprecon/i
+];
+
+function isSuspiciousBot(ua) {
+  if (!ua || typeof ua !== 'string') return true;
+  return BOT_UA_PATTERNS.some(regex => regex.test(ua));
+}
+
 /* ─── MAIN HANDLER ─── */
 module.exports = async function handler(req, res) {
-  // CORS headers
+  // CORS & Security headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -107,7 +126,27 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limiting
+  // 1. Anti-Bot: User-Agent check
+  const userAgent = req.headers['user-agent'] || '';
+  if (isSuspiciousBot(userAgent)) {
+    return res.status(403).json({ error: 'Access denied: Automated request detected.' });
+  }
+
+  // 2. Anti-Abuse: Origin / Referer validation (permit same-origin, vercel previews, localhost, and direct clients)
+  const origin = req.headers['origin'] || req.headers['referer'] || '';
+  if (origin) {
+    const isAllowedOrigin = 
+      origin.includes('vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.includes('mgm-tp.com') ||
+      origin.includes('oktoberfest');
+    if (!isAllowedOrigin) {
+      return res.status(403).json({ error: 'Unauthorized origin.' });
+    }
+  }
+
+  // 3. Rate limiting (per IP)
   const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
     || req.headers['x-real-ip']
     || req.socket?.remoteAddress
@@ -119,7 +158,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // Validate request body
+  // 4. Validate request body
   const { message, history } = req.body || {};
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {

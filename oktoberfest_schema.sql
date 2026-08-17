@@ -47,8 +47,8 @@ ALTER TABLE public.oktoberfest_registrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oktoberfest_game_scores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oktoberfest_lucky_draw ENABLE ROW LEVEL SECURITY;
 
--- 5. RLS Policies:
--- Allow public anon users to register
+-- 5. RLS Policies (Privacy-First Security):
+-- Allow public anon users to submit registration
 DROP POLICY IF EXISTS "Public can submit registration" ON public.oktoberfest_registrations;
 CREATE POLICY "Public can submit registration" 
 ON public.oktoberfest_registrations 
@@ -56,13 +56,39 @@ FOR INSERT
 TO anon, authenticated 
 WITH CHECK (true);
 
--- Allow public anon users to read registration stats or check their own status
+-- SECURE PRIVACY: Do NOT allow anonymous users to dump all attendee personal info (emails, names).
+-- Only authenticated admins or service roles can read full registration rows.
 DROP POLICY IF EXISTS "Public can read registrations" ON public.oktoberfest_registrations;
 CREATE POLICY "Public can read registrations" 
 ON public.oktoberfest_registrations 
 FOR SELECT 
-TO anon, authenticated 
+TO authenticated 
 USING (true);
+
+-- Provide a safe SECURITY DEFINER function to fetch attendee counts without exposing PII
+CREATE OR REPLACE FUNCTION public.get_oktoberfest_stats()
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  total_count INT;
+  danang_count INT;
+  hcmc_count INT;
+BEGIN
+  SELECT COUNT(*) INTO total_count FROM public.oktoberfest_registrations;
+  SELECT COUNT(*) INTO danang_count FROM public.oktoberfest_registrations WHERE office = 'danang';
+  SELECT COUNT(*) INTO hcmc_count FROM public.oktoberfest_registrations WHERE office = 'hcmc';
+  RETURN json_build_object(
+    'total', total_count,
+    'danang', danang_count,
+    'hcmc', hcmc_count
+  );
+END;
+$$;
+
+-- Allow public to execute stats function
+GRANT EXECUTE ON FUNCTION public.get_oktoberfest_stats() TO anon, authenticated;
 
 -- Allow public anon users to submit and read game scores
 DROP POLICY IF EXISTS "Public can submit scores" ON public.oktoberfest_game_scores;

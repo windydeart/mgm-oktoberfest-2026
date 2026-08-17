@@ -203,14 +203,18 @@ module.exports = async function handler(req, res) {
   }
 
   const candidateModels = [
-    'gemini-2.5-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-3.6-flash',
+    'gemini-3.7-flash',
     'gemini-flash-latest',
-    'gemini-2.5-flash-lite',
+    'gemini-flash-lite-latest',
     'gemini-pro-latest'
   ];
 
   let reply = null;
   let lastError = null;
+  let isRateLimitedByGoogle = false;
 
   for (const model of candidateModels) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -227,16 +231,16 @@ module.exports = async function handler(req, res) {
             temperature: 0.7,
             topP: 0.9,
             topK: 40,
-            maxOutputTokens: 2048,
-            thinkingConfig: {
-              thinkingBudget: 0
-            }
+            maxOutputTokens: 2048
           }
         })
       });
 
       if (!geminiResponse.ok) {
         const errText = await geminiResponse.text();
+        if (geminiResponse.status === 429) {
+          isRateLimitedByGoogle = true;
+        }
         console.warn(`Model ${model} failed with ${geminiResponse.status}: ${errText.slice(0, 100)}`);
         lastError = errText;
         continue; // Try next model
@@ -256,6 +260,12 @@ module.exports = async function handler(req, res) {
 
   if (reply) {
     return res.status(200).json({ reply });
+  }
+
+  if (isRateLimitedByGoogle) {
+    return res.status(429).json({
+      error: 'Bierly đang nhận được nhiều câu hỏi cùng lúc, bạn đợi vài giây rồi hỏi lại nhé! 🍺'
+    });
   }
 
   console.error('All Gemini models failed. Last error:', lastError);

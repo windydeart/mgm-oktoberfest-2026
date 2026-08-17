@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=34">
+  <link rel="stylesheet" href="./css/styles.css?v=35">
 </head>
 <body class="dark-theme">
 
@@ -103,17 +103,29 @@
           
           <div class="hero-event-info">
             <div class="event-info-pill-item">
-              <i data-lucide="calendar"></i>
-              <span>Sat, 19 Sep 2026 | 5:30 PM — 10:00 PM</span>
+              <span class="info-item-segment">
+                <i data-lucide="calendar"></i>
+                <span>Sat, 19 Sep 2026</span>
+              </span>
+              <span class="info-divider">|</span>
+              <span class="info-item-segment">
+                <i data-lucide="clock"></i>
+                <span>5:30 PM — 10:00 PM</span>
+              </span>
             </div>
-            <div class="event-venues-compact">
-              <div class="venue-pill-item">
+
+            <div class="hero-venues-group">
+              <div class="hero-venues-label">
                 <i data-lucide="map-pin"></i>
-                <span><strong>Da Nang:</strong> 71 Quang Trung, Hai Chau Ward</span>
+                <span class="lowercase-brand">mgm offices:</span>
               </div>
-              <div class="venue-pill-item">
-                <i data-lucide="map-pin"></i>
-                <span><strong>HCMC:</strong> 195A Hai Ba Trung, Xuan Hoa Ward</span>
+              <div class="hero-venues-grid">
+                <div class="venue-pill-item">
+                  <span><strong>Da Nang:</strong> 71 Quang Trung, Hai Chau Ward</span>
+                </div>
+                <div class="venue-pill-item">
+                  <span><strong>HCMC:</strong> 195A Hai Ba Trung, Xuan Hoa Ward</span>
+                </div>
               </div>
             </div>
           </div>
@@ -605,7 +617,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=16"></script>
+  <script src="./js/app.js?v=17"></script>
 </body>
 </html>
 

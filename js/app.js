@@ -103,7 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 9. Pop-up Registration Modal Handlers
   initRegistrationModal();
 
-  // 10. Chatbot Widget (Bierly AI Assistant)
+  // 10. Venue Map Popup Modal (Google Maps)
+  initVenueMapModal();
+
+  // 11. Chatbot Widget (Bierly AI Assistant)
   initChatbot();
 });
 
@@ -488,6 +491,91 @@ function initRegistrationModal() {
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && regModal.classList.contains('active')) closeModal();
+  });
+}
+
+/* ─── VENUE MAP POP-UP MODAL (GOOGLE MAPS) ─── */
+function initVenueMapModal() {
+  const mapModal = document.getElementById('mapModal');
+  const closeMapBtn = document.getElementById('closeMapModalBtn');
+  const mapIframe = document.getElementById('mapIframe');
+  const mapModalTitle = document.getElementById('mapModalTitle');
+  const mapModalAddress = document.getElementById('mapModalAddress');
+  const openExternalGmapsBtn = document.getElementById('openExternalGmapsBtn');
+  const tabBtns = document.querySelectorAll('.map-tab-btn');
+
+  if (!mapModal || !mapIframe) return;
+
+  const venues = {
+    danang: {
+      title: 'mgm Danang Office',
+      address: '71 Quang Trung, Hai Chau Ward, Da Nang',
+      embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
+      externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang'
+    },
+    hcmc: {
+      title: 'mgm HCMC Office',
+      address: '195A Hai Ba Trung, Xuan Hoa Ward, District 3, HCMC',
+      embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+195A+Hai+Ba+Trung,+Ho+Chi+Minh&t=&z=16&ie=UTF8&iwloc=&output=embed',
+      externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+195A+Hai+Ba+Trung,+Ho+Chi+Minh'
+    }
+  };
+
+  function setVenue(key) {
+    const venue = venues[key] || venues.danang;
+
+    if (mapModalTitle) mapModalTitle.textContent = venue.title;
+    if (mapModalAddress) mapModalAddress.textContent = venue.address;
+    if (openExternalGmapsBtn) openExternalGmapsBtn.href = venue.externalUrl;
+    
+    // Only update iframe src if changed to prevent unnecessary reloads
+    if (mapIframe.getAttribute('data-active-src') !== venue.embedUrl) {
+      mapIframe.setAttribute('data-active-src', venue.embedUrl);
+      mapIframe.src = venue.embedUrl;
+    }
+
+    tabBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.targetVenue === key);
+    });
+  }
+
+  function openMap(venueKey = 'danang') {
+    setVenue(venueKey);
+    mapModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  function closeMap() {
+    mapModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // Trigger buttons (in Hero section and anywhere with .venue-modal-trigger)
+  document.querySelectorAll('.venue-modal-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const venueKey = btn.dataset.venue || 'danang';
+      openMap(venueKey);
+    });
+  });
+
+  // Switch tabs inside modal
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const venueKey = btn.dataset.targetVenue;
+      if (venueKey) setVenue(venueKey);
+    });
+  });
+
+  if (closeMapBtn) closeMapBtn.addEventListener('click', closeMap);
+
+  mapModal.addEventListener('click', (e) => {
+    if (e.target === mapModal) closeMap();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mapModal.classList.contains('active')) closeMap();
   });
 }
 

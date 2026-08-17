@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=39">
+  <link rel="stylesheet" href="./css/styles.css?v=40">
 </head>
 <body class="dark-theme">
 
@@ -120,12 +120,14 @@
                 <span class="lowercase-brand">mgm offices:</span>
               </div>
               <div class="hero-venues-grid">
-                <div class="venue-pill-item">
+                <button type="button" class="venue-pill-item venue-modal-trigger" data-venue="danang" title="Click to view Da Nang office on Google Maps">
+                  <i data-lucide="map-pin"></i>
                   <span><strong>Da Nang:</strong> 71 Quang Trung, Hai Chau Ward</span>
-                </div>
-                <div class="venue-pill-item">
+                </button>
+                <button type="button" class="venue-pill-item venue-modal-trigger" data-venue="hcmc" title="Click to view HCMC office on Google Maps">
+                  <i data-lucide="map-pin"></i>
                   <span><strong>HCMC:</strong> 195A Hai Ba Trung, Xuan Hoa Ward</span>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -475,15 +477,15 @@
           <div class="office-group">
             <h4 class="footer-col-title">mgm office in Danang:</h4>
             <ul class="footer-address-list">
-              <li><i data-lucide="map-pin"></i> 7 Phan Chau Trinh, Hai Chau Ward</li>
-              <li><i data-lucide="map-pin"></i> 71 Quang Trung, Hai Chau Ward</li>
+              <li class="venue-modal-trigger clickable-address" data-venue="danang" title="Click to view on Google Maps"><i data-lucide="map-pin"></i> 7 Phan Chau Trinh, Hai Chau Ward</li>
+              <li class="venue-modal-trigger clickable-address" data-venue="danang" title="Click to view on Google Maps"><i data-lucide="map-pin"></i> 71 Quang Trung, Hai Chau Ward</li>
             </ul>
           </div>
 
           <div class="office-group margin-top-md">
             <h4 class="footer-col-title">mgm office in HCMC:</h4>
             <ul class="footer-address-list">
-              <li><i data-lucide="map-pin"></i> 195A Hai Ba Trung, Xuan Hoa Ward</li>
+              <li class="venue-modal-trigger clickable-address" data-venue="hcmc" title="Click to view on Google Maps"><i data-lucide="map-pin"></i> 195A Hai Ba Trung, Xuan Hoa Ward</li>
             </ul>
           </div>
         </div>
@@ -538,6 +540,47 @@
           scrolling="yes"
         >
         </iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       VENUE MAP POP-UP MODAL (GOOGLE MAPS EMBED)
+       ═══════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" id="mapModal">
+    <div class="modal-content glass-card map-modal-content">
+      <button class="modal-close" id="closeMapModalBtn" aria-label="Close Map Modal">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="map-modal-header">
+        <div class="map-modal-title-group">
+          <span class="map-modal-badge"><i data-lucide="map-pin"></i> VENUE LOCATION</span>
+          <h3 class="map-modal-title" id="mapModalTitle">mgm Danang Office</h3>
+          <p class="map-modal-address" id="mapModalAddress">71 Quang Trung, Hai Chau Ward, Da Nang</p>
+        </div>
+
+        <div class="map-modal-actions">
+          <div class="map-venue-switcher">
+            <button type="button" class="map-tab-btn active" data-target-venue="danang">Da Nang</button>
+            <button type="button" class="map-tab-btn" data-target-venue="hcmc">HCMC</button>
+          </div>
+          <a href="https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang" target="_blank" rel="noopener noreferrer" class="btn-open-gmaps" id="openExternalGmapsBtn">
+            <i data-lucide="external-link"></i> View on Google Maps
+          </a>
+        </div>
+      </div>
+
+      <div class="map-iframe-container">
+        <iframe
+          id="mapIframe"
+          title="mgm Office Location Map"
+          src=""
+          loading="lazy"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade"
+          class="map-iframe"
+        ></iframe>
       </div>
     </div>
   </div>
@@ -612,7 +655,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=21"></script>
+  <script src="./js/app.js?v=22"></script>
 </body>
 </html>
 

@@ -44,9 +44,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Mobile Navigation Toggle & Smooth Scrolling
   const mobileToggle = document.getElementById('mobileToggle');
   const navMenu = document.getElementById('navMenu');
+  const navbar = document.getElementById('navbar');
+
+  function closeMobileMenu() {
+    if (navMenu && navMenu.classList.contains('active')) {
+      navMenu.classList.remove('active');
+      if (mobileToggle) {
+        mobileToggle.classList.remove('active');
+        mobileToggle.innerHTML = '<i data-lucide="menu"></i>';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+  }
+
   if (mobileToggle && navMenu) {
-    mobileToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('active');
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isActive = navMenu.classList.toggle('active');
+      mobileToggle.classList.toggle('active', isActive);
+      mobileToggle.innerHTML = isActive ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
+      if (window.lucide) window.lucide.createIcons();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (navMenu.classList.contains('active') && navbar && !navbar.contains(e.target)) {
+        closeMobileMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+        closeMobileMenu();
+      }
     });
   }
 
@@ -62,12 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
           'Minigame Coming Soon! 🎮',
           'Our Oktoberfest mini-game is currently under brewing. Stay tuned for exciting challenges and prizes!'
         );
-        if (navMenu) navMenu.classList.remove('active');
+        closeMobileMenu();
         return;
       }
 
       if (anchor.classList.contains('open-reg-modal') || href === '#registration') {
-        if (navMenu) navMenu.classList.remove('active');
+        closeMobileMenu();
         return;
       }
 
@@ -80,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
           top: targetPosition,
           behavior: 'smooth'
         });
-        if (navMenu) navMenu.classList.remove('active');
+        closeMobileMenu();
       }
     });
   });

@@ -508,16 +508,10 @@ function initVenueMapModal() {
 
   const venues = {
     danang: {
-      title: 'mgm Danang Office (71 Quang Trung)',
+      title: 'mgm Danang Office',
       address: '71 Quang Trung, Hai Chau Ward, Da Nang',
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang'
-    },
-    danang_pct: {
-      title: 'mgm Danang Office (7 Phan Chau Trinh)',
-      address: '7 Phan Chau Trinh, Hai Chau Ward, Da Nang',
-      embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
-      externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang'
     },
     hcmc: {
       title: 'mgm HCMC Office',

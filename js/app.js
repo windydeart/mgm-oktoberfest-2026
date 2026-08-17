@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Mobile Navigation Toggle & Smooth Scrolling
   const mobileToggle = document.getElementById('mobileToggle');
   const navMenu = document.getElementById('navMenu');
-  const navbar = document.getElementById('navbar');
 
   function closeMobileMenu() {
     if (navMenu && navMenu.classList.contains('active')) {

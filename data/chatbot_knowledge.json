@@ -43,20 +43,19 @@
     ]
   },
   "food_and_drinks": {
-    "beer": "Premium curated authentic German-style craft beers with cold fresh foam",
+    "beer": "Premium curated selection of golden, amber, and dark beers with different levels of ABV (Alcohol by Volume) and IBU (International Bitterness Units)",
     "food": [
-      "Schweinhaxe — Crispy pork knuckle, a Bavarian classic",
-      "Bratwurst — Grilled traditional German sausages",
-      "Warm Pretzels with specialty mustard"
+      "German sausages",
+      "Fresh Pretzels",
+      "German potato salad",
+      "Assorted cold cuts"
     ],
-    "note": "Authentic Bavarian feast featuring the finest German cuisine and craft beer selection"
+    "note": "Authentic Bavarian feast featuring traditional German specialties and craft beers"
   },
   "activities": [
-    "Live Music & High Energy performances from 5:00 PM till late",
-    "Beer stein holding challenges",
-    "Interactive mini-games and fun activities",
-    "Celebratory photo booth",
-    "In-browser Oktoberfest Minigame (coming soon)"
+    "Folk Music — Dance and sing along to classic songs while enjoying the Oktoberfest spirit",
+    "Fun Activities & Games — Join the games, have fun, and compete to win exciting gifts",
+    "Celebratory photo booth & memories"
   ],
   "registration": {
     "method": "Online registration via the event website",

@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=32">
+  <link rel="stylesheet" href="./css/styles.css?v=33">
 </head>
 <body class="dark-theme">
 
@@ -46,9 +46,9 @@
       </a>
 
       <nav class="nav-menu" id="navMenu">
-        <a href="#memories" class="nav-link">Memories</a>
         <a href="#whats-new" class="nav-link">What's New</a>
         <a href="#dress-code" class="nav-link">Dress Code</a>
+        <a href="#memories" class="nav-link">Memories</a>
         <a href="#registration" class="nav-link open-reg-modal">Register</a>
       </nav>
 
@@ -137,6 +137,95 @@
   <div class="hero-pattern-divider" aria-hidden="true">
     <img src="./assets/images/item-parterm.png" alt="Oktoberfest decorative pattern divider" class="pattern-divider-img">
   </div>
+  <!-- ═══════════════════════════════════════════════════════
+       CONTINUOUS PATTERN WATERMARK FLOW (WHAT'S NEW -> DRESS CODE -> MEMORIES)
+       ═══════════════════════════════════════════════════════ -->
+  <div class="sections-pattern-flow">
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       WHAT'S NEW IN OKTOBERFEST 2026 (Section 3 - Pattern BG)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="section whats-new-section" id="whats-new">
+    <div class="section-container">
+      <div class="section-header text-center reveal">
+        <span class="section-tag gold"><i data-lucide="flame"></i> UNLEASHED EDITION</span>
+        <h2 class="section-title">What's New in <span class="font-oktoberfest">Oktoberfest</span> 2026?</h2>
+        <p class="section-subtitle">This year, mgm Vietnam is taking the celebration to a whole new level across Danang & HCMC offices!</p>
+      </div>
+
+      <div class="features-grid">
+        
+        <div class="feature-card reveal" style="transition-delay: 0.1s;">
+          <div class="feature-icon-box">
+            <i data-lucide="beer"></i>
+          </div>
+          <h3 class="feature-title">Premium Craft Beer</h3>
+          <p class="feature-desc">Curated authentic German-style craft beers poured with cold fresh foam.</p>
+        </div>
+
+        <div class="feature-card reveal" style="transition-delay: 0.2s;">
+          <div class="feature-icon-box">
+            <i data-lucide="utensils"></i>
+          </div>
+          <h3 class="feature-title">Bavarian Feast</h3>
+          <p class="feature-desc">Schweinhaxe crispy pork knuckle, grilled Bratwurst sausages, warm pretzels & specialty mustard.</p>
+        </div>
+
+        <div class="feature-card reveal" style="transition-delay: 0.3s;">
+          <div class="feature-icon-box">
+            <i data-lucide="music-4"></i>
+          </div>
+          <h3 class="feature-title">Live Music & High Energy</h3>
+          <p class="feature-desc">Vibrant musical atmosphere, energetic tunes and dances for mgmies from 5:00 PM till late.</p>
+        </div>
+
+        <div class="feature-card reveal" style="transition-delay: 0.4s;">
+          <div class="feature-icon-box">
+            <i data-lucide="gamepad-2"></i>
+          </div>
+          <h3 class="feature-title">Interactive Mini-Games & Fun Activities</h3>
+          <p class="feature-desc">Exciting beer holding challenges, interactive mini-games, and celebratory photo booth moments.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       DRESS CODE SECTION (Section 4 - Pattern BG)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="section dresscode-section" id="dress-code">
+    <div class="section-container">
+      <div class="dresscode-card-wrapper reveal">
+        <div class="dresscode-info">
+          <span class="section-tag gold"><i data-lucide="shirt"></i> DRESS CODE GUIDE</span>
+          <h2 class="dresscode-title">Attire Inspiration</h2>
+          
+          <blockquote class="dresscode-quote">
+            "There's no official dress code. Casual is perfectly fine, but if you'd like to get into the <span class="font-oktoberfest">Oktoberfest</span> spirit, you're welcome to wear traditional Bavarian attire."
+          </blockquote>
+          
+          <p class="dresscode-desc">
+            There is no mandatory dress code! Feel free to wear comfortable casual outfits. However, if you want to immerse yourself in the <span class="font-oktoberfest">Oktoberfest</span> spirit, traditional Bavarian attire is highly welcomed!
+          </p>
+
+          <div class="attire-badges">
+            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Lederhosen</strong> (Traditional Menswear)</span>
+            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Dirndl</strong> (Traditional Womenswear)</span>
+            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Casual / mgm Outfit</strong> (Comfortable & Free)</span>
+          </div>
+        </div>
+
+        <div class="dresscode-visual dresscode-slider" id="dresscodeSlider">
+          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526247/oktoberfest/2022/BTpr__81.webp" alt="Traditional Bavarian Attire Inspiration 1" class="dresscode-slide active">
+          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526238/oktoberfest/2022/BTpr__223.webp" alt="Traditional Bavarian Attire Inspiration 2" class="dresscode-slide">
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- ═══════════════════════════════════════════════════════
        MEMORIES WALL (AUTO-PLAY SLIDER 4s)
@@ -363,88 +452,7 @@
       </div>
     </div>
   </section>
-
-  <!-- ═══════════════════════════════════════════════════════
-       WHAT'S NEW IN OKTOBERFEST 2026 (Section 3 - Pattern BG)
-       ═══════════════════════════════════════════════════════ -->
-  <section class="section whats-new-section section-pattern-bg section-pattern-first" id="whats-new">
-    <div class="section-container">
-      <div class="section-header text-center reveal">
-        <span class="section-tag gold"><i data-lucide="flame"></i> UNLEASHED EDITION</span>
-        <h2 class="section-title">What's New in <span class="font-oktoberfest">Oktoberfest</span> 2026?</h2>
-        <p class="section-subtitle">This year, mgm Vietnam is taking the celebration to a whole new level across Danang & HCMC offices!</p>
-      </div>
-
-      <div class="features-grid">
-        
-        <div class="feature-card reveal" style="transition-delay: 0.1s;">
-          <div class="feature-icon-box">
-            <i data-lucide="beer"></i>
-          </div>
-          <h3 class="feature-title">Premium Craft Beer</h3>
-          <p class="feature-desc">Curated authentic German-style craft beers poured with cold fresh foam.</p>
-        </div>
-
-        <div class="feature-card reveal" style="transition-delay: 0.2s;">
-          <div class="feature-icon-box">
-            <i data-lucide="utensils"></i>
-          </div>
-          <h3 class="feature-title">Bavarian Feast</h3>
-          <p class="feature-desc">Schweinhaxe crispy pork knuckle, grilled Bratwurst sausages, warm pretzels & specialty mustard.</p>
-        </div>
-
-        <div class="feature-card reveal" style="transition-delay: 0.3s;">
-          <div class="feature-icon-box">
-            <i data-lucide="music-4"></i>
-          </div>
-          <h3 class="feature-title">Live Music & High Energy</h3>
-          <p class="feature-desc">Vibrant musical atmosphere, energetic tunes and dances for mgmies from 5:00 PM till late.</p>
-        </div>
-
-        <div class="feature-card reveal" style="transition-delay: 0.4s;">
-          <div class="feature-icon-box">
-            <i data-lucide="gamepad-2"></i>
-          </div>
-          <h3 class="feature-title">Interactive Mini-Games & Fun Activities</h3>
-          <p class="feature-desc">Exciting beer holding challenges, interactive mini-games, and celebratory photo booth moments.</p>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════════════════
-       DRESS CODE SECTION (Section 4 - Pattern BG)
-       ═══════════════════════════════════════════════════════ -->
-  <section class="section dresscode-section section-pattern-bg" id="dress-code">
-    <div class="section-container">
-      <div class="dresscode-card-wrapper reveal">
-        <div class="dresscode-info">
-          <span class="section-tag gold"><i data-lucide="shirt"></i> DRESS CODE GUIDE</span>
-          <h2 class="dresscode-title">Attire Inspiration</h2>
-          
-          <blockquote class="dresscode-quote">
-            "There's no official dress code. Casual is perfectly fine, but if you'd like to get into the <span class="font-oktoberfest">Oktoberfest</span> spirit, you're welcome to wear traditional Bavarian attire."
-          </blockquote>
-          
-          <p class="dresscode-desc">
-            There is no mandatory dress code! Feel free to wear comfortable casual outfits. However, if you want to immerse yourself in the <span class="font-oktoberfest">Oktoberfest</span> spirit, traditional Bavarian attire is highly welcomed!
-          </p>
-
-          <div class="attire-badges">
-            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Lederhosen</strong> (Traditional Menswear)</span>
-            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Dirndl</strong> (Traditional Womenswear)</span>
-            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Casual / mgm Outfit</strong> (Comfortable & Free)</span>
-          </div>
-        </div>
-
-        <div class="dresscode-visual dresscode-slider" id="dresscodeSlider">
-          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526247/oktoberfest/2022/BTpr__81.webp" alt="Traditional Bavarian Attire Inspiration 1" class="dresscode-slide active">
-          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526238/oktoberfest/2022/BTpr__223.webp" alt="Traditional Bavarian Attire Inspiration 2" class="dresscode-slide">
-        </div>
-      </div>
-    </div>
-  </section>
+  </div>
 
   <!-- ═══════════════════════════════════════════════════════
        FOOTER
@@ -681,7 +689,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=14"></script>
+  <script src="./js/app.js?v=15"></script>
 </body>
 </html>
 

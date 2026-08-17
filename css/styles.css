@@ -984,7 +984,64 @@ h1, h2, h3, h4 {
   position: relative;
 }
 
-/* ─── SECTION OKTOBERFEST PATTERN WATERMARK (CONTINUOUS) ─── */
+/* ─── CONTINUOUS WATERMARK PATTERN FLOW (FROM WHAT'S NEW DOWN TO FOOTER) ─── */
+.sections-pattern-flow {
+  position: relative;
+}
+
+.sections-pattern-flow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('../assets/images/oktoberfest_pattern.png');
+  background-repeat: repeat;
+  background-size: 520px 520px;
+  background-position: center top;
+  background-attachment: fixed;
+  opacity: 0.052;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(to bottom, 
+    rgba(0,0,0,0) 0%, 
+    rgba(0,0,0,0.85) 4%, 
+    rgba(0,0,0,1) 12%, 
+    rgba(0,0,0,1) 75%, 
+    rgba(0,0,0,0.5) 90%, 
+    rgba(0,0,0,0) 100%
+  ),
+  linear-gradient(to right, 
+    rgba(0,0,0,0) 0%, 
+    rgba(0,0,0,0.9) 6%, 
+    rgba(0,0,0,1) 15%, 
+    rgba(0,0,0,1) 85%, 
+    rgba(0,0,0,0.9) 94%, 
+    rgba(0,0,0,0) 100%
+  );
+  -webkit-mask-composite: destination-in;
+  mask-image: linear-gradient(to bottom, 
+    rgba(0,0,0,0) 0%, 
+    rgba(0,0,0,0.85) 4%, 
+    rgba(0,0,0,1) 12%, 
+    rgba(0,0,0,1) 75%, 
+    rgba(0,0,0,0.5) 90%, 
+    rgba(0,0,0,0) 100%
+  ),
+  linear-gradient(to right, 
+    rgba(0,0,0,0) 0%, 
+    rgba(0,0,0,0.9) 6%, 
+    rgba(0,0,0,1) 15%, 
+    rgba(0,0,0,1) 85%, 
+    rgba(0,0,0,0.9) 94%, 
+    rgba(0,0,0,0) 100%
+  );
+  mask-composite: intersect;
+}
+
+.sections-pattern-flow > * {
+  position: relative;
+  z-index: 1;
+}
+
 .section-pattern-bg {
   position: relative;
 }

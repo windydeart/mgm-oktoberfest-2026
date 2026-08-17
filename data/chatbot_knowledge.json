@@ -13,7 +13,7 @@
   "venues": [
     {
       "name": "mgm Da Nang",
-      "full_name": "mgm Danang Office",
+      "full_name": "mgm Da Nang Office",
       "address": "71 Quang Trung, Hai Chau Ward, Da Nang",
       "secondary_address": "7 Phan Chau Trinh, Hai Chau Ward, Da Nang"
     },
@@ -86,7 +86,7 @@
     },
     {
       "q": "Where is the event held?",
-      "a": "The event takes place simultaneously at two locations: mgm Danang Office & Terrace (71 Quang Trung, Hai Chau Ward) and mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward)."
+      "a": "The event takes place simultaneously at two locations: mgm Da Nang Office & Terrace (71 Quang Trung, Hai Chau Ward) and mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward)."
     },
     {
       "q": "What time does the event start?",

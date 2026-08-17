@@ -508,7 +508,7 @@ function initVenueMapModal() {
 
   const venues = {
     danang: {
-      title: 'mgm Danang Office',
+      title: 'mgm Da Nang Office',
       address: '71 Quang Trung, Hai Chau Ward, Da Nang',
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang'

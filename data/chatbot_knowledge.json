@@ -63,6 +63,17 @@
     "fields": ["Your name (First, Middle, Last)", "Your work email", "Which office will you attend (mgm Da Nang or mgm Ho Chi Minh City)", "Any other concerns (optional)"],
     "how_to": "Click the 'Register Now' button on the website or navigate to the Registration section to fill out the form."
   },
+  "transportation_and_safety": {
+    "recommendation": "Strongly encourage taking Grab, taxi, or other public transit for traffic safety (Don't drink and drive!)",
+    "note_vi": "Khuyến khích mọi người đi Grab, taxi hoặc phương tiện công cộng khác vì lý do an toàn giao thông (Đã uống rượu bia thì không lái xe).",
+    "note_en": "We strongly encourage everyone to take Grab, taxis, carpool, or use public transportation for safety reasons (Don't drink and drive!).",
+    "note_de": "Aus Gründen der Verkehrssicherheit (Don't drink and drive!) empfehlen wir allen mgmies, mit Grab, Taxi oder öffentlichen Verkehrsmitteln zur Feier zu kommen."
+  },
+  "history": {
+    "past_seasons": ["2016", "2017", "2018", "2019", "2022", "2023"],
+    "section_name": "Flashback Oktoberfest",
+    "note": "Over 62 curated memories and video highlights from past Oktoberfest celebrations. Browse the Flashback Oktoberfest section on the website to relive the highlights."
+  },
   "faq": [
     {
       "q": "Who can attend?",
@@ -71,6 +82,10 @@
     {
       "q": "Can I bring my family, friends, partner, or plus-one (e.g. mom, dad, kids, outside guests)? / Có được dẫn người thân, bạn bè, người yêu đi cùng không?",
       "a": "The mgm Oktoberfest 2026 celebration is an exclusive internal party dedicated solely to mgm technology partners Vietnam employees (mgmies). Unfortunately, outside guests or family members cannot be accommodated. / Sự kiện mgm Oktoberfest 2026 là bữa tiệc nội bộ dành riêng cho các thành viên mgmies của mgm Vietnam, ban tổ chức chưa thể hỗ trợ đón tiếp người thân hoặc khách ngoài."
+    },
+    {
+      "q": "How should I travel to the event? / Nên đi phương tiện gì đến sự kiện? / Wie soll ich zur Feier kommen?",
+      "a": "For traffic safety (Don't drink and drive!), we strongly encourage all mgmies to take Grab, a taxi, or other public transportation to enjoy the party safely! / Vì lý do an toàn giao thông (Đã uống rượu bia thì không tự lái xe), ban tổ chức khuyến khích mọi người nên đi Grab, taxi hoặc các phương tiện công cộng khác để vui chơi trọn vẹn và an toàn nhé! 🚕🚗🍺"
     },
     {
       "q": "Is there a dress code?",
@@ -113,9 +128,5 @@
     "email": "vn_marketing@mgm-tp.com",
     "team": ["Hoa Hoang", "Van Nguyen"],
     "company": "mgm technology partners Vietnam"
-  },
-  "history": {
-    "past_seasons": ["2016", "2017", "2018", "2019", "2022", "2023"],
-    "note": "Over 62 curated memories from past Oktoberfest celebrations. Browse the Memories section on the website to relive the highlights."
   }
 }

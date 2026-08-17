@@ -1608,7 +1608,7 @@ h1, h2, h3, h4 {
   color: var(--text-gold);
   border-left: 3px solid var(--accent-amber);
   padding-left: 1.2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.8rem;
   line-height: 1.6;
 }
 
@@ -1616,6 +1616,10 @@ h1, h2, h3, h4 {
   font-size: 1rem;
   color: var(--text-muted);
   margin-bottom: 2rem;
+}
+
+.memories-section .section-header {
+  margin-bottom: 2.2rem;
 }
 
 .attire-badges {

@@ -106,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 10. Venue Map Popup Modal (Google Maps)
   initVenueMapModal();
 
-  // 11. Chatbot Widget (Bierly AI Assistant)
+  // 11. Calendar Dropdown Picker (Google / Outlook / ICS)
+  initCalendarDropdown();
+
+  // 12. Chatbot Widget (Bierly AI Assistant)
   initChatbot();
 });
 
@@ -579,47 +582,87 @@ function initVenueMapModal() {
   });
 }
 
-/* ─── ADD TO CALENDAR (UNIVERSAL ICS — OPENS USER'S DEFAULT CALENDAR APP) ─── */
-function addToCalendar() {
+/* ─── ADD TO CALENDAR (DROPDOWN PICKER — GOOGLE / OUTLOOK / ICS) ─── */
+function initCalendarDropdown() {
+  const btn = document.getElementById('calendarDropdownBtn');
+  const dropdown = document.getElementById('calendarDropdown');
+  if (!btn || !dropdown) return;
+
   const event = {
     title: "mgm - Oktoberfest 2026",
     description: "Join us for mgm Oktoberfest 2026 celebration! Authentic Bavarian food, craft beers & high energy music.",
     location: "mgm Office (71 Quang Trung, Hai Chau Ward, Da Nang / 195A Hai Ba Trung, Xuan Hoa Ward, HCMC)",
-    startDate: "20260919T103000Z", // 5:30 PM GMT+7 = 10:30 AM UTC
-    endDate: "20260919T150000Z"    // 10:00 PM GMT+7 = 3:00 PM UTC
+    startUtc: "20260919T103000Z",
+    endUtc: "20260919T150000Z",
+    startIso: "2026-09-19T17:30:00",
+    endIso: "2026-09-19T22:00:00"
   };
 
-  // Generate standard iCalendar (.ics) file — universally supported by
-  // Outlook, Apple Calendar, Google Calendar, Samsung Calendar, etc.
-  const icsContent = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//mgm technology partners//mgm Oktoberfest 2026//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VEVENT',
-    'UID:oktoberfest-2026@mgm-tp.com',
-    'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
-    'DTSTART:' + event.startDate,
-    'DTEND:' + event.endDate,
-    'SUMMARY:' + event.title,
-    'DESCRIPTION:' + event.description,
-    'LOCATION:' + event.location,
-    'STATUS:CONFIRMED',
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ].join('\r\n');
+  function buildIcs() {
+    return [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//mgm technology partners//mgm Oktoberfest 2026//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      'UID:oktoberfest-2026@mgm-tp.com',
+      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
+      'DTSTART:' + event.startUtc,
+      'DTEND:' + event.endUtc,
+      'SUMMARY:' + event.title,
+      'DESCRIPTION:' + event.description,
+      'LOCATION:' + event.location,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+  }
 
-  // Download .ics file — the OS will prompt the user to open it
-  // with their default calendar application
-  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
-  link.setAttribute('download', 'mgm_Oktoberfest_2026.ics');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(link.href);
+  function downloadIcs() {
+    const blob = new Blob([buildIcs()], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', 'mgm_Oktoberfest_2026.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+
+  function openGoogle() {
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&dates=${event.startUtc}/${event.endUtc}`;
+    window.open(url, '_blank');
+  }
+
+  function openOutlook() {
+    const url = `https://outlook.office.com/calendar/0/action/compose?subject=${encodeURIComponent(event.title)}&body=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&startdt=${event.startIso}&enddt=${event.endIso}&rru=addevent`;
+    window.open(url, '_blank');
+  }
+
+  // Toggle dropdown
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('active');
+    if (window.lucide) window.lucide.createIcons();
+  });
+
+  // Handle option clicks
+  dropdown.querySelectorAll('.cal-option').forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const type = opt.dataset.calendar;
+      if (type === 'google') openGoogle();
+      else if (type === 'outlook') openOutlook();
+      else downloadIcs();
+      dropdown.classList.remove('active');
+    });
+  });
+
+  // Close on outside click
+  document.addEventListener('click', () => {
+    dropdown.classList.remove('active');
+  });
 }
 
 /* ─── CHARACTER GREETINGS (HOA & LOAN TALK FRAMES) ─── */

@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=44">
+  <link rel="stylesheet" href="./css/styles.css?v=45">
 </head>
 <body class="dark-theme">
 
@@ -138,9 +138,25 @@
         <button type="button" class="btn btn-hero-primary open-reg-modal">
           <i data-lucide="ticket"></i> Register Now
         </button>
-        <button type="button" class="btn btn-hero-secondary" onclick="addToCalendar()">
-          <i data-lucide="calendar-plus"></i> Add Event to Calendar
-        </button>
+        <div class="calendar-dropdown-wrapper">
+          <button type="button" class="btn btn-hero-secondary" id="calendarDropdownBtn">
+            <i data-lucide="calendar-plus"></i> Add Event to Calendar
+          </button>
+          <div class="calendar-dropdown" id="calendarDropdown">
+            <button type="button" class="cal-option" data-calendar="google">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10z" fill="#fff"/><path d="M17.5 12.2l-1.2-1v-3h-3v1.5l2.5 2 1.7.5z" fill="#EA4335"/><path d="M6.5 8.2h3v3l-2.5 2-1.7-.5 1.2-1v-3.5z" fill="#4285F4"/><path d="M6.5 15.8h3v-3l-2.5-2 .5-1.6 2 1.2h3.5v3l2 1.2.5 1.6-2.5-2h-3v3.5l-1.2-1-2.3.3z" fill="#34A853"/><path d="M17.5 15.8l-1.2-1h-3v-3l2.5-2-.5-1.6-2 1.2h-3.5" fill="#FBBC04"/></svg>
+              Google Calendar
+            </button>
+            <button type="button" class="cal-option" data-calendar="outlook">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" fill="#0078D4"/><path d="M12 4L2 10v10h20V10L12 4z" fill="#0078D4"/><path d="M2 10l10 6 10-6" stroke="#fff" stroke-width="1.2" fill="none"/><rect x="6" y="7" width="5" height="5" rx="1" fill="#fff" opacity=".9"/></svg>
+              Outlook
+            </button>
+            <button type="button" class="cal-option" data-calendar="ics">
+              <i data-lucide="download"></i>
+              Download .ics file
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -653,7 +669,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=29"></script>
+  <script src="./js/app.js?v=30"></script>
 </body>
 </html>
 

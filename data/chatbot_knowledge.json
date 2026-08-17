@@ -6,21 +6,21 @@
     "slogan": "O'zapft is!",
     "description": "Annual Oktoberfest celebration exclusively for mgm technology partners Vietnam employees (mgmies). A night of Bavarian culture, craft beer, traditional food, live music, and unforgettable memories.",
     "date": "Saturday, 19 September 2026",
-    "time": "5:00 PM — Late (approximately until 10:00 PM or later)",
+    "time": "5:30 PM — 10:00 PM",
     "rsvp_deadline": "Friday, 30 August 2026",
     "target_audience": "mgm technology partners Vietnam employees (mgmies) and team members"
   },
   "venues": [
     {
       "name": "mgm Da Nang",
-      "full_name": "mgm Danang Office & Terrace",
-      "address": "71 Quang Trung, Hai Chau District, Da Nang",
-      "secondary_address": "7 Phan Chau Trinh, Hai Chau District, Da Nang"
+      "full_name": "mgm Danang Office",
+      "address": "71 Quang Trung, Hai Chau Ward, Da Nang",
+      "secondary_address": "7 Phan Chau Trinh, Hai Chau Ward, Da Nang"
     },
     {
       "name": "mgm Ho Chi Minh City",
-      "full_name": "mgm HCMC Lounge",
-      "address": "195A Hai Ba Trung, Ward 6, District 3, Ho Chi Minh City"
+      "full_name": "mgm HCMC Office",
+      "address": "195A Hai Ba Trung, Xuan Hoa Ward, HCMC"
     }
   ],
   "dress_code": {

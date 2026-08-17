@@ -88,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Hero Beer Bubbles Canvas Animation
   initBeerBubbles();
 
-  // 5. Countdown Timer (Target: Sat, 19 Sep 2026 17:00:00 GMT+7)
-  initCountdownTimer(new Date('2026-09-19T17:00:00+07:00'));
+  // 5. Countdown Timer (Target: Sat, 19 Sep 2026 17:30:00 GMT+7 - 5:30 PM)
+  initCountdownTimer(new Date('2026-09-19T17:30:00+07:00'));
 
   // 6. Scroll Reveal Observer
   initScrollReveal();
@@ -97,11 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. Auto-play Memories Slider (4s)
   initMemoriesSlider();
 
-  // 8. Pop-up Registration Modal Handlers
-  initRegistrationModal();
+  // 8. Dress Code 2-Image Rotating Slideshow
+  initDressCodeSlider();
 
-  // 9. Character Greetings (Hoa & Loan Talk Frames)
-  initCharacterGreetings();
+  // 9. Pop-up Registration Modal Handlers
+  initRegistrationModal();
 
   // 10. Chatbot Widget (Bierly AI Assistant)
   initChatbot();
@@ -223,25 +223,20 @@ function initCountdownTimer(targetDate) {
   setInterval(update, 1000);
 }
 
-/* ─── AUTO-PLAY MEMORIES SLIDER ─── */
+/* ─── AUTO-PLAY MEMORIES SLIDER (2022 ONLY) ─── */
 function initMemoriesSlider() {
   const track = document.getElementById('sliderTrack');
   const prevBtn = document.getElementById('sliderPrevBtn');
   const nextBtn = document.getElementById('sliderNextBtn');
-  const filterTabs = document.querySelectorAll('.filter-tab');
-
   const slideCounterEl = document.querySelector('.slide-counter');
   const progressFillEl = document.getElementById('sliderProgressFill');
   const progressTrackEl = document.getElementById('sliderProgressTrack');
-  const dotsContainer = document.getElementById('sliderDots');
 
   if (!track) return;
 
   let allSlides = Array.from(track.children);
-  let visibleSlides = [...allSlides];
   let currentIndex = 0;
   let autoTimer = null;
-  let currentFilter = 'all';
 
   function getItemsPerView() {
     if (window.innerWidth <= 768) return 1;
@@ -251,7 +246,7 @@ function initMemoriesSlider() {
 
   function maxIndex() {
     const perView = getItemsPerView();
-    return Math.max(0, visibleSlides.length - perView);
+    return Math.max(0, allSlides.length - perView);
   }
 
   function updateSliderPosition() {
@@ -259,72 +254,21 @@ function initMemoriesSlider() {
     const slidePercent = 100 / perView;
     track.style.transform = `translateX(-${currentIndex * slidePercent}%)`;
     updatePagination();
-    updateDots();
-  }
-
-  function updateControlsVisibility() {
-    if (currentFilter === 'all') {
-      if (progressTrackEl) progressTrackEl.style.display = 'block';
-      if (dotsContainer) dotsContainer.style.display = 'none';
-    } else {
-      if (progressTrackEl) progressTrackEl.style.display = 'none';
-      if (dotsContainer) {
-        dotsContainer.style.display = 'flex';
-        renderDots();
-      }
-    }
-  }
-
-  function renderDots() {
-    if (!dotsContainer) return;
-    dotsContainer.innerHTML = '';
-    const totalDots = maxIndex() + 1;
-    for (let i = 0; i < totalDots; i++) {
-      const dot = document.createElement('div');
-      dot.className = `slider-dot ${i === currentIndex ? 'active' : ''}`;
-      dot.addEventListener('click', () => {
-        currentIndex = i;
-        updateSliderPosition();
-        resetTimer();
-      });
-      dotsContainer.appendChild(dot);
-    }
-  }
-
-  function updateDots() {
-    if (dotsContainer && currentFilter !== 'all') {
-      const dots = Array.from(dotsContainer.children);
-      dots.forEach((d, idx) => {
-        d.classList.toggle('active', idx === currentIndex);
-      });
-    }
   }
 
   function updatePagination() {
-    const totalPhotos = visibleSlides.length;
+    const totalPhotos = allSlides.length;
     if (totalPhotos <= 0) return;
 
     let currentPhoto = currentIndex + 1;
     if (currentPhoto > totalPhotos) currentPhoto = totalPhotos;
 
-    if (currentFilter === 'all') {
-      // In All Seasons mode: display the year of the currently visible leading photo!
-      const currentSlideEl = visibleSlides[currentIndex];
-      if (currentSlideEl) {
-        const slideYear = currentSlideEl.getAttribute('data-category');
-        if (slideCounterEl) {
-          slideCounterEl.innerHTML = `<span class="counter-num-active">${slideYear}</span>`;
-        }
-      }
-    } else {
-      // In specific year mode: display the photo counter (e.g. 01 / 07)
-      if (slideCounterEl) {
-        slideCounterEl.innerHTML = `
-          <span id="currentSlideNum" class="counter-num-active">${String(currentPhoto).padStart(2, '0')}</span>
-          <span class="counter-slash">/</span>
-          <span id="totalSlideNum" class="counter-num-total">${String(totalPhotos).padStart(2, '0')}</span>
-        `;
-      }
+    if (slideCounterEl) {
+      slideCounterEl.innerHTML = `
+        <span id="currentSlideNum" class="counter-num-active">${String(currentPhoto).padStart(2, '0')}</span>
+        <span class="counter-slash">/</span>
+        <span id="totalSlideNum" class="counter-num-total">${String(totalPhotos).padStart(2, '0')}</span>
+      `;
     }
 
     if (progressFillEl) {
@@ -334,7 +278,7 @@ function initMemoriesSlider() {
   }
 
   function handleSeek(e) {
-    if (!progressTrackEl || currentFilter !== 'all') return;
+    if (!progressTrackEl) return;
     const rect = progressTrackEl.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const width = rect.width;
@@ -354,40 +298,24 @@ function initMemoriesSlider() {
 
   if (progressTrackEl) {
     let isDragging = false;
-
     progressTrackEl.addEventListener('click', handleSeek);
-
     progressTrackEl.addEventListener('mousedown', (e) => {
-      if (currentFilter !== 'all') return;
       isDragging = true;
       handleSeek(e);
     });
-
     window.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        handleSeek(e);
-      }
+      if (isDragging) handleSeek(e);
     });
-
     window.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false;
-      }
+      isDragging = false;
     });
-
-    // Touch support for mobile devices
     progressTrackEl.addEventListener('touchstart', (e) => {
-      if (currentFilter !== 'all') return;
       isDragging = true;
       if (e.touches.length > 0) handleSeek(e.touches[0]);
     }, { passive: true });
-
     window.addEventListener('touchmove', (e) => {
-      if (isDragging && e.touches.length > 0) {
-        handleSeek(e.touches[0]);
-      }
+      if (isDragging && e.touches.length > 0) handleSeek(e.touches[0]);
     }, { passive: true });
-
     window.addEventListener('touchend', () => {
       isDragging = false;
     });
@@ -427,37 +355,12 @@ function initMemoriesSlider() {
   if (nextBtn) nextBtn.addEventListener('click', () => { nextSlide(); resetTimer(); });
   if (prevBtn) prevBtn.addEventListener('click', () => { prevSlide(); resetTimer(); });
 
-  // Pause on hover
   track.parentElement.addEventListener('mouseenter', stopTimer);
   track.parentElement.addEventListener('mouseleave', startTimer);
 
-  // Window resize handler
   window.addEventListener('resize', () => {
     if (currentIndex > maxIndex()) currentIndex = maxIndex();
-    updateControlsVisibility();
     updateSliderPosition();
-  });
-
-  // Filter Tabs logic
-  filterTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      filterTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      currentFilter = tab.getAttribute('data-filter');
-
-      visibleSlides = allSlides.filter(slide => {
-        const cat = slide.getAttribute('data-category');
-        const match = (currentFilter === 'all' || currentFilter === cat);
-        slide.style.display = match ? 'block' : 'none';
-        return match;
-      });
-
-      currentIndex = 0;
-      updateControlsVisibility();
-      updateSliderPosition();
-      resetTimer();
-    });
   });
 
   // Gắn sự kiện click/tap cho toàn bộ khung ảnh để mở trực tiếp Lightbox Zoom (ngoại trừ thẻ video đã có handler riêng)
@@ -475,9 +378,24 @@ function initMemoriesSlider() {
   });
 
   // Init position & controls
-  updateControlsVisibility();
   updateSliderPosition();
   startTimer();
+}
+
+/* ─── DRESS CODE 2-IMAGE ROTATING SLIDESHOW ─── */
+function initDressCodeSlider() {
+  const container = document.getElementById('dresscodeSlider');
+  if (!container) return;
+
+  const slides = container.querySelectorAll('.dresscode-slide');
+  if (slides.length <= 1) return;
+
+  let activeIndex = 0;
+  setInterval(() => {
+    slides[activeIndex].classList.remove('active');
+    activeIndex = (activeIndex + 1) % slides.length;
+    slides[activeIndex].classList.add('active');
+  }, 3500);
 }
 
 /* ─── LIGHTBOX MODAL (PHOTO & VIDEO SUPPORT) ─── */
@@ -713,9 +631,9 @@ function addToCalendar() {
   const event = {
     title: "mgm - Oktoberfest 2026",
     description: "Join us for mgm Oktoberfest 2026 celebration! Authentic Bavarian food, craft beers & high energy music.",
-    location: "mgm Office (71 Quang Trung, Da Nang / 195A Hai Ba Trung, HCMC)",
-    startDate: "20260919T100000Z", // 5:00 PM GMT+7 = 10:00 AM UTC
-    endDate: "20260919T160000Z"    // 11:00 PM GMT+7 = 4:00 PM UTC
+    location: "mgm Office (71 Quang Trung, Hai Chau Ward, Da Nang / 195A Hai Ba Trung, Xuan Hoa Ward, HCMC)",
+    startDate: "20260919T103000Z", // 5:30 PM GMT+7 = 10:30 AM UTC
+    endDate: "20260919T150000Z"    // 10:00 PM GMT+7 = 3:00 PM UTC
   };
 
   // Generate standard iCalendar (.ics) format compatible with Apple Calendar, Outlook, Mobile Calendar

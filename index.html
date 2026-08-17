@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=30">
+  <link rel="stylesheet" href="./css/styles.css?v=31">
 </head>
 <body class="dark-theme">
 
@@ -42,17 +42,13 @@
       <a href="#" class="nav-brand">
         <img src="./assets/images/mgm-logo-white.svg" alt="mgm logo" class="nav-logo-img">
         <span class="brand-divider">|</span>
-        <span class="brand-text"><span class="font-oktoberfest">Oktoberfest</span> <span class="year-highlight">2026</span></span>
+        <span class="brand-text"><span class="font-oktoberfest">Oktoberfest 2026</span></span>
       </a>
 
       <nav class="nav-menu" id="navMenu">
         <a href="#memories" class="nav-link">Memories</a>
         <a href="#whats-new" class="nav-link">What's New</a>
         <a href="#dress-code" class="nav-link">Dress Code</a>
-        <a href="#venue" class="nav-link">Venues</a>
-        <a href="#minigame" class="nav-link nav-link-minigame" id="minigameNavBtn">
-          Minigame <span class="nav-badge-soon">Soon</span>
-        </a>
         <a href="#registration" class="nav-link open-reg-modal">Register</a>
       </nav>
 
@@ -73,33 +69,12 @@
     <div class="hero-bg-image" style="background-image: url('./assets/images/hero_bg_hd.png?v=2');"></div>
 
     <div class="hero-content">
-      <div class="hero-badge-wrapper reveal">
-        <span class="pill-badge lowercase-brand">
-          <i data-lucide="beer"></i> Special event for mgmies
-        </span>
-      </div>
-
       <h1 class="hero-title reveal">
-        <span class="bavarian-callout">O'zapft is!</span>
-        <span class="gold-gradient-text lowercase-brand">mgm - <span class="font-oktoberfest">Oktoberfest</span> 2026</span>
-        <span class="hero-subheading">CHEERS TO MEMORIES — UNLEASH THE VIBES</span>
+        <span class="gold-gradient-text lowercase-brand">mgm - <span class="font-oktoberfest">Oktoberfest 2026</span></span>
       </h1>
 
-      <p class="hero-description reveal">
-        Looking back at warm moments from past seasons and getting ready for an epic celebration at <strong>mgm Danang</strong> & <strong>mgm HCMC</strong> offices!
-      </p>
-
-      <!-- COUNTDOWN TIMER WITH FLANKING CHARACTERS (HOA & LOAN) -->
-      <div class="countdown-flank-wrapper reveal">
-        <!-- Left Flank: Hoa -->
-        <div class="countdown-flank flank-left" id="flankHoa" role="button" tabindex="0" aria-label="Hoa - Click for greeting">
-          <div class="character-speech-bubble" id="bubbleHoa">
-            <span class="speech-text">Welcome to the event!</span>
-            <span class="speech-arrow"></span>
-          </div>
-          <img src="./assets/images/Hoa.png" alt="Hoa - mgm Oktoberfest" class="flank-img">
-        </div>
-
+      <!-- COUNTDOWN TIMER & EVENT LOGISTICS -->
+      <div class="countdown-wrapper reveal">
         <div class="countdown-container" id="countdown">
           <div class="countdown-header">
             <i data-lucide="timer"></i> Countdown to the Event
@@ -125,28 +100,33 @@
               <span class="count-label">Secs</span>
             </div>
           </div>
-          <div class="event-date-pill">
-            <i data-lucide="calendar"></i> Sat, 19 Sep 2026 | 5:00 PM — Late
+          
+          <div class="hero-event-info">
+            <div class="event-info-pill-item">
+              <i data-lucide="calendar"></i>
+              <span>Sat, 19 Sep 2026 | 5:30 PM — 10:00 PM</span>
+            </div>
+            <div class="event-venues-compact">
+              <div class="venue-pill-item">
+                <i data-lucide="map-pin"></i>
+                <span><strong>Da Nang:</strong> 71 Quang Trung, Hai Chau Ward</span>
+              </div>
+              <div class="venue-pill-item">
+                <i data-lucide="map-pin"></i>
+                <span><strong>HCMC:</strong> 195A Hai Ba Trung, Xuan Hoa Ward</span>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <!-- Right Flank: Loan -->
-        <div class="countdown-flank flank-right" id="flankLoan" role="button" tabindex="0" aria-label="Loan - Click for greeting">
-          <div class="character-speech-bubble" id="bubbleLoan">
-            <span class="speech-text">Can't wait to see you!</span>
-            <span class="speech-arrow"></span>
-          </div>
-          <img src="./assets/images/Loan.png" alt="Loan - mgm Oktoberfest" class="flank-img">
         </div>
       </div>
 
       <div class="hero-actions reveal">
         <button type="button" class="btn btn-hero-primary open-reg-modal">
-          Register Now
+          <i data-lucide="ticket"></i> Register Now
         </button>
-        <a href="#memories" class="btn btn-hero-secondary">
-          Explore Memories
-        </a>
+        <button type="button" class="btn btn-hero-secondary" onclick="addToCalendar()">
+          <i data-lucide="calendar-plus"></i> Add Event to Calendar
+        </button>
       </div>
     </div>
   </section>
@@ -166,18 +146,6 @@
       <div class="section-header text-center reveal">
         <span class="section-tag"><i data-lucide="history"></i> FLASHBACK <span class="font-oktoberfest">OKTOBERFEST</span></span>
         <h2 class="section-title lowercase-brand">Our mgm journey in memories</h2>
-        <p class="section-subtitle">Smiles, clinking beer steins, and unforgettable moments shared with colleagues over the years.</p>
-      </div>
-
-      <!-- FILTER TABS -->
-      <div class="filter-bar reveal">
-        <button class="filter-tab active" data-filter="all">All Seasons</button>
-        <button class="filter-tab" data-filter="2016">2016</button>
-        <button class="filter-tab" data-filter="2017">2017</button>
-        <button class="filter-tab" data-filter="2018">2018</button>
-        <button class="filter-tab" data-filter="2019">2019</button>
-        <button class="filter-tab" data-filter="2022">2022</button>
-        <button class="filter-tab" data-filter="2023">2023</button>
       </div>
 
       <!-- MEMORIES SLIDER WRAPPER -->
@@ -189,474 +157,6 @@
 
         <div class="slider-container">
           <div class="slider-track" id="sliderTrack">
-            <div class="slider-item" data-category="2016">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786528188/oktoberfest/2016/PA080414.webp" alt="mgm Oktoberfest 2016 - PA080414" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2016</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2016</h3>
-                  <p class="gallery-desc">PA080414</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786528188/oktoberfest/2016/PA080414.webp', 'mgm Oktoberfest 2016 - PA080414')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2016">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526189/oktoberfest/2016/2016-10_first_Oktoberfest.webp" alt="mgm Oktoberfest 2016 - 2016-10_first_Oktoberfest" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2016</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2016</h3>
-                  <p class="gallery-desc">2016-10_first_Oktoberfest</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526189/oktoberfest/2016/2016-10_first_Oktoberfest.webp', 'mgm Oktoberfest 2016 - 2016-10_first_Oktoberfest')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2016">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786528862/oktoberfest/2016/PA080419.webp" alt="mgm Oktoberfest 2016 - PA080419" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2016</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2016</h3>
-                  <p class="gallery-desc">PA080419</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786528862/oktoberfest/2016/PA080419.webp', 'mgm Oktoberfest 2016 - PA080419')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2016">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526196/oktoberfest/2016/PA080433.webp" alt="mgm Oktoberfest 2016 - PA080433" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2016</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2016</h3>
-                  <p class="gallery-desc">PA080433</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526196/oktoberfest/2016/PA080433.webp', 'mgm Oktoberfest 2016 - PA080433')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2016">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786528189/oktoberfest/2016/PA080436.webp" alt="mgm Oktoberfest 2016 - PA080436" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2016</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2016</h3>
-                  <p class="gallery-desc">PA080436</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786528189/oktoberfest/2016/PA080436.webp', 'mgm Oktoberfest 2016 - PA080436')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2016">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526198/oktoberfest/2016/PA080434.webp" alt="mgm Oktoberfest 2016 - PA080434" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2016</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2016</h3>
-                  <p class="gallery-desc">PA080434</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526198/oktoberfest/2016/PA080434.webp', 'mgm Oktoberfest 2016 - PA080434')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2017">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526199/oktoberfest/2017/IMG_0981.webp" alt="mgm Oktoberfest 2017 - IMG_0981" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2017</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2017</h3>
-                  <p class="gallery-desc">IMG_0981</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526199/oktoberfest/2017/IMG_0981.webp', 'mgm Oktoberfest 2017 - IMG_0981')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2017">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526200/oktoberfest/2017/DSC8003.webp" alt="mgm Oktoberfest 2017 - DSC8003" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2017</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2017</h3>
-                  <p class="gallery-desc">DSC8003</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526200/oktoberfest/2017/DSC8003.webp', 'mgm Oktoberfest 2017 - DSC8003')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2017">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526201/oktoberfest/2017/2017-09-23_Oktoberfest.webp" alt="mgm Oktoberfest 2017 - 2017-09-23_Oktoberfest" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2017</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2017</h3>
-                  <p class="gallery-desc">2017-09-23_Oktoberfest</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526201/oktoberfest/2017/2017-09-23_Oktoberfest.webp', 'mgm Oktoberfest 2017 - 2017-09-23_Oktoberfest')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2017">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526203/oktoberfest/2017/IMG_0989.webp" alt="mgm Oktoberfest 2017 - IMG_0989" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2017</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2017</h3>
-                  <p class="gallery-desc">IMG_0989</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526203/oktoberfest/2017/IMG_0989.webp', 'mgm Oktoberfest 2017 - IMG_0989')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2017">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526204/oktoberfest/2017/IMG_0972.webp" alt="mgm Oktoberfest 2017 - IMG_0972" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2017</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2017</h3>
-                  <p class="gallery-desc">IMG_0972</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526204/oktoberfest/2017/IMG_0972.webp', 'mgm Oktoberfest 2017 - IMG_0972')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2017">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526205/oktoberfest/2017/IMG_0967.webp" alt="mgm Oktoberfest 2017 - IMG_0967" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2017</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2017</h3>
-                  <p class="gallery-desc">IMG_0967</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526205/oktoberfest/2017/IMG_0967.webp', 'mgm Oktoberfest 2017 - IMG_0967')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526206/oktoberfest/2018/mgm_otf__37.webp" alt="mgm Oktoberfest 2018 - mgm_otf__37" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">mgm_otf__37</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526206/oktoberfest/2018/mgm_otf__37.webp', 'mgm Oktoberfest 2018 - mgm_otf__37')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526208/oktoberfest/2018/MG_3972.webp" alt="mgm Oktoberfest 2018 - MG_3972" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_3972</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526208/oktoberfest/2018/MG_3972.webp', 'mgm Oktoberfest 2018 - MG_3972')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526209/oktoberfest/2018/mgm_otf__30.webp" alt="mgm Oktoberfest 2018 - mgm_otf__30" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">mgm_otf__30</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526209/oktoberfest/2018/mgm_otf__30.webp', 'mgm Oktoberfest 2018 - mgm_otf__30')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786529043/oktoberfest/2018/2018-09-29_Oktoberfest_2.webp" alt="mgm Oktoberfest 2018 - 2018-09-29_Oktoberfest_2" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">2018-09-29_Oktoberfest_2</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786529043/oktoberfest/2018/2018-09-29_Oktoberfest_2.webp', 'mgm Oktoberfest 2018 - 2018-09-29_Oktoberfest_2')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526212/oktoberfest/2018/MG_3902.webp" alt="mgm Oktoberfest 2018 - MG_3902" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_3902</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526212/oktoberfest/2018/MG_3902.webp', 'mgm Oktoberfest 2018 - MG_3902')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526213/oktoberfest/2018/mgm_otf__261.webp" alt="mgm Oktoberfest 2018 - mgm_otf__261" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">mgm_otf__261</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526213/oktoberfest/2018/mgm_otf__261.webp', 'mgm Oktoberfest 2018 - mgm_otf__261')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526215/oktoberfest/2018/MG_3855.webp" alt="mgm Oktoberfest 2018 - MG_3855" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_3855</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526215/oktoberfest/2018/MG_3855.webp', 'mgm Oktoberfest 2018 - MG_3855')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526216/oktoberfest/2018/2018-09-29_Oktoberfest.webp" alt="mgm Oktoberfest 2018 - 2018-09-29_Oktoberfest" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">2018-09-29_Oktoberfest</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526216/oktoberfest/2018/2018-09-29_Oktoberfest.webp', 'mgm Oktoberfest 2018 - 2018-09-29_Oktoberfest')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526217/oktoberfest/2018/MG_4080.webp" alt="mgm Oktoberfest 2018 - MG_4080" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_4080</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526217/oktoberfest/2018/MG_4080.webp', 'mgm Oktoberfest 2018 - MG_4080')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526219/oktoberfest/2018/mgm_otf__87.webp" alt="mgm Oktoberfest 2018 - mgm_otf__87" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">mgm_otf__87</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526219/oktoberfest/2018/mgm_otf__87.webp', 'mgm Oktoberfest 2018 - mgm_otf__87')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526220/oktoberfest/2018/MG_3995.webp" alt="mgm Oktoberfest 2018 - MG_3995" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_3995</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526220/oktoberfest/2018/MG_3995.webp', 'mgm Oktoberfest 2018 - MG_3995')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526221/oktoberfest/2018/MG_4008.webp" alt="mgm Oktoberfest 2018 - MG_4008" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_4008</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526221/oktoberfest/2018/MG_4008.webp', 'mgm Oktoberfest 2018 - MG_4008')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526223/oktoberfest/2018/mgm_otf__19.webp" alt="mgm Oktoberfest 2018 - mgm_otf__19" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">mgm_otf__19</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526223/oktoberfest/2018/mgm_otf__19.webp', 'mgm Oktoberfest 2018 - mgm_otf__19')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2018">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526225/oktoberfest/2018/MG_4026.webp" alt="mgm Oktoberfest 2018 - MG_4026" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2018</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2018</h3>
-                  <p class="gallery-desc">MG_4026</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526225/oktoberfest/2018/MG_4026.webp', 'mgm Oktoberfest 2018 - MG_4026')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526226/oktoberfest/2019/2019-09-28_Oktoberfest19-2.webp" alt="mgm Oktoberfest 2019 - 2019-09-28_Oktoberfest19-2" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">2019-09-28_Oktoberfest19-2</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526226/oktoberfest/2019/2019-09-28_Oktoberfest19-2.webp', 'mgm Oktoberfest 2019 - 2019-09-28_Oktoberfest19-2')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526227/oktoberfest/2019/DSC7033.webp" alt="mgm Oktoberfest 2019 - DSC7033" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">DSC7033</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526227/oktoberfest/2019/DSC7033.webp', 'mgm Oktoberfest 2019 - DSC7033')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526228/oktoberfest/2019/DSF0125.webp" alt="mgm Oktoberfest 2019 - DSF0125" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">DSF0125</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526228/oktoberfest/2019/DSF0125.webp', 'mgm Oktoberfest 2019 - DSF0125')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526229/oktoberfest/2019/DSF0118.webp" alt="mgm Oktoberfest 2019 - DSF0118" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">DSF0118</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526229/oktoberfest/2019/DSF0118.webp', 'mgm Oktoberfest 2019 - DSF0118')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526231/oktoberfest/2019/DSF0094.webp" alt="mgm Oktoberfest 2019 - DSF0094" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">DSF0094</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526231/oktoberfest/2019/DSF0094.webp', 'mgm Oktoberfest 2019 - DSF0094')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526232/oktoberfest/2019/2019-09-28_Oktoberfest19.webp" alt="mgm Oktoberfest 2019 - 2019-09-28_Oktoberfest19" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">2019-09-28_Oktoberfest19</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526232/oktoberfest/2019/2019-09-28_Oktoberfest19.webp', 'mgm Oktoberfest 2019 - 2019-09-28_Oktoberfest19')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526233/oktoberfest/2019/DSC7073.webp" alt="mgm Oktoberfest 2019 - DSC7073" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">DSC7073</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526233/oktoberfest/2019/DSC7073.webp', 'mgm Oktoberfest 2019 - DSC7073')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526234/oktoberfest/2019/2019_0928_03535100.webp" alt="mgm Oktoberfest 2019 - 2019_0928_03535100" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">2019_0928_03535100</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526234/oktoberfest/2019/2019_0928_03535100.webp', 'mgm Oktoberfest 2019 - 2019_0928_03535100')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526235/oktoberfest/2019/1569643072014.webp" alt="mgm Oktoberfest 2019 - 1569643072014" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">1569643072014</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526235/oktoberfest/2019/1569643072014.webp', 'mgm Oktoberfest 2019 - 1569643072014')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2019">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526236/oktoberfest/2019/DSC7039.webp" alt="mgm Oktoberfest 2019 - DSC7039" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2019</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2019</h3>
-                  <p class="gallery-desc">DSC7039</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526236/oktoberfest/2019/DSC7039.webp', 'mgm Oktoberfest 2019 - DSC7039')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
             <!-- 2022 Official Video Highlight (Cloudflare R2) -->
             <div class="slider-item" data-category="2022">
               <div class="gallery-item gallery-video-item" onclick="openVideoLightbox('https://pub-a8460b3580e04baf852732dbabcd7e00.r2.dev/videos/oktoberfest_2022.mp4', 'mgm Oktoberfest 2022 — Official Recap Video')">
@@ -854,149 +354,6 @@
                 </div>
               </div>
             </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526256/oktoberfest/2023/DSC06614.webp" alt="mgm Oktoberfest 2023 - DSC06614" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06614</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526256/oktoberfest/2023/DSC06614.webp', 'mgm Oktoberfest 2023 - DSC06614')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526258/oktoberfest/2023/DSC06927.webp" alt="mgm Oktoberfest 2023 - DSC06927" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06927</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526258/oktoberfest/2023/DSC06927.webp', 'mgm Oktoberfest 2023 - DSC06927')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526260/oktoberfest/2023/DSC06931.webp" alt="mgm Oktoberfest 2023 - DSC06931" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06931</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526260/oktoberfest/2023/DSC06931.webp', 'mgm Oktoberfest 2023 - DSC06931')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526261/oktoberfest/2023/DSC06892.webp" alt="mgm Oktoberfest 2023 - DSC06892" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06892</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526261/oktoberfest/2023/DSC06892.webp', 'mgm Oktoberfest 2023 - DSC06892')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526265/oktoberfest/2023/DSC06916.webp" alt="mgm Oktoberfest 2023 - DSC06916" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06916</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526265/oktoberfest/2023/DSC06916.webp', 'mgm Oktoberfest 2023 - DSC06916')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526266/oktoberfest/2023/DSC06888.webp" alt="mgm Oktoberfest 2023 - DSC06888" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06888</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526266/oktoberfest/2023/DSC06888.webp', 'mgm Oktoberfest 2023 - DSC06888')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526268/oktoberfest/2023/HCMC.webp" alt="mgm Oktoberfest 2023 - HCMC" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">HCMC</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526268/oktoberfest/2023/HCMC.webp', 'mgm Oktoberfest 2023 - HCMC')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526270/oktoberfest/2023/DSC06596.webp" alt="mgm Oktoberfest 2023 - DSC06596" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06596</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526270/oktoberfest/2023/DSC06596.webp', 'mgm Oktoberfest 2023 - DSC06596')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526272/oktoberfest/2023/DSC06838.webp" alt="mgm Oktoberfest 2023 - DSC06838" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06838</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526272/oktoberfest/2023/DSC06838.webp', 'mgm Oktoberfest 2023 - DSC06838')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526274/oktoberfest/2023/DSC06754.webp" alt="mgm Oktoberfest 2023 - DSC06754" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06754</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526274/oktoberfest/2023/DSC06754.webp', 'mgm Oktoberfest 2023 - DSC06754')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="slider-item" data-category="2023">
-              <div class="gallery-item">
-                <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526276/oktoberfest/2023/DSC06350.webp" alt="mgm Oktoberfest 2023 - DSC06350" loading="lazy">
-                <div class="gallery-overlay">
-                  <span class="gallery-tag">2023</span>
-                  <h3 class="gallery-title">mgm <span class="font-oktoberfest">Oktoberfest</span> 2023</h3>
-                  <p class="gallery-desc">DSC06350</p>
-                  <button class="gallery-zoom-btn" onclick="openLightbox('https://res.cloudinary.com/ren3b5dq/image/upload/v1786526276/oktoberfest/2023/DSC06350.webp', 'mgm Oktoberfest 2023 - DSC06350')">
-                    <i data-lucide="maximize-2"></i> Zoom
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1009,7 +366,7 @@
           <div class="slide-counter">
             <span id="currentSlideNum" class="counter-num-active">01</span>
             <span class="counter-slash">/</span>
-            <span id="totalSlideNum" class="counter-num-total">62</span>
+            <span id="totalSlideNum" class="counter-num-total">16</span>
           </div>
 
           <!-- PROGRESS SCRUBBER TRACK (Only visible for All Seasons) -->
@@ -1098,102 +455,14 @@
           </div>
         </div>
 
-        <div class="dresscode-visual">
-          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526247/oktoberfest/2022/BTpr__81.webp" alt="Traditional Bavarian Attire Inspiration" class="dresscode-img">
+        <div class="dresscode-visual dresscode-slider" id="dresscodeSlider">
+          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526247/oktoberfest/2022/BTpr__81.webp" alt="Traditional Bavarian Attire Inspiration 1" class="dresscode-slide active">
+          <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526238/oktoberfest/2022/BTpr__223.webp" alt="Traditional Bavarian Attire Inspiration 2" class="dresscode-slide">
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════════════════════════════════════════
-       VENUE & LOCATION (DANANG & HCMC) (Section 5 - Pattern BG)
-       ═══════════════════════════════════════════════════════ -->
-  <section class="section venue-section section-pattern-bg section-pattern-last" id="venue">
-    <div class="section-container">
-      <div class="section-header text-center reveal">
-        <span class="section-tag"><i data-lucide="map-pin"></i> EVENT VENUES</span>
-        <h2 class="section-title lowercase-brand">See you at the mgm office!</h2>
-        <p class="section-subtitle">Taking place simultaneously at both mgm Vietnam offices on <strong>Saturday, 19 Sep 2026 (5:00 PM — Late)</strong>.</p>
-      </div>
-
-      <div class="venues-dual-grid">
-        
-        <!-- DANANG OFFICE -->
-        <div class="venue-card highlight-blue reveal" style="transition-delay: 0.1s;">
-          <div class="venue-card-header">
-            <span class="office-tag">DANANG OFFICE</span>
-            <h3 class="office-title lowercase-brand">mgm Danang</h3>
-          </div>
-          <div class="venue-card-body">
-            <div class="venue-item">
-              <i data-lucide="map-pin"></i>
-              <span><strong>Address:</strong> 71 Quang Trung, Hai Chau District, Da Nang</span>
-            </div>
-            <div class="venue-item">
-              <i data-lucide="clock"></i>
-              <span><strong>Time:</strong> Sat, 19 Sep | 5:00 PM — Late</span>
-            </div>
-            <div class="venue-item">
-              <i data-lucide="party-popper"></i>
-              <span><strong>Venue:</strong> mgm Danang Office & Terrace</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- HCMC OFFICE -->
-        <div class="venue-card highlight reveal" style="transition-delay: 0.2s;">
-          <div class="venue-card-header">
-            <span class="office-tag gold">HCMC OFFICE</span>
-            <h3 class="office-title lowercase-brand">mgm HCMC</h3>
-          </div>
-          <div class="venue-card-body">
-            <div class="venue-item">
-              <i data-lucide="map-pin"></i>
-              <span><strong>Address:</strong> 195A Hai Ba Trung, Ward 6, District 3, HCMC</span>
-            </div>
-            <div class="venue-item">
-              <i data-lucide="clock"></i>
-              <span><strong>Time:</strong> Sat, 19 Sep | 5:00 PM — Late</span>
-            </div>
-            <div class="venue-item">
-              <i data-lucide="party-popper"></i>
-              <span><strong>Venue:</strong> mgm HCMC Lounge</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="text-center margin-top-lg reveal">
-        <button class="btn btn-hero-secondary" onclick="addToCalendar()">
-          <i data-lucide="calendar-plus"></i> Add Event to Calendar
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════════════════
-       REGISTRATION SECTION (TRIGGER POPUP MODAL)
-       ═══════════════════════════════════════════════════════ -->
-  <section class="section registration-section" id="registration">
-    <div class="section-container">
-      <div class="reg-cta-card glass-card reveal text-center">
-        <span class="section-tag gold"><i data-lucide="clipboard-check"></i> OFFICIAL REGISTRATION</span>
-        <h2 class="section-title lowercase-brand">Register for mgm <span class="font-oktoberfest">Oktoberfest</span> 2026</h2>
-        <p class="section-subtitle">Click the button below to open the registration form and confirm your attendance with the team!</p>
-
-        <div class="reg-action-wrapper">
-          <button type="button" class="btn btn-hero-primary open-reg-modal">
-            <i data-lucide="ticket"></i> Open Registration Form
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════════════════
-       FOOTER
-       ═══════════════════════════════════════════════════════ -->
   <!-- ═══════════════════════════════════════════════════════
        FOOTER
        ═══════════════════════════════════════════════════════ -->
@@ -1221,26 +490,12 @@
           </div>
         </div>
 
-        <!-- DIV 2: CONTACT & EVENT TEAM -->
+        <!-- DIV 2: CONTACT -->
         <div class="footer-col footer-contact-col">
           <h4 class="footer-col-title">Contact:</h4>
           <a href="mailto:vn_marketing@mgm-tp.com" class="footer-email-link">
             <i data-lucide="mail"></i> vn_marketing@mgm-tp.com
           </a>
-
-          <div class="event-team-container">
-            <div class="team-members-row">
-              <div class="team-member-card">
-                <img src="./assets/images/hoa_hoang.png" alt="Hoa Hoang" class="member-avatar">
-                <span class="member-name">Hoa Hoang</span>
-              </div>
-              <div class="team-member-card">
-                <img src="./assets/images/van_nguyen.png" alt="Van Nguyen" class="member-avatar">
-                <span class="member-name">Van Nguyen</span>
-              </div>
-            </div>
-            <p class="team-caption">Members of the event team</p>
-          </div>
         </div>
 
         <!-- DIV 3: BRAND / LOGO / SLOGAN (LEFT ALIGNED) -->
@@ -1443,7 +698,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=12"></script>
+  <script src="./js/app.js?v=13"></script>
 </body>
 </html>
 

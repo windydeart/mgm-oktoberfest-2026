@@ -127,6 +127,32 @@ body.dark-theme {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ─── GLOBAL DARK CUSTOM SCROLLBAR ─── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080e20;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.35);
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.35) #080e20;
+}
+
 img {
   max-width: 100%;
   height: auto;
@@ -1900,7 +1926,7 @@ h1, h2, h3, h4 {
 
 /* ─── JOTFORM EMBED MODAL ─── */
 .reg-modal-content.jotform-modal-content {
-  max-width: 780px;
+  max-width: 1020px;
   width: 95%;
   height: 92vh;
   max-height: 880px;

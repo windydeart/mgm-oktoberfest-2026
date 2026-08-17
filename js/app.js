@@ -368,9 +368,7 @@ function initMemoriesSlider() {
     if (item.classList.contains('gallery-video-item')) return;
     item.addEventListener('click', () => {
       const img = item.querySelector('img');
-      const tag = item.querySelector('.gallery-tag');
-      const year = tag ? tag.textContent.trim() : '';
-      const caption = year ? `mgm Oktoberfest ${year}` : '';
+      const caption = 'mgm Oktoberfest';
       if (img && (img.currentSrc || img.src)) {
         openLightbox(img.currentSrc || img.src, caption);
       }

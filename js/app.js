@@ -579,21 +579,18 @@ function initVenueMapModal() {
   });
 }
 
-/* ─── ADD TO CALENDAR (MICROSOFT OUTLOOK & UNIVERSAL ICS) ─── */
+/* ─── ADD TO CALENDAR (UNIVERSAL ICS — OPENS USER'S DEFAULT CALENDAR APP) ─── */
 function addToCalendar() {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
   const event = {
     title: "mgm - Oktoberfest 2026",
     description: "Join us for mgm Oktoberfest 2026 celebration! Authentic Bavarian food, craft beers & high energy music.",
     location: "mgm Office (71 Quang Trung, Hai Chau Ward, Da Nang / 195A Hai Ba Trung, Xuan Hoa Ward, HCMC)",
     startDate: "20260919T103000Z", // 5:30 PM GMT+7 = 10:30 AM UTC
-    endDate: "20260919T150000Z",   // 10:00 PM GMT+7 = 3:00 PM UTC
-    startIso: "2026-09-19T17:30:00",
-    endIso: "2026-09-19T22:00:00"
+    endDate: "20260919T150000Z"    // 10:00 PM GMT+7 = 3:00 PM UTC
   };
 
-  // Generate standard iCalendar (.ics) format compatible with Outlook Desktop, Apple Calendar, Mobile
+  // Generate standard iCalendar (.ics) file — universally supported by
+  // Outlook, Apple Calendar, Google Calendar, Samsung Calendar, etc.
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -601,7 +598,7 @@ function addToCalendar() {
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    'UID:oktoberfest-2026-' + Date.now() + '@mgm-tp.com',
+    'UID:oktoberfest-2026@mgm-tp.com',
     'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
     'DTSTART:' + event.startDate,
     'DTEND:' + event.endDate,
@@ -613,7 +610,8 @@ function addToCalendar() {
     'END:VCALENDAR'
   ].join('\r\n');
 
-  // Trigger .ics download for Outlook Desktop / iOS / Apple Calendar
+  // Download .ics file — the OS will prompt the user to open it
+  // with their default calendar application
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
   const link = document.createElement('a');
   link.href = window.URL.createObjectURL(blob);
@@ -621,12 +619,7 @@ function addToCalendar() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
-  if (!isIOS) {
-    // Open Microsoft Outlook 365 / Outlook Live Web Calendar in a new tab
-    const outlookUrl = `https://outlook.office.com/calendar/0/action/compose?subject=${encodeURIComponent(event.title)}&body=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&startdt=${event.startIso}&enddt=${event.endIso}&rru=addevent`;
-    window.open(outlookUrl, '_blank');
-  }
+  window.URL.revokeObjectURL(link.href);
 }
 
 /* ─── CHARACTER GREETINGS (HOA & LOAN TALK FRAMES) ─── */

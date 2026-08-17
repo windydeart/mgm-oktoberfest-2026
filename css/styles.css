@@ -383,8 +383,9 @@ h1, h2, h3, h4 {
 .cal-option svg,
 .cal-option i {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 /* ─── NAVIGATION BAR ─── */

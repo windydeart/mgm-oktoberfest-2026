@@ -582,6 +582,8 @@ function initVenueMapModal() {
   const mapModal = document.getElementById('mapModal');
   const closeMapBtn = document.getElementById('closeMapModalBtn');
   const mapIframe = document.getElementById('mapIframe');
+  const mapModalBadge = document.getElementById('mapModalBadge');
+  const mapModalBadgeText = document.getElementById('mapModalBadgeText');
   const mapModalTitle = document.getElementById('mapModalTitle');
   const mapModalAddress = document.getElementById('mapModalAddress');
   const openExternalGmapsBtn = document.getElementById('openExternalGmapsBtn');
@@ -591,18 +593,24 @@ function initVenueMapModal() {
 
   const venues = {
     danang: {
+      badge: 'EVENT VENUE',
+      isVenue: true,
       title: 'mgm Da Nang Office',
       address: '71 Quang Trung, Hai Chau Ward, Da Nang',
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang'
     },
     'danang-pct': {
+      badge: 'MGM OFFICE',
+      isVenue: false,
       title: 'mgm Da Nang Office (Phan Chau Trinh)',
       address: '7 Phan Chau Trinh, Hai Chau Ward, Da Nang',
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang'
     },
     hcmc: {
+      badge: 'EVENT VENUE',
+      isVenue: true,
       title: 'mgm HCMC Office',
       address: '195A Hai Ba Trung, Xuan Hoa Ward, HCMC',
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+195A+Hai+Ba+Trung,+Ho+Chi+Minh&t=&z=16&ie=UTF8&iwloc=&output=embed',
@@ -617,6 +625,11 @@ function initVenueMapModal() {
     if (mapModalAddress) mapModalAddress.textContent = venue.address;
     if (openExternalGmapsBtn) openExternalGmapsBtn.href = venue.externalUrl;
     
+    if (mapModalBadgeText) mapModalBadgeText.textContent = venue.badge;
+    if (mapModalBadge) {
+      mapModalBadge.classList.toggle('badge-office', !venue.isVenue);
+    }
+
     // Only update iframe src if changed to prevent unnecessary reloads
     if (mapIframe.getAttribute('data-active-src') !== venue.embedUrl) {
       mapIframe.setAttribute('data-active-src', venue.embedUrl);
@@ -624,7 +637,7 @@ function initVenueMapModal() {
     }
 
     tabBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.targetVenue === key || (key === 'danang-pct' && btn.dataset.targetVenue === 'danang'));
+      btn.classList.toggle('active', btn.dataset.targetVenue === key);
     });
   }
 

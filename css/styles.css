@@ -2217,6 +2217,13 @@ h1, h2, h3, h4 {
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
   margin-bottom: 0.45rem;
+  transition: all 0.2s ease;
+}
+
+.map-modal-badge.badge-office {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.28);
 }
 
 .map-modal-badge i {

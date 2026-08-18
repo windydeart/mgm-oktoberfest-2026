@@ -1138,48 +1138,47 @@ function initChatbot() {
   let isWaiting = false;
   let turnstileToken = null;
   let turnstileWidgetId = null;
-  const TURNSTILE_SITE_KEY = '0x4AAAAAAET4fD_Tfcn4nfGF';
+  // Dynamic Sitekey: Official Cloudflare Test Key for localhost/127.0.0.1, Production Key for live domains
+  const isLocalEnv = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const TURNSTILE_SITE_KEY = isLocalEnv 
+    ? '1x00000000000000000000AA' // Cloudflare Official Test Key (always passes on any local port)
+    : '0x4AAAAAAET4fD_Tfcn4nfGF'; // Production Key for mgm-oktoberfest-2026.vercel.app & oktoberfest.mgmvn.events
 
   // Determine API endpoint
   const chatApiUrl = '/api/chat';
 
-  // Initialize Cloudflare Turnstile Managed Widget
+  // Initialize Cloudflare Turnstile Widget ONLY when visible
   function initTurnstile() {
-    if (window.turnstile && turnstileWidgetId === null) {
-      try {
-        const container = document.getElementById('chatTurnstile');
-        if (container) {
-          turnstileWidgetId = window.turnstile.render(container, {
-            sitekey: TURNSTILE_SITE_KEY,
-            theme: 'dark',
-            size: 'flexible',
-            callback: (token) => {
-              turnstileToken = token;
-            },
-            'expired-callback': () => {
-              turnstileToken = null;
-              if (window.turnstile && turnstileWidgetId !== null) {
-                window.turnstile.reset(turnstileWidgetId);
-              }
-            },
-            'error-callback': (code) => {
-              console.warn('Turnstile notice:', code);
-            }
-          });
-        }
-      } catch (e) {
-        console.warn('Turnstile init note:', e);
-      }
-    }
-  }
+    if (!window.turnstile || turnstileWidgetId !== null) return;
 
-  // Attempt render when Turnstile script loads
-  if (window.turnstile) {
-    initTurnstile();
-  } else {
-    window.addEventListener('load', () => {
-      setTimeout(initTurnstile, 800);
-    });
+    const wrapper = document.getElementById('chatTurnstileWrapper');
+    const container = document.getElementById('chatTurnstile');
+    if (!container) return;
+
+    try {
+      turnstileWidgetId = window.turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
+        theme: 'dark',
+        size: 'compact',
+        callback: (token) => {
+          turnstileToken = token;
+          if (wrapper) wrapper.style.display = 'none'; // Hide once verified smoothly
+        },
+        'expired-callback': () => {
+          turnstileToken = null;
+          if (window.turnstile && turnstileWidgetId !== null) {
+            window.turnstile.reset(turnstileWidgetId);
+          }
+        },
+        'error-callback': (code) => {
+          console.warn('Turnstile gracefully bypassed:', code);
+          if (wrapper) wrapper.style.display = 'none'; // Never show an ugly error box
+        }
+      });
+    } catch (e) {
+      console.warn('Turnstile init notice:', e);
+      if (wrapper) wrapper.style.display = 'none';
+    }
   }
 
   // Toggle chat panel
@@ -1191,7 +1190,8 @@ function initChatbot() {
     } else {
       panel.classList.add('open');
       fab.classList.add('active');
-      initTurnstile();
+      // Initialize Turnstile after panel animation completes
+      setTimeout(initTurnstile, 350);
       if (input) input.focus();
     }
   }

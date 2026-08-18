@@ -647,8 +647,7 @@ function initCalendarDropdown() {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
   }
-
-  function openMgmWebmail() {
+  function openOutlook() {
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
@@ -658,6 +657,7 @@ function initCalendarDropdown() {
       startdt: event.startIsoUtc,
       enddt: event.endIsoUtc
     });
+    // Direct link to mgm technology partners On-Premises OWA Exchange
     const webUrl = `https://webmail.mgm-tp.com/owa/?${params.toString()}`;
     window.open(webUrl, '_blank');
   }
@@ -665,20 +665,6 @@ function initCalendarDropdown() {
   function openGoogle() {
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&dates=${event.startUtc}/${event.endUtc}`;
     window.open(url, '_blank');
-  }
-
-  function openOutlookLive() {
-    const params = new URLSearchParams({
-      path: '/calendar/action/compose',
-      rru: 'addevent',
-      subject: event.title,
-      body: event.description,
-      location: event.location,
-      startdt: event.startIsoUtc,
-      enddt: event.endIsoUtc
-    });
-    const webUrl = `https://outlook.live.com/calendar/deeplink/compose?${params.toString()}`;
-    window.open(webUrl, '_blank');
   }
 
   // Toggle dropdown
@@ -693,9 +679,8 @@ function initCalendarDropdown() {
     opt.addEventListener('click', (e) => {
       e.stopPropagation();
       const type = opt.dataset.calendar;
-      if (type === 'mgm') openMgmWebmail();
+      if (type === 'outlook' || type === 'mgm') openOutlook();
       else if (type === 'google') openGoogle();
-      else if (type === 'outlooklive' || type === 'office365' || type === 'outlook') openOutlookLive();
       else downloadIcs();
       dropdown.classList.remove('active');
     });

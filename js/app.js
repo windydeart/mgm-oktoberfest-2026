@@ -12,19 +12,11 @@ if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
 
-window.addEventListener('pageshow', (e) => {
-  if (window.location.hash) {
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-  }
-  window.scrollTo(0, 0);
-});
-
 document.addEventListener('DOMContentLoaded', () => {
-  // Always start at top on DOM ready
+  // Clean hash from URL if present
   if (window.location.hash) {
     history.replaceState(null, '', window.location.pathname + window.location.search);
   }
-  window.scrollTo(0, 0);
 
   // 1. Initialize Lucide Icons
   if (window.lucide) {

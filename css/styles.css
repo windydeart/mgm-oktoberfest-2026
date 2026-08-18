@@ -1535,7 +1535,8 @@ h1, h2, h3, h4 {
 .beer-pour-trigger-btn {
   position: absolute;
   top: 14px;
-  left: 16px;
+  right: 16px;
+  left: auto;
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -1587,8 +1588,9 @@ h1, h2, h3, h4 {
 .beer-btn-tooltip {
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(6px);
+  right: 0;
+  left: auto;
+  transform: translateY(6px);
   background: rgba(11, 19, 43, 0.95);
   border: 1px solid rgba(245, 158, 11, 0.4);
   color: var(--text-gold);
@@ -1606,7 +1608,7 @@ h1, h2, h3, h4 {
 
 .beer-pour-trigger-btn:hover .beer-btn-tooltip {
   opacity: 1;
-  transform: translateX(-50%) translateY(10px);
+  transform: translateY(10px);
 }
 
 /* ─── COUNTDOWN CARD LIQUID BEER FILL ─── */
@@ -1645,6 +1647,54 @@ h1, h2, h3, h4 {
   border-radius: 4px 4px 0 0;
   opacity: 0;
   transition: opacity 0.25s ease;
+}
+
+/* ─── RISING BEER CARBONATION BUBBLES ─── */
+.beer-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.countdown-card.beer-filled .beer-bubbles {
+  opacity: 1;
+}
+
+.beer-bubbles .bubble {
+  position: absolute;
+  bottom: -8px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.25) 75%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: beerBubbleFloat 2.2s infinite ease-in;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+}
+
+.beer-bubbles .bubble:nth-child(1) { left: 16%; width: 4px; height: 4px; animation-duration: 1.8s; animation-delay: 0.1s; }
+.beer-bubbles .bubble:nth-child(2) { left: 42%; width: 6px; height: 6px; animation-duration: 2.4s; animation-delay: 0.5s; }
+.beer-bubbles .bubble:nth-child(3) { left: 66%; width: 3.5px; height: 3.5px; animation-duration: 1.6s; animation-delay: 0.25s; }
+.beer-bubbles .bubble:nth-child(4) { left: 84%; width: 5px; height: 5px; animation-duration: 2.1s; animation-delay: 0.75s; }
+.beer-bubbles .bubble:nth-child(5) { left: 28%; width: 4px; height: 4px; animation-duration: 1.9s; animation-delay: 1.0s; }
+
+@keyframes beerBubbleFloat {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-85px) translateX(4px);
+    opacity: 0;
+  }
 }
 
 .countdown-card.beer-filled {

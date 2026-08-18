@@ -654,8 +654,19 @@ function initCalendarDropdown() {
   }
 
   function openOutlook() {
-    const url = `https://outlook.office.com/calendar/0/action/compose?subject=${encodeURIComponent(event.title)}&body=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&startdt=${event.startIso}&enddt=${event.endIso}&rru=addevent`;
-    window.open(url, '_blank');
+    const params = new URLSearchParams({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      subject: event.title,
+      body: event.description,
+      location: event.location,
+      startdt: event.startIso,
+      enddt: event.endIso
+    });
+    // Use outlook.live.com which works for both personal and work accounts
+    // (Microsoft will redirect to office.com automatically if user has M365)
+    const webUrl = `https://outlook.live.com/calendar/0/action/compose?${params.toString()}`;
+    window.open(webUrl, '_blank');
   }
 
   // Toggle dropdown

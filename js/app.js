@@ -459,10 +459,10 @@ function initBeerPourInteraction() {
 
       await wait(420);
 
-      // Position beer stream precisely from the mouth (foam rim) of the tilted mug
-      const spoutX = targetMugX - 2;
-      const spoutY = targetMugY + 34;
-      const streamHeight = Math.max(22, cardRect.top - spoutY + 12);
+      // Position beer stream seamlessly starting from inside the mouth/foam of the tilted mug
+      const spoutX = targetMugX - 10;
+      const spoutY = targetMugY + 14;
+      const streamHeight = Math.max(30, cardRect.top - spoutY + 14);
 
       stream.style.left = `${spoutX}px`;
       stream.style.top = `${spoutY}px`;

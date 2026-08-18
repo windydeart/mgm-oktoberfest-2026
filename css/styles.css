@@ -1777,10 +1777,10 @@ h1, h2, h3, h4 {
   position: fixed;
   z-index: 99998;
   pointer-events: none;
-  width: 4.5px;
-  background: linear-gradient(180deg, #fef08a 0%, #fbbf24 40%, #d97706 100%);
-  box-shadow: 0 0 10px #fbbf24, 0 0 20px rgba(245, 158, 11, 0.7);
-  border-radius: 3px;
+  width: 5px;
+  background: linear-gradient(180deg, #ffffff 0%, #fef08a 20%, #fbbf24 50%, #d97706 100%);
+  box-shadow: 0 0 10px #fbbf24, 0 0 20px rgba(245, 158, 11, 0.85);
+  border-radius: 4px;
   opacity: 0;
   transform-origin: top center;
   transition: height 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;

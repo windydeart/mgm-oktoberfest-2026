@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=59">
+  <link rel="stylesheet" href="./css/styles.css?v=60">
 </head>
 <body class="dark-theme">
 
@@ -282,8 +282,9 @@
               </button>
               <div class="attire-accordion-body">
                 <div class="attire-body-content">
-                  <div class="attire-preview-box">
+                  <div class="attire-preview-box attire-zoomable" onclick="openOutfitLightbox('./assets/images/Lederhosen.png', 'Lederhosen (Traditional Menswear)', 'Traditional leather breeches with suspenders, paired with a checkered or plain shirt and Bavarian socks.')" title="Click to enlarge outfit" role="button" tabindex="0">
                     <img src="./assets/images/Lederhosen.png" alt="Lederhosen Bavarian Attire" class="attire-png-img" loading="lazy">
+                    <span class="attire-zoom-badge" aria-hidden="true"><i data-lucide="zoom-in"></i></span>
                   </div>
                   <div class="attire-details">
                     <h4 class="attire-detail-heading">Classic Bavarian Style</h4>
@@ -305,8 +306,9 @@
               </button>
               <div class="attire-accordion-body">
                 <div class="attire-body-content">
-                  <div class="attire-preview-box">
+                  <div class="attire-preview-box attire-zoomable" onclick="openOutfitLightbox('./assets/images/Dirndl.png', 'Dirndl (Traditional Womenswear)', 'Bavarian folk dress comprising a tailored bodice, ruffled white blouse, flared skirt, and tied waist apron.')" title="Click to enlarge outfit" role="button" tabindex="0">
                     <img src="./assets/images/Dirndl.png" alt="Dirndl Bavarian Dress" class="attire-png-img" loading="lazy">
+                    <span class="attire-zoom-badge" aria-hidden="true"><i data-lucide="zoom-in"></i></span>
                   </div>
                   <div class="attire-details">
                     <h4 class="attire-detail-heading">Feminine Folk Elegance</h4>
@@ -328,8 +330,9 @@
               </button>
               <div class="attire-accordion-body">
                 <div class="attire-body-content">
-                  <div class="attire-preview-box">
+                  <div class="attire-preview-box attire-zoomable" onclick="openOutfitLightbox('./assets/images/Casual Outfit.png', 'Casual Outfit (Comfortable & Free)', 'Jeans, T-shirts, polo shirts, or smart-casual attire. Feel free and comfortable to enjoy food, beer, and games.')" title="Click to enlarge outfit" role="button" tabindex="0">
                     <img src="./assets/images/Casual Outfit.png" alt="Casual Outfit" class="attire-png-img" loading="lazy">
+                    <span class="attire-zoom-badge" aria-hidden="true"><i data-lucide="zoom-in"></i></span>
                   </div>
                   <div class="attire-details">
                     <h4 class="attire-detail-heading">Relaxed & Celebration Ready</h4>
@@ -768,7 +771,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=45"></script>
+  <script src="./js/app.js?v=46"></script>
 </body>
 </html>
 

@@ -135,6 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 12. Chatbot Widget (Bierly AI Assistant)
   initChatbot();
+
+  // 13. Lightbox Global Click & Escape Listeners
+  initLightbox();
 });
 
 /* ─── SCROLL REVEAL OBSERVER ─── */
@@ -516,7 +519,41 @@ function initDressCodeAccordion() {
   });
 }
 
-/* ─── LIGHTBOX MODAL (PHOTO & VIDEO SUPPORT) ─── */
+/* ─── LIGHTBOX MODAL (PHOTO, VIDEO & TRANSPARENT PNG SUPPORT) ─── */
+function openOutfitLightbox(imgUrl, titleText, descText) {
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+
+  if (!lightbox) return;
+
+  if (lightboxVideo) {
+    lightboxVideo.pause();
+    lightboxVideo.style.display = 'none';
+    lightboxVideo.src = '';
+  }
+
+  if (lightboxImg) {
+    lightboxImg.style.display = 'block';
+    lightboxImg.src = imgUrl;
+    lightboxImg.alt = titleText || 'Outfit Inspiration';
+  }
+
+  if (lightboxCaption) {
+    lightboxCaption.innerHTML = `
+      <span style="font-size: 1.25rem; font-weight: 800; color: var(--accent-amber); display: block; margin-bottom: 0.35rem;">${titleText || ''}</span>
+      <span style="font-size: 0.92rem; color: #cbd5e1; font-weight: 400; max-width: 440px; display: inline-block; line-height: 1.5;">${descText || ''}</span>
+    `;
+  }
+
+  lightbox.classList.add('png-mode');
+  lightbox.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
 function openLightbox(imgUrl, captionText) {
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
@@ -524,6 +561,7 @@ function openLightbox(imgUrl, captionText) {
   const lightboxCaption = document.getElementById('lightboxCaption');
 
   if (lightbox) {
+    lightbox.classList.remove('png-mode');
     if (lightboxVideo) {
       lightboxVideo.pause();
       lightboxVideo.style.display = 'none';
@@ -532,11 +570,13 @@ function openLightbox(imgUrl, captionText) {
     if (lightboxImg) {
       lightboxImg.style.display = 'block';
       lightboxImg.src = imgUrl;
+      lightboxImg.alt = captionText || 'Photo';
     }
     if (lightboxCaption) {
       lightboxCaption.textContent = captionText || '';
     }
     lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
 }
 
@@ -547,6 +587,7 @@ function openVideoLightbox(videoUrl, captionText) {
   const lightboxCaption = document.getElementById('lightboxCaption');
 
   if (lightbox) {
+    lightbox.classList.remove('png-mode');
     if (lightboxImg) {
       lightboxImg.style.display = 'none';
       lightboxImg.src = '';
@@ -560,6 +601,7 @@ function openVideoLightbox(videoUrl, captionText) {
       lightboxCaption.textContent = captionText || '';
     }
     lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
 }
 
@@ -568,11 +610,30 @@ function closeLightbox() {
   const lightboxVideo = document.getElementById('lightboxVideo');
   if (lightbox) {
     lightbox.classList.remove('active');
+    lightbox.classList.remove('png-mode');
+    document.body.style.overflow = '';
     if (lightboxVideo) {
       lightboxVideo.pause();
       lightboxVideo.src = '';
     }
   }
+}
+
+function initLightbox() {
+  const lightbox = document.getElementById('lightbox');
+  if (!lightbox) return;
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+      closeLightbox();
+    }
+  });
 }
 
 /* ─── POP-UP REGISTRATION MODAL (JOTFORM EMBED) ─── */

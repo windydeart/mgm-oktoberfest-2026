@@ -593,7 +593,7 @@ function initVenueMapModal() {
 
   const venues = {
     danang: {
-      badge: 'EVENT VENUE',
+      badge: 'Event Venue',
       isVenue: true,
       title: 'mgm Da Nang Office',
       address: '71 Quang Trung, Hai Chau Ward, Da Nang',
@@ -601,7 +601,7 @@ function initVenueMapModal() {
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang'
     },
     'danang-pct': {
-      badge: 'MGM OFFICE',
+      badge: 'mgm office',
       isVenue: false,
       title: 'mgm Da Nang Office (Phan Chau Trinh)',
       address: '7 Phan Chau Trinh, Hai Chau Ward, Da Nang',
@@ -609,7 +609,7 @@ function initVenueMapModal() {
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang'
     },
     hcmc: {
-      badge: 'EVENT VENUE',
+      badge: 'Event Venue',
       isVenue: true,
       title: 'mgm HCMC Office',
       address: '195A Hai Ba Trung, Xuan Hoa Ward, HCMC',

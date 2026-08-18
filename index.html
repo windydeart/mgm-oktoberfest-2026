@@ -33,7 +33,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=71">
+  <link rel="stylesheet" href="./css/styles.css?v=72">
 </head>
 <body class="dark-theme">
 
@@ -75,13 +75,20 @@
     <div class="hero-bg-overlay"></div>
     <canvas id="bubblesCanvas" class="bubbles-canvas"></canvas>
 
+    <!-- ═══ CINEMATIC TECH PORTAL INTRO SHUTTER & LASER ═══ -->
+    <div class="hero-portal-shutter" id="heroPortalShutter" aria-hidden="true">
+      <div class="shutter-half shutter-left"></div>
+      <div class="shutter-half shutter-right"></div>
+      <div class="hero-intro-laser" id="heroIntroLaser"></div>
+    </div>
+
     <div class="hero-content">
-      <h1 class="hero-title reveal">
+      <h1 class="hero-title hero-intro-title">
         <span class="gold-gradient-text lowercase-brand">mgm - <span class="font-oktoberfest">Oktoberfest</span> 2026</span>
       </h1>
 
       <!-- COUNTDOWN TIMER & EVENT LOGISTICS -->
-      <div class="countdown-wrapper reveal reveal-scale reveal-delay-2">
+      <div class="countdown-wrapper hero-intro-countdown">
         <div class="countdown-container" id="countdown">
           <div class="countdown-header">
             Countdown to the Event
@@ -139,7 +146,7 @@
         </div>
       </div>
 
-      <div class="hero-actions reveal reveal-delay-3">
+      <div class="hero-actions hero-intro-actions">
         <button type="button" class="btn btn-hero-primary open-reg-modal">
           <i data-lucide="ticket"></i> Register Now
         </button>
@@ -804,7 +811,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=55"></script>
+  <script src="./js/app.js?v=56"></script>
 </body>
 </html>
 

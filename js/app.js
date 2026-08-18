@@ -130,7 +130,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 13. Lightbox Global Click & Escape Listeners
   initLightbox();
+
+  // 14. Cinematic Tech Portal Hero Opening Sequence
+  initHeroIntroSequence();
 });
+
+/* ─── CINEMATIC HERO OPENING INTRO SEQUENCE ─── */
+function initHeroIntroSequence() {
+  const heroSection = document.getElementById('hero');
+  if (!heroSection) return;
+
+  // Step 1: Laser horizon line sweeps across center
+  requestAnimationFrame(() => {
+    heroSection.classList.add('hero-intro-laser-sweep');
+  });
+
+  // Step 2 (300ms): Dual shutter portal curtain splits open
+  setTimeout(() => {
+    heroSection.classList.add('hero-intro-open');
+  }, 300);
+
+  // Step 3 (700ms): Laser horizon line fades gracefully
+  setTimeout(() => {
+    heroSection.classList.add('hero-intro-laser-fade');
+  }, 700);
+
+  // Step 4 (1500ms): Remove shutter element display footprint
+  setTimeout(() => {
+    const shutter = document.getElementById('heroPortalShutter');
+    if (shutter) shutter.style.display = 'none';
+  }, 1500);
+}
 
 /* ─── SCROLL REVEAL OBSERVER ─── */
 function initScrollReveal() {

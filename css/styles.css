@@ -328,7 +328,7 @@ h1, h2, h3, h4 {
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%) scale(0.92);
-  min-width: 220px;
+  min-width: 245px;
   background: rgba(11, 19, 43, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

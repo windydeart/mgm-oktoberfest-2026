@@ -612,8 +612,8 @@ function initCalendarDropdown() {
     location: "mgm Office (71 Quang Trung, Hai Chau Ward, Da Nang / 195A Hai Ba Trung, Xuan Hoa Ward, HCMC)",
     startUtc: "20260919T103000Z",
     endUtc: "20260919T150000Z",
-    startIso: "2026-09-19T17:30:00",
-    endIso: "2026-09-19T22:00:00"
+    startIsoUtc: "2026-09-19T10:30:00Z",
+    endIsoUtc: "2026-09-19T15:00:00Z"
   };
 
   function buildIcs() {
@@ -653,19 +653,31 @@ function initCalendarDropdown() {
     window.open(url, '_blank');
   }
 
-  function openOutlook() {
+  function openOutlookOffice() {
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
       subject: event.title,
       body: event.description,
       location: event.location,
-      startdt: event.startIso,
-      enddt: event.endIso
+      startdt: event.startIsoUtc,
+      enddt: event.endIsoUtc
     });
-    // Use outlook.live.com which works for both personal and work accounts
-    // (Microsoft will redirect to office.com automatically if user has M365)
-    const webUrl = `https://outlook.live.com/calendar/0/action/compose?${params.toString()}`;
+    const webUrl = `https://outlook.office.com/calendar/deeplink/compose?${params.toString()}`;
+    window.open(webUrl, '_blank');
+  }
+
+  function openOutlookLive() {
+    const params = new URLSearchParams({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      subject: event.title,
+      body: event.description,
+      location: event.location,
+      startdt: event.startIsoUtc,
+      enddt: event.endIsoUtc
+    });
+    const webUrl = `https://outlook.live.com/calendar/deeplink/compose?${params.toString()}`;
     window.open(webUrl, '_blank');
   }
 
@@ -682,7 +694,8 @@ function initCalendarDropdown() {
       e.stopPropagation();
       const type = opt.dataset.calendar;
       if (type === 'google') openGoogle();
-      else if (type === 'outlook') openOutlook();
+      else if (type === 'office365' || type === 'outlook') openOutlookOffice();
+      else if (type === 'outlooklive') openOutlookLive();
       else downloadIcs();
       dropdown.classList.remove('active');
     });

@@ -596,6 +596,12 @@ function initVenueMapModal() {
       embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
       externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+71+Quang+Trung,+Da+Nang'
     },
+    'danang-pct': {
+      title: 'mgm Da Nang Office (Phan Chau Trinh)',
+      address: '7 Phan Chau Trinh, Hai Chau Ward, Da Nang',
+      embedUrl: 'https://maps.google.com/maps?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang&t=&z=16&ie=UTF8&iwloc=&output=embed',
+      externalUrl: 'https://maps.google.com/?q=mgm+technology+partners+Vietnam,+7+Phan+Chau+Trinh,+Da+Nang'
+    },
     hcmc: {
       title: 'mgm HCMC Office',
       address: '195A Hai Ba Trung, Xuan Hoa Ward, HCMC',
@@ -618,7 +624,7 @@ function initVenueMapModal() {
     }
 
     tabBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.targetVenue === key);
+      btn.classList.toggle('active', btn.dataset.targetVenue === key || (key === 'danang-pct' && btn.dataset.targetVenue === 'danang'));
     });
   }
 

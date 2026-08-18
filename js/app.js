@@ -648,12 +648,7 @@ function initCalendarDropdown() {
     window.URL.revokeObjectURL(link.href);
   }
 
-  function openGoogle() {
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&dates=${event.startUtc}/${event.endUtc}`;
-    window.open(url, '_blank');
-  }
-
-  function openOutlookOffice() {
+  function openMgmWebmail() {
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
@@ -663,8 +658,13 @@ function initCalendarDropdown() {
       startdt: event.startIsoUtc,
       enddt: event.endIsoUtc
     });
-    const webUrl = `https://outlook.office.com/calendar/deeplink/compose?${params.toString()}`;
+    const webUrl = `https://webmail.mgm-tp.com/owa/?${params.toString()}`;
     window.open(webUrl, '_blank');
+  }
+
+  function openGoogle() {
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&dates=${event.startUtc}/${event.endUtc}`;
+    window.open(url, '_blank');
   }
 
   function openOutlookLive() {
@@ -693,9 +693,9 @@ function initCalendarDropdown() {
     opt.addEventListener('click', (e) => {
       e.stopPropagation();
       const type = opt.dataset.calendar;
-      if (type === 'google') openGoogle();
-      else if (type === 'office365' || type === 'outlook') openOutlookOffice();
-      else if (type === 'outlooklive') openOutlookLive();
+      if (type === 'mgm') openMgmWebmail();
+      else if (type === 'google') openGoogle();
+      else if (type === 'outlooklive' || type === 'office365' || type === 'outlook') openOutlookLive();
       else downloadIcs();
       dropdown.classList.remove('active');
     });

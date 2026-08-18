@@ -33,7 +33,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=69">
+  <link rel="stylesheet" href="./css/styles.css?v=70">
 </head>
 <body class="dark-theme">
 
@@ -641,7 +641,7 @@
   </footer>
 
   <!-- ═══════════════════════════════════════════════════════
-       REGISTRATION POP-UP MODAL (JOTFORM IFRAME EMBED)
+       REGISTRATION POP-UP MODAL (JOTFORM IFRAME EMBED WITH TURNSTILE GATE)
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="registrationModal">
     <div class="modal-content glass-card reg-modal-content jotform-modal-content">
@@ -649,7 +649,24 @@
         <i data-lucide="x"></i>
       </button>
 
-      <div class="jotform-iframe-container">
+      <!-- CLOUDFLARE TURNSTILE SECURITY GATEKEEPER -->
+      <div class="reg-turnstile-gate" id="regTurnstileGate">
+        <div class="reg-gate-card">
+          <div class="reg-gate-icon">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <h3 class="reg-gate-title">Security Verification</h3>
+          <p class="reg-gate-desc">Verifying your connection to ensure a secure registration environment...</p>
+          
+          <div class="reg-turnstile-widget" id="regTurnstileWidget"></div>
+
+          <div class="reg-gate-footer">
+            <span class="reg-gate-secured"><i data-lucide="lock"></i> Protected by <strong>Cloudflare Turnstile</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="jotform-iframe-container" id="regIframeContainer">
         <iframe
           id="JotFormIFrame-262091577915061"
           title="mgm Oktoberfest 2026 Registration"
@@ -787,7 +804,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=53"></script>
+  <script src="./js/app.js?v=54"></script>
 </body>
 </html>
 

@@ -629,17 +629,67 @@ function initLightbox() {
   });
 }
 
-/* ─── POP-UP REGISTRATION MODAL (JOTFORM EMBED) ─── */
+/* ─── POP-UP REGISTRATION MODAL (JOTFORM EMBED WITH TURNSTILE GATE) ─── */
 function initRegistrationModal() {
   const regModal = document.getElementById('registrationModal');
   const closeRegBtn = document.getElementById('closeRegModalBtn');
+  const regGate = document.getElementById('regTurnstileGate');
+  const regTurnstileWidget = document.getElementById('regTurnstileWidget');
 
   if (!regModal) return;
+
+  const isLocalEnv = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const TURNSTILE_SITE_KEY = isLocalEnv 
+    ? '1x00000000000000000000AA'
+    : '0x4AAAAAAET4fD_Tfcn4nfGF';
+
+  let regTurnstileId = null;
+  let isRegVerified = false;
+
+  function renderRegTurnstile() {
+    if (isRegVerified) {
+      if (regGate) regGate.classList.add('verified');
+      return;
+    }
+
+    if (window.turnstile && regTurnstileWidget && regTurnstileId === null) {
+      try {
+        regTurnstileId = window.turnstile.render(regTurnstileWidget, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: 'dark',
+          size: 'compact',
+          callback: (token) => {
+            isRegVerified = true;
+            // Short smooth delay so user sees verification checkmark
+            setTimeout(() => {
+              if (regGate) regGate.classList.add('verified');
+            }, 350);
+          },
+          'expired-callback': () => {
+            isRegVerified = false;
+            if (window.turnstile && regTurnstileId !== null) {
+              window.turnstile.reset(regTurnstileId);
+            }
+          },
+          'error-callback': (code) => {
+            console.warn('Registration Turnstile bypass on error:', code);
+            if (regGate) regGate.classList.add('verified');
+          }
+        });
+      } catch (e) {
+        console.warn('Registration Turnstile init notice:', e);
+        if (regGate) regGate.classList.add('verified');
+      }
+    }
+  }
 
   const openModal = () => {
     regModal.classList.add('active');
     document.body.style.overflow = 'hidden';
     if (window.lucide) window.lucide.createIcons();
+
+    // Render Turnstile verification after modal transition
+    setTimeout(renderRegTurnstile, 300);
   };
 
   const closeModal = () => {

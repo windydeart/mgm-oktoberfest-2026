@@ -121,7 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. Dress Code 2-Image Rotating Slideshow
   initDressCodeSlider();
 
-  // 9. Pop-up Registration Modal Handlers
+  // 9. Dress Code Interactive Outfit Accordion
+  initDressCodeAccordion();
+
+  // 10. Pop-up Registration Modal Handlers
   initRegistrationModal();
 
   // 10. Venue Map Popup Modal (Google Maps)
@@ -480,6 +483,37 @@ function initDressCodeSlider() {
     activeIndex = (activeIndex + 1) % slides.length;
     slides[activeIndex].classList.add('active');
   }, 3500);
+}
+
+/* ─── DRESS CODE INTERACTIVE OUTFIT ACCORDION ─── */
+function initDressCodeAccordion() {
+  const accordion = document.getElementById('attireAccordion');
+  if (!accordion) return;
+
+  const items = accordion.querySelectorAll('.attire-accordion-item');
+
+  items.forEach(item => {
+    const header = item.querySelector('.attire-accordion-header');
+    if (!header) return;
+
+    header.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isActive = item.classList.contains('active');
+
+      // Close all items
+      items.forEach(i => {
+        i.classList.remove('active');
+        const btn = i.querySelector('.attire-accordion-header');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      });
+
+      // If clicked item wasn't active, expand it
+      if (!isActive) {
+        item.classList.add('active');
+        header.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
 }
 
 /* ─── LIGHTBOX MODAL (PHOTO & VIDEO SUPPORT) ─── */

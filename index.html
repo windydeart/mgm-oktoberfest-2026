@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=58">
+  <link rel="stylesheet" href="./css/styles.css?v=59">
 </head>
 <body class="dark-theme">
 
@@ -269,10 +269,75 @@
             "There's no official dress code. Casual is perfectly fine, but if you'd like to get into the <span class="font-oktoberfest">Oktoberfest</span> spirit, you're welcome to wear traditional Bavarian attire."
           </blockquote>
 
-          <div class="attire-badges">
-            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Lederhosen</strong> (Traditional Menswear)</span>
-            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Dirndl</strong> (Traditional Womenswear)</span>
-            <span class="attire-pill"><i data-lucide="check-circle-2"></i> <strong>Casual Outfit</strong> (Comfortable & Free)</span>
+          <div class="attire-accordion" id="attireAccordion">
+            <!-- Item 1: Lederhosen -->
+            <div class="attire-accordion-item active" data-attire="lederhosen">
+              <button class="attire-accordion-header" type="button" aria-expanded="true">
+                <span class="attire-header-title">
+                  <i data-lucide="check-circle-2"></i>
+                  <strong>Lederhosen</strong>
+                  <span class="attire-subtitle">(Traditional Menswear)</span>
+                </span>
+                <i data-lucide="chevron-down" class="attire-chevron"></i>
+              </button>
+              <div class="attire-accordion-body">
+                <div class="attire-body-content">
+                  <div class="attire-preview-box">
+                    <img src="./assets/images/Lederhosen.png" alt="Lederhosen Bavarian Attire" class="attire-png-img" loading="lazy">
+                  </div>
+                  <div class="attire-details">
+                    <h4 class="attire-detail-heading">Classic Bavarian Style</h4>
+                    <p class="attire-detail-text">Traditional leather breeches with suspenders, paired with a checkered or plain button-down shirt and sturdy footwear.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Item 2: Dirndl -->
+            <div class="attire-accordion-item" data-attire="dirndl">
+              <button class="attire-accordion-header" type="button" aria-expanded="false">
+                <span class="attire-header-title">
+                  <i data-lucide="check-circle-2"></i>
+                  <strong>Dirndl</strong>
+                  <span class="attire-subtitle">(Traditional Womenswear)</span>
+                </span>
+                <i data-lucide="chevron-down" class="attire-chevron"></i>
+              </button>
+              <div class="attire-accordion-body">
+                <div class="attire-body-content">
+                  <div class="attire-preview-box">
+                    <img src="./assets/images/Dirndl.png" alt="Dirndl Bavarian Dress" class="attire-png-img" loading="lazy">
+                  </div>
+                  <div class="attire-details">
+                    <h4 class="attire-detail-heading">Feminine Folk Elegance</h4>
+                    <p class="attire-detail-text">Bavarian folk dress comprising a tailored bodice, ruffled white blouse, flared skirt, and tied waist apron.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Item 3: Casual Outfit -->
+            <div class="attire-accordion-item" data-attire="casual">
+              <button class="attire-accordion-header" type="button" aria-expanded="false">
+                <span class="attire-header-title">
+                  <i data-lucide="check-circle-2"></i>
+                  <strong>Casual Outfit</strong>
+                  <span class="attire-subtitle">(Comfortable & Free)</span>
+                </span>
+                <i data-lucide="chevron-down" class="attire-chevron"></i>
+              </button>
+              <div class="attire-accordion-body">
+                <div class="attire-body-content">
+                  <div class="attire-preview-box">
+                    <img src="./assets/images/Casual Outfit.png" alt="Casual Outfit" class="attire-png-img" loading="lazy">
+                  </div>
+                  <div class="attire-details">
+                    <h4 class="attire-detail-heading">Relaxed & Celebration Ready</h4>
+                    <p class="attire-detail-text">Jeans, T-shirts, polo shirts, or smart-casual attire. Feel free and comfortable to enjoy food, beer, and games.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -703,7 +768,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=44"></script>
+  <script src="./js/app.js?v=45"></script>
 </body>
 </html>
 

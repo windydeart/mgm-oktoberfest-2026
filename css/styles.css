@@ -1891,27 +1891,150 @@ h1, h2, h3, h4 {
   margin-bottom: 2.2rem;
 }
 
-.attire-badges {
+/* ─── DRESS CODE ACCORDION ─── */
+.attire-accordion {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
 }
 
-.attire-pill {
+.attire-accordion-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.attire-accordion-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.attire-accordion-item.active {
+  background: rgba(245, 158, 11, 0.07);
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), 0 0 15px rgba(245, 158, 11, 0.06);
+}
+
+.attire-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.92rem;
+  outline: none;
+  transition: color 0.2s ease;
+}
+
+.attire-header-title {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
-  color: #fff;
+  flex-wrap: wrap;
 }
-.attire-pill i {
+
+.attire-header-title i {
   color: var(--accent-amber);
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
+}
+
+.attire-header-title strong {
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+
+.attire-subtitle {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.attire-chevron {
+  color: var(--text-muted);
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+}
+
+.attire-accordion-item.active .attire-chevron {
+  transform: rotate(180deg);
+  color: var(--accent-amber);
+}
+
+.attire-accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  opacity: 0;
+}
+
+.attire-accordion-item.active .attire-accordion-body {
+  max-height: 300px;
+  opacity: 1;
+}
+
+.attire-body-content {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.6rem 1.2rem 1.1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.attire-preview-box {
+  width: 78px;
+  height: 78px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(255, 255, 255, 0.03) 70%);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.attire-png-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.attire-accordion-item:hover .attire-png-img {
+  transform: scale(1.08);
+}
+
+.attire-details {
+  flex: 1;
+}
+
+.attire-detail-heading {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-gold);
+  margin-bottom: 0.25rem;
+}
+
+.attire-detail-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
 }
 
 .dresscode-visual.dresscode-slider {

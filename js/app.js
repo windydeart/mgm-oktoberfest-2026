@@ -404,6 +404,7 @@ function initBeerPourInteraction() {
   const cards = [cardDays, cardHours, cardMinutes, cardSeconds];
   let isPouring = false;
   let isFilledState = false;
+  let resetTimer = null;
 
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -411,8 +412,9 @@ function initBeerPourInteraction() {
     e.preventDefault();
     if (isPouring) return;
 
-    // If already filled, clicking again will empty/reset the beer
+    // If already filled, clicking again will empty/reset the beer immediately
     if (isFilledState) {
+      if (resetTimer) clearTimeout(resetTimer);
       cards.forEach(c => c.classList.remove('beer-filled'));
       isFilledState = false;
       return;
@@ -420,6 +422,7 @@ function initBeerPourInteraction() {
 
     isPouring = true;
     isFilledState = true;
+    if (resetTimer) clearTimeout(resetTimer);
 
     // 1. Get initial position of the trigger button
     const btnRect = pourBtn.getBoundingClientRect();
@@ -499,6 +502,12 @@ function initBeerPourInteraction() {
     }
 
     isPouring = false;
+
+    // 4. Automatically return filled countdown cards back to initial state after 4s
+    resetTimer = setTimeout(() => {
+      cards.forEach(c => c.classList.remove('beer-filled'));
+      isFilledState = false;
+    }, 4000);
   });
 }
 

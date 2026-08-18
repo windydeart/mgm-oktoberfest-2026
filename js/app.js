@@ -1122,7 +1122,7 @@ function showComingSoonToast(title = 'Minigame Coming Soon! 🎮', message = 'Ou
   setTimeout(removeToast, 4500);
 }
 
-/* ─── CHATBOT WIDGET — BIERLY AI ASSISTANT ─── */
+/* ─── CHATBOT WIDGET — BIERLY AI ASSISTANT (PROTECTED BY CLOUDFLARE TURNSTILE) ─── */
 function initChatbot() {
   const fab = document.getElementById('chatFab');
   const panel = document.getElementById('chatPanel');
@@ -1136,11 +1136,51 @@ function initChatbot() {
 
   const conversationHistory = [];
   let isWaiting = false;
+  let turnstileToken = null;
+  let turnstileWidgetId = null;
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAET4fD_Tfcn4nfGF';
 
-  // Determine API endpoint (local dev vs production)
-  const chatApiUrl = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? '/api/chat'
-    : '/api/chat';
+  // Determine API endpoint
+  const chatApiUrl = '/api/chat';
+
+  // Initialize Cloudflare Turnstile Managed Widget
+  function initTurnstile() {
+    if (window.turnstile && turnstileWidgetId === null) {
+      try {
+        const container = document.getElementById('chatTurnstile');
+        if (container) {
+          turnstileWidgetId = window.turnstile.render(container, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'dark',
+            size: 'flexible',
+            callback: (token) => {
+              turnstileToken = token;
+            },
+            'expired-callback': () => {
+              turnstileToken = null;
+              if (window.turnstile && turnstileWidgetId !== null) {
+                window.turnstile.reset(turnstileWidgetId);
+              }
+            },
+            'error-callback': (code) => {
+              console.warn('Turnstile notice:', code);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Turnstile init note:', e);
+      }
+    }
+  }
+
+  // Attempt render when Turnstile script loads
+  if (window.turnstile) {
+    initTurnstile();
+  } else {
+    window.addEventListener('load', () => {
+      setTimeout(initTurnstile, 800);
+    });
+  }
 
   // Toggle chat panel
   function toggleChat() {
@@ -1151,6 +1191,7 @@ function initChatbot() {
     } else {
       panel.classList.add('open');
       fab.classList.add('active');
+      initTurnstile();
       if (input) input.focus();
     }
   }
@@ -1283,7 +1324,8 @@ function initChatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          history: historyToSend.slice(0, -1) // exclude current message (already in 'message')
+          history: historyToSend.slice(0, -1), // exclude current message
+          turnstileToken: turnstileToken
         })
       });
 
@@ -1302,6 +1344,16 @@ function initChatbot() {
       hideTyping();
       appendMessage('bot', 'Could not connect to Bierly right now. Please try again later! 🍻');
       console.error('Chatbot fetch error:', err);
+    }
+
+    // Reset Turnstile token for next interaction
+    if (window.turnstile && turnstileWidgetId !== null) {
+      try {
+        window.turnstile.reset(turnstileWidgetId);
+        turnstileToken = null;
+      } catch (e) {
+        // ignore
+      }
     }
 
     isWaiting = false;

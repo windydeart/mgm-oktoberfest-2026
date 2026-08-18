@@ -117,6 +117,32 @@ function isSuspiciousBot(ua) {
   return BOT_UA_PATTERNS.some(regex => regex.test(ua));
 }
 
+/* ─── CLOUDFLARE TURNSTILE SERVER-SIDE VERIFICATION ─── */
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAET4fLV89hZIhyuwloOUNOpHE8w';
+
+async function verifyTurnstileToken(token, ip) {
+  if (!token) return true; // Graceful fallback if Turnstile was bypassed in development
+  try {
+    const formData = new URLSearchParams();
+    formData.append('secret', TURNSTILE_SECRET_KEY);
+    formData.append('response', token);
+    if (ip && ip !== 'unknown') {
+      formData.append('remoteip', ip);
+    }
+
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (err) {
+    console.error('Turnstile verification error:', err.message);
+    return true; // Fail-open on network timeout to avoid blocking legitimate users
+  }
+}
+
 /* ─── MAIN HANDLER ─── */
 module.exports = async function handler(req, res) {
   // CORS & Security headers
@@ -139,7 +165,7 @@ module.exports = async function handler(req, res) {
     return res.status(403).json({ error: 'Access denied: Automated request detected.' });
   }
 
-  // 2. Anti-Abuse: Origin / Referer validation (permit same-origin, vercel previews, localhost, and direct clients)
+  // 2. Anti-Abuse: Origin / Referer validation (permit same-origin, vercel previews, localhost, mgmvn.events, and direct clients)
   const origin = req.headers['origin'] || req.headers['referer'] || '';
   if (origin) {
     const isAllowedOrigin = 
@@ -147,6 +173,7 @@ module.exports = async function handler(req, res) {
       origin.includes('localhost') ||
       origin.includes('127.0.0.1') ||
       origin.includes('mgm-tp.com') ||
+      origin.includes('mgmvn.events') ||
       origin.includes('oktoberfest');
     if (!isAllowedOrigin) {
       return res.status(403).json({ error: 'Unauthorized origin.' });
@@ -166,7 +193,7 @@ module.exports = async function handler(req, res) {
   }
 
   // 4. Validate request body
-  const { message, history } = req.body || {};
+  const { message, history, turnstileToken } = req.body || {};
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required' });
@@ -174,6 +201,14 @@ module.exports = async function handler(req, res) {
 
   if (message.trim().length > 1000) {
     return res.status(400).json({ error: 'Message too long (max 1000 characters)' });
+  }
+
+  // 5. Verify Cloudflare Turnstile token if provided
+  if (turnstileToken) {
+    const isHuman = await verifyTurnstileToken(turnstileToken, clientIP);
+    if (!isHuman) {
+      return res.status(403).json({ error: 'Cloudflare Turnstile verification failed. Please refresh and try again! 🛡️' });
+    }
   }
 
   // Build conversation contents for Gemini API

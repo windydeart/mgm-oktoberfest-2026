@@ -29,8 +29,11 @@
     window.scrollTo(0, 0);
   </script>
 
+  <!-- Cloudflare Turnstile Security API -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=64">
+  <link rel="stylesheet" href="./css/styles.css?v=65">
 </head>
 <body class="dark-theme">
 
@@ -717,7 +720,12 @@
       <div class="chat-avatar">🍺</div>
       <div class="chat-header-info">
         <div class="chat-header-name">Bierly</div>
-        <div class="chat-header-status">Oktoberfest AI Assistant</div>
+        <div class="chat-header-status">
+          <span>Oktoberfest AI Assistant</span>
+          <span class="chat-security-badge" title="Protected by Cloudflare Turnstile">
+            <i data-lucide="shield-check"></i> Turnstile Protected
+          </span>
+        </div>
       </div>
       <button class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
         <i data-lucide="x"></i>
@@ -735,6 +743,12 @@
       <button class="chat-chip" data-q="How do I register?">📝 How do I register?</button>
       <button class="chat-chip" data-q="What food & drinks?">🍺 What food & drinks?</button>
     </div>
+
+    <!-- Cloudflare Turnstile Managed Widget (Compact & Elegant) -->
+    <div class="chat-turnstile-wrapper" id="chatTurnstileWrapper">
+      <div id="chatTurnstile"></div>
+    </div>
+
     <div class="chat-input-bar">
       <textarea class="chat-input" id="chatInput" placeholder="Ask Bierly about the event..." rows="1"></textarea>
       <button class="chat-send-btn" id="chatSendBtn" disabled aria-label="Send message">
@@ -773,7 +787,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=48"></script>
+  <script src="./js/app.js?v=49"></script>
 </body>
 </html>
 

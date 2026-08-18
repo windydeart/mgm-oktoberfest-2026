@@ -600,23 +600,94 @@ function initVenueMapModal() {
   });
 }
 
-/* ─── ADD TO CALENDAR (DROPDOWN PICKER — GOOGLE / OUTLOOK / ICS) ─── */
+/* ─── ADD TO CALENDAR (LOCATION-AWARE: DA NANG & HCMC) ─── */
 function initCalendarDropdown() {
   const btn = document.getElementById('calendarDropdownBtn');
   const dropdown = document.getElementById('calendarDropdown');
   if (!btn || !dropdown) return;
 
-  const event = {
-    title: "mgm - Oktoberfest 2026",
-    description: "Join us for mgm Oktoberfest 2026 celebration! Authentic Bavarian food, craft beers & high energy music.",
-    location: "mgm Office (71 Quang Trung, Hai Chau Ward, Da Nang / 195A Hai Ba Trung, Xuan Hoa Ward, HCMC)",
-    startUtc: "20260919T103000Z",
-    endUtc: "20260919T150000Z",
-    startIsoUtc: "2026-09-19T10:30:00Z",
-    endIsoUtc: "2026-09-19T15:00:00Z"
+  const venueData = {
+    danang: {
+      name: 'Da Nang',
+      location: 'mgm Da Nang Office (71 Quang Trung, Hai Chau Ward, Da Nang)',
+      description: 'Join us for mgm Oktoberfest 2026 celebration at mgm Da Nang Office & Terrace (71 Quang Trung, Hai Chau Ward)! Authentic Bavarian food, craft beers & high energy music.\n\n* Khuyến khích mọi người đi Grab, taxi hoặc phương tiện công cộng vì lý do an toàn giao thông.'
+    },
+    hcmc: {
+      name: 'HCMC',
+      location: 'mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward, HCMC)',
+      description: 'Join us for mgm Oktoberfest 2026 celebration at mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward)! Authentic Bavarian food, craft beers & high energy music.\n\n* Khuyến khích mọi người đi Grab, taxi hoặc phương tiện công cộng vì lý do an toàn giao thông.'
+    }
   };
 
+  let currentVenue = localStorage.getItem('oktoberfest_venue') || 'danang';
+
+  function getCurrentEvent() {
+    const v = venueData[currentVenue] || venueData.danang;
+    return {
+      title: `mgm - Oktoberfest 2026 (${v.name})`,
+      description: v.description,
+      location: v.location,
+      startUtc: "20260919T103000Z",
+      endUtc: "20260919T150000Z",
+      startIsoUtc: "2026-09-19T10:30:00Z",
+      endIsoUtc: "2026-09-19T15:00:00Z"
+    };
+  }
+
+  function setCalendarVenue(key, statusText) {
+    if (!venueData[key]) key = 'danang';
+    currentVenue = key;
+    try { localStorage.setItem('oktoberfest_venue', key); } catch (e) {}
+
+    dropdown.querySelectorAll('.cal-venue-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.calVenue === key);
+    });
+
+    const detectedEl = document.getElementById('calVenueDetected');
+    if (detectedEl && statusText) {
+      detectedEl.textContent = statusText;
+    }
+  }
+
+  // Automatic Location Detection (IP Geolocation)
+  async function detectLocation() {
+    const saved = localStorage.getItem('oktoberfest_venue');
+    if (saved && (saved === 'danang' || saved === 'hcmc')) {
+      setCalendarVenue(saved, '');
+      return;
+    }
+
+    try {
+      const res = await fetch('https://ipwho.is/', { cache: 'no-cache' });
+      if (!res.ok) throw new Error('IP lookup failed');
+      const data = await res.json();
+      if (data && data.success) {
+        const city = (data.city || '').toLowerCase();
+        const lat = data.latitude;
+        let detected = 'danang';
+        if (city.includes('ho chi minh') || city.includes('saigon') || city.includes('can tho') || city.includes('binh duong') || (lat && lat < 13.5)) {
+          detected = 'hcmc';
+        } else {
+          detected = 'danang';
+        }
+        setCalendarVenue(detected, `(${data.city || (detected === 'hcmc' ? 'HCMC' : 'Da Nang')})`);
+      }
+    } catch (err) {
+      setCalendarVenue(currentVenue, '');
+    }
+  }
+
+  // Venue button switcher in dropdown
+  dropdown.querySelectorAll('.cal-venue-btn').forEach(vBtn => {
+    vBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const vKey = vBtn.dataset.calVenue;
+      setCalendarVenue(vKey, '');
+    });
+  });
+
   function buildIcs() {
+    const ev = getCurrentEvent();
     return [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -624,13 +695,13 @@ function initCalendarDropdown() {
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
-      'UID:oktoberfest-2026@mgm-tp.com',
+      'UID:oktoberfest-2026-' + currentVenue + '@mgm-tp.com',
       'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z',
-      'DTSTART:' + event.startUtc,
-      'DTEND:' + event.endUtc,
-      'SUMMARY:' + event.title,
-      'DESCRIPTION:' + event.description,
-      'LOCATION:' + event.location,
+      'DTSTART:' + ev.startUtc,
+      'DTEND:' + ev.endUtc,
+      'SUMMARY:' + ev.title,
+      'DESCRIPTION:' + ev.description.replace(/\n/g, '\\n'),
+      'LOCATION:' + ev.location,
       'STATUS:CONFIRMED',
       'END:VEVENT',
       'END:VCALENDAR'
@@ -638,32 +709,35 @@ function initCalendarDropdown() {
   }
 
   function downloadIcs() {
+    const ev = getCurrentEvent();
     const blob = new Blob([buildIcs()], { type: 'text/calendar;charset=utf-8' });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', 'mgm_Oktoberfest_2026.ics');
+    link.setAttribute('download', `mgm_Oktoberfest_2026_${currentVenue.toUpperCase()}.ics`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
   }
+
   function openOutlook() {
+    const ev = getCurrentEvent();
     const params = new URLSearchParams({
       path: '/calendar/action/compose',
       rru: 'addevent',
-      subject: event.title,
-      body: event.description,
-      location: event.location,
-      startdt: event.startIsoUtc,
-      enddt: event.endIsoUtc
+      subject: ev.title,
+      body: ev.description,
+      location: ev.location,
+      startdt: ev.startIsoUtc,
+      enddt: ev.endIsoUtc
     });
-    // Direct link to mgm technology partners On-Premises OWA Exchange
     const webUrl = `https://webmail.mgm-tp.com/owa/?${params.toString()}`;
     window.open(webUrl, '_blank');
   }
 
   function openGoogle() {
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&dates=${event.startUtc}/${event.endUtc}`;
+    const ev = getCurrentEvent();
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&details=${encodeURIComponent(ev.description)}&location=${encodeURIComponent(ev.location)}&dates=${ev.startUtc}/${ev.endUtc}`;
     window.open(url, '_blank');
   }
 
@@ -690,6 +764,9 @@ function initCalendarDropdown() {
   document.addEventListener('click', () => {
     dropdown.classList.remove('active');
   });
+
+  // Start auto-detecting location
+  detectLocation();
 }
 
 /* ─── CHARACTER GREETINGS (HOA & LOAN TALK FRAMES) ─── */

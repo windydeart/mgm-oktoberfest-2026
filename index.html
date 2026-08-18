@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=53">
+  <link rel="stylesheet" href="./css/styles.css?v=54">
 </head>
 <body class="dark-theme">
 
@@ -143,6 +143,24 @@
             <i data-lucide="calendar-plus"></i> Add Event to Calendar
           </button>
           <div class="calendar-dropdown" id="calendarDropdown">
+            <!-- Venue Location Toggle -->
+            <div class="cal-venue-selector">
+              <div class="cal-venue-header">
+                <span class="cal-venue-label">Location</span>
+                <span class="cal-venue-detected" id="calVenueDetected"></span>
+              </div>
+              <div class="cal-venue-options">
+                <button type="button" class="cal-venue-btn active" data-cal-venue="danang" id="calVenueDanang">
+                  <i data-lucide="map-pin"></i> Da Nang
+                </button>
+                <button type="button" class="cal-venue-btn" data-cal-venue="hcmc" id="calVenueHcmc">
+                  <i data-lucide="map-pin"></i> HCMC
+                </button>
+              </div>
+            </div>
+
+            <div class="cal-divider"></div>
+
             <button type="button" class="cal-option" data-calendar="outlook">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M14 4h6.5A2.5 2.5 0 0 1 23 6.5v11a2.5 2.5 0 0 1-2.5 2.5H14V4z" fill="#0078d4"/>
@@ -683,7 +701,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=37"></script>
+  <script src="./js/app.js?v=38"></script>
 </body>
 </html>
 

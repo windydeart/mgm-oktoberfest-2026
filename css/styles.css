@@ -328,18 +328,18 @@ h1, h2, h3, h4 {
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%) scale(0.92);
-  min-width: 245px;
-  background: rgba(11, 19, 43, 0.92);
+  min-width: 270px;
+  background: rgba(11, 19, 43, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 8px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.15) inset;
   z-index: 50;
 }
 
@@ -351,9 +351,9 @@ h1, h2, h3, h4 {
   transform: translateX(-50%) rotate(45deg);
   width: 12px;
   height: 12px;
-  background: rgba(11, 19, 43, 0.92);
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 19, 43, 0.94);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .calendar-dropdown.active {
@@ -363,17 +363,96 @@ h1, h2, h3, h4 {
   transform: translateX(-50%) scale(1);
 }
 
+/* ─── CALENDAR VENUE SELECTOR ─── */
+.cal-venue-selector {
+  padding: 4px 4px 6px;
+}
+
+.cal-venue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.cal-venue-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-gold, #f59e0b);
+}
+
+.cal-venue-detected {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+}
+
+.cal-venue-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cal-venue-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cal-venue-btn i,
+.cal-venue-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.cal-venue-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cal-venue-btn.active {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.2) 100%);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fef08a;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+.cal-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 4px 6px;
+}
+
 .cal-option {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 12px;
   background: transparent;
   border: none;
   border-radius: 10px;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -390,8 +469,8 @@ h1, h2, h3, h4 {
 .cal-option svg,
 .cal-option i {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: block;
 }
 

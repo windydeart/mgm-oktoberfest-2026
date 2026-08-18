@@ -128,11 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 12. Chatbot Widget (Bierly AI Assistant)
   initChatbot();
 
-  // 13. Lightbox Global Click & Escape Listeners
-  initLightbox();
-
   // 14. Cinematic Tech Portal Hero Opening Sequence
   initHeroIntroSequence();
+
+  // 15. Bavarian Beer Pouring Easter Egg Interaction
+  initBeerPourInteraction();
 });
 
 /* ─── CINEMATIC HERO OPENING INTRO SEQUENCE ─── */
@@ -386,6 +386,119 @@ function initCountdownTimer(targetDate) {
   setTimeout(() => {
     requestAnimationFrame(scrambleStep);
   }, 400);
+}
+
+/* ─── BAVARIAN BEER POURING INTERACTION (EASTER EGG) ─── */
+function initBeerPourInteraction() {
+  const pourBtn = document.getElementById('beerPourBtn');
+  const btnIcon = document.getElementById('beerBtnIcon');
+  const flyer = document.getElementById('beerFlyer');
+  const stream = document.getElementById('beerStream');
+  const cardDays = document.getElementById('cardDays');
+  const cardHours = document.getElementById('cardHours');
+  const cardMinutes = document.getElementById('cardMinutes');
+  const cardSeconds = document.getElementById('cardSeconds');
+
+  if (!pourBtn || !flyer || !stream || !cardDays || !cardHours || !cardMinutes || !cardSeconds) return;
+
+  const cards = [cardDays, cardHours, cardMinutes, cardSeconds];
+  let isPouring = false;
+  let isFilledState = false;
+
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  pourBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (isPouring) return;
+
+    // If already filled, clicking again will empty/reset the beer
+    if (isFilledState) {
+      cards.forEach(c => c.classList.remove('beer-filled'));
+      isFilledState = false;
+      return;
+    }
+
+    isPouring = true;
+    isFilledState = true;
+
+    // 1. Get initial position of the trigger button
+    const btnRect = pourBtn.getBoundingClientRect();
+    const startX = btnRect.left + btnRect.width / 2;
+    const startY = btnRect.top + btnRect.height / 2;
+
+    // Position flyer at the button
+    flyer.style.transition = 'none';
+    flyer.style.left = `${startX - 18}px`;
+    flyer.style.top = `${startY - 18}px`;
+    flyer.style.transform = 'scale(1) rotate(0deg)';
+    flyer.style.opacity = '1';
+
+    // Hide static button icon during flight
+    if (btnIcon) btnIcon.style.opacity = '0';
+
+    // Force layout reflow
+    flyer.offsetHeight;
+
+    // Enable smooth flight transition
+    flyer.style.transition = 'left 0.42s cubic-bezier(0.25, 1, 0.5, 1), top 0.42s cubic-bezier(0.25, 1, 0.5, 1), transform 0.42s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease';
+
+    // 2. Sequentially pour into each card
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const cardRect = card.getBoundingClientRect();
+
+      // Target position: above card's top edge, offset to the left for pouring angle
+      const targetMugX = cardRect.left + cardRect.width / 2 - 24;
+      const targetMugY = cardRect.top - 55;
+
+      // Fly to target card and tilt
+      flyer.style.left = `${targetMugX}px`;
+      flyer.style.top = `${targetMugY}px`;
+      flyer.style.transform = 'scale(1.65) rotate(-38deg)';
+
+      await wait(420);
+
+      // Position beer stream from mug spout to card top
+      const spoutX = targetMugX + 38;
+      const spoutY = targetMugY + 36;
+      const streamHeight = Math.max(25, cardRect.top - spoutY + 15);
+
+      stream.style.left = `${spoutX}px`;
+      stream.style.top = `${spoutY}px`;
+      stream.style.height = `${streamHeight}px`;
+      stream.style.opacity = '1';
+
+      // Start filling liquid in current card
+      card.classList.add('beer-filled');
+
+      await wait(520);
+
+      // Stop stream before moving to next card
+      stream.style.opacity = '0';
+      await wait(80);
+    }
+
+    // 3. Return flight back to home button
+    const currentBtnRect = pourBtn.getBoundingClientRect();
+    const returnX = currentBtnRect.left + currentBtnRect.width / 2;
+    const returnY = currentBtnRect.top + currentBtnRect.height / 2;
+
+    flyer.style.left = `${returnX - 18}px`;
+    flyer.style.top = `${returnY - 18}px`;
+    flyer.style.transform = 'scale(1) rotate(0deg)';
+
+    await wait(450);
+
+    flyer.style.opacity = '0';
+    if (btnIcon) {
+      btnIcon.style.opacity = '1';
+      pourBtn.style.animation = 'none';
+      pourBtn.offsetHeight;
+      pourBtn.style.animation = 'chatFabPulse 1s ease';
+    }
+
+    isPouring = false;
+  });
 }
 
 /* ─── AUTO-PLAY MEMORIES SLIDER (2022 ONLY) ─── */

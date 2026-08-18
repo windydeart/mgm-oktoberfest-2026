@@ -244,6 +244,7 @@ h1, h2, h3, h4 {
   font-weight: 600;
   letter-spacing: 0.5px;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .pill-badge.gold {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25));
@@ -304,6 +305,7 @@ h1, h2, h3, h4 {
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: #fff;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .btn-hero-secondary:hover {
   background: rgba(255, 255, 255, 0.18);
@@ -487,6 +489,7 @@ h1, h2, h3, h4 {
 .navbar.scrolled {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--glass-border);
   padding: 0.6rem 0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
@@ -611,6 +614,7 @@ h1, h2, h3, h4 {
   padding: 1rem 1.2rem;
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.2);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: flex-start;
   gap: 0.9rem;
@@ -690,20 +694,13 @@ h1, h2, h3, h4 {
   overflow: hidden;
 }
 
-.hero-bg-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 35%, rgba(11, 19, 43, 0.35) 0%, rgba(11, 19, 43, 0.5) 65%),
-              linear-gradient(to bottom, rgba(11, 19, 43, 0.45) 0%, rgba(11, 19, 43, 0.3) 35%, rgba(11, 19, 43, 0.68) 70%, var(--bg-primary) 100%);
-  z-index: 1;
-}
-
 /* ─── HERO BACKGROUND SLIDER (CROSS-FADE + KEN BURNS ZOOM OUT) ─── */
 .hero-bg-slider {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
+  isolation: isolate;
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   pointer-events: none;
@@ -726,7 +723,7 @@ h1, h2, h3, h4 {
   bottom: -30px;
   background-size: cover;
   background-position: center;
-  filter: brightness(1.08);
+  filter: brightness(0.88) contrast(1.06);
   opacity: 0;
   transform: scale(1.15);
   transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -747,6 +744,22 @@ h1, h2, h3, h4 {
   transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.hero-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 38%, rgba(11, 19, 43, 0.55) 0%, rgba(11, 19, 43, 0.75) 65%),
+              linear-gradient(to bottom, rgba(11, 19, 43, 0.65) 0%, rgba(11, 19, 43, 0.45) 30%, rgba(11, 19, 43, 0.85) 70%, var(--bg-primary) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.bubbles-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
 .hero-section::after {
   content: '';
   position: absolute;
@@ -755,14 +768,7 @@ h1, h2, h3, h4 {
   width: 100%;
   height: 150px;
   background: linear-gradient(to bottom, transparent 0%, var(--bg-primary) 100%);
-  z-index: 3;
-  pointer-events: none;
-}
-
-.bubbles-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
 }
 
@@ -819,12 +825,13 @@ h1, h2, h3, h4 {
 
 .countdown-container {
   position: relative;
-  background: linear-gradient(145deg, rgba(16, 26, 56, 0.88), rgba(11, 19, 43, 0.92));
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(16px);
+  background: linear-gradient(145deg, rgba(16, 26, 56, 0.92), rgba(11, 19, 43, 0.95));
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   padding: 1.8rem 2.2rem;
-  box-shadow: var(--shadow-glow), var(--shadow-lg);
+  box-shadow: var(--shadow-glow), var(--shadow-lg), 0 12px 36px rgba(0, 0, 0, 0.5);
   z-index: 5;
   overflow: hidden;
 }
@@ -1609,6 +1616,7 @@ h1, h2, h3, h4 {
 .video-badge-text {
   background: rgba(11, 19, 43, 0.85);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #fff;
   font-size: 0.76rem;
   font-weight: 700;
@@ -1790,6 +1798,7 @@ h1, h2, h3, h4 {
   background: var(--card-bg);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
   padding: 2.2rem 1.8rem;
   transition: all var(--transition-normal);
@@ -1854,6 +1863,7 @@ h1, h2, h3, h4 {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-lg);
 }
 
@@ -2125,6 +2135,7 @@ h1, h2, h3, h4 {
   border-radius: var(--radius-lg);
   padding: 2.5rem 2rem;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: all var(--transition-normal);
 }
 .venue-card.highlight-blue {
@@ -2211,6 +2222,7 @@ h1, h2, h3, h4 {
   overflow: hidden;
   background: linear-gradient(145deg, rgba(12, 20, 44, 0.96), rgba(8, 14, 32, 0.98));
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -2264,6 +2276,7 @@ h1, h2, h3, h4 {
   inset: 0;
   background: rgba(6, 11, 25, 0.88);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -2291,6 +2304,7 @@ h1, h2, h3, h4 {
   max-height: 92vh;
   padding: 2.5rem 2.2rem;
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   scrollbar-width: thin;
   scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
 }
@@ -3051,6 +3065,7 @@ h1, h2, h3, h4 {
   inset: 0;
   background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 3000;
   display: flex;
   flex-direction: column;

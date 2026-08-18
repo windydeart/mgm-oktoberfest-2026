@@ -124,9 +124,40 @@
       "a": "The event is organized by the mgm Vietnam marketing team. Contact vn_marketing@mgm-tp.com for any questions."
     }
   ],
+  "company": {
+    "name": "mgm technology partners",
+    "vietnam_branch": "mgm technology partners Vietnam",
+    "branding_rule": "Always write 'mgm' in lowercase ('mgm', never 'MGM' or 'Mgm')",
+    "employee_terms": {
+      "singular": "mgmy",
+      "plural": "mgmies (most commonly used)",
+      "note": "A single employee is a 'mgmy'. Multiple employees are 'mgmies'. Never write 'mgmie' without 's'."
+    },
+    "history": {
+      "founded_germany": 1994,
+      "years_in_germany": "31 years (since 1994 in Germany)",
+      "founded_vietnam": 2016,
+      "years_in_vietnam": "10-year anniversary milestone (2016 — 2026)",
+      "founder_ceo": "Mr. Till Gartner (German General Director / CEO who established mgm in Vietnam in 2016)"
+    }
+  },
   "contact": {
     "email": "vn_marketing@mgm-tp.com",
     "team": ["Hoa Hoang", "Van Nguyen"],
     "company": "mgm technology partners Vietnam"
-  }
+  },
+  "company_faq": [
+    {
+      "q": "What is mgm? / Giới thiệu về mgm? / Was ist mgm?",
+      "a": "mgm (always written lowercase) is a German software technology company founded in 1994 in Germany (31 years). The Vietnam branch (mgm technology partners Vietnam) was founded in 2016 by German CEO Mr. Till Gartner, proudly celebrating its 10th anniversary milestone in 2026! / mgm (luôn viết thường) là công ty công nghệ phần mềm của Đức thành lập từ năm 1994 (31 năm tại Đức). Chi nhánh mgm tại Việt Nam được thành lập từ năm 2016 bởi Tổng giám đốc người Đức là ông Till Gartner, vừa tròn dấu mốc 10 năm (2016 - 2026)!"
+    },
+    {
+      "q": "Who founded mgm in Vietnam? / Ai thành lập mgm Việt Nam?",
+      "a": "mgm technology partners Vietnam was established in 2016 by German General Director / CEO Mr. Till Gartner. / Chi nhánh mgm tại Việt Nam được thành lập vào năm 2016 bởi Tổng giám đốc người Đức là ông Till Gartner."
+    },
+    {
+      "q": "What do you call mgm employees? / Tên gọi nhân viên mgm là gì? / mgmy và mgmies là gì?",
+      "a": "Employees at mgm are called 'mgmy' for singular (1 person) and 'mgmies' for plural (multiple employees, more commonly used). Remember: never write 'mgmie' (missing 's'). / Nhân viên trong mgm (luôn viết thường) được gọi là 'mgmy' đối với số ít (1 người), còn số nhiều là 'mgmies' (thông dụng hơn). Không dùng 'mgmie' vì thiếu chữ s nhé!"
+    }
+  ]
 }

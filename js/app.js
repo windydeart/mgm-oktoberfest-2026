@@ -140,26 +140,26 @@ function initHeroIntroSequence() {
   const heroSection = document.getElementById('hero');
   if (!heroSection) return;
 
-  // Step 1: Laser horizon line sweeps across center
+  // Step 1: Laser horizon line sweeps subtly across center
   requestAnimationFrame(() => {
     heroSection.classList.add('hero-intro-laser-sweep');
   });
 
-  // Step 2 (300ms): Dual shutter portal curtain splits open
+  // Step 2 (180ms): Title, countdown, and CTA elements gracefully rise with gold shimmer
   setTimeout(() => {
     heroSection.classList.add('hero-intro-open');
-  }, 300);
+  }, 180);
 
-  // Step 3 (700ms): Laser horizon line fades gracefully
+  // Step 3 (600ms): Laser horizon line fades out cleanly
   setTimeout(() => {
     heroSection.classList.add('hero-intro-laser-fade');
-  }, 700);
+  }, 600);
 
-  // Step 4 (1500ms): Remove shutter element display footprint
+  // Step 4 (1200ms): Clean up laser element DOM footprint
   setTimeout(() => {
-    const shutter = document.getElementById('heroPortalShutter');
-    if (shutter) shutter.style.display = 'none';
-  }, 1500);
+    const laser = document.getElementById('heroIntroLaser');
+    if (laser) laser.style.display = 'none';
+  }, 1200);
 }
 
 /* ─── SCROLL REVEAL OBSERVER ─── */

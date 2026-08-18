@@ -446,22 +446,23 @@ function initBeerPourInteraction() {
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i];
       const cardRect = card.getBoundingClientRect();
+      const cardCenterX = cardRect.left + cardRect.width / 2;
 
-      // Target position: above card's top edge, offset to the left for pouring angle
-      const targetMugX = cardRect.left + cardRect.width / 2 - 24;
-      const targetMugY = cardRect.top - 55;
+      // Target position: place mug to the right of card center so mouth tilts directly over card
+      const targetMugX = cardCenterX + 18;
+      const targetMugY = cardRect.top - 62;
 
       // Fly to target card and tilt
       flyer.style.left = `${targetMugX}px`;
       flyer.style.top = `${targetMugY}px`;
-      flyer.style.transform = 'scale(1.65) rotate(-38deg)';
+      flyer.style.transform = 'scale(1.7) rotate(-42deg)';
 
       await wait(420);
 
-      // Position beer stream from mug spout to card top
-      const spoutX = targetMugX + 38;
-      const spoutY = targetMugY + 36;
-      const streamHeight = Math.max(25, cardRect.top - spoutY + 15);
+      // Position beer stream precisely from the mouth (foam rim) of the tilted mug
+      const spoutX = targetMugX - 2;
+      const spoutY = targetMugY + 34;
+      const streamHeight = Math.max(22, cardRect.top - spoutY + 12);
 
       stream.style.left = `${spoutX}px`;
       stream.style.top = `${spoutY}px`;

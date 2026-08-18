@@ -364,10 +364,52 @@ h1, h2, h3, h4 {
   color: #0b132b;
   border: 1px solid transparent;
   box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
 }
+
+.btn-hero-primary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -120%;
+  width: 70%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.35) 65%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+  z-index: 2;
+  animation: btnLightningSweep 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.btn-hero-primary > * {
+  position: relative;
+  z-index: 3;
+}
+
+@keyframes btnLightningSweep {
+  0% {
+    left: -120%;
+  }
+  30% {
+    left: 200%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
 .btn-hero-primary:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 0 40px rgba(245, 158, 11, 0.8);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.85);
 }
 
 .btn-hero-secondary {

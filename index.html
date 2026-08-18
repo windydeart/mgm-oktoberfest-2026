@@ -30,7 +30,7 @@
   </script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=63">
+  <link rel="stylesheet" href="./css/styles.css?v=64">
 </head>
 <body class="dark-theme">
 
@@ -78,7 +78,7 @@
       </h1>
 
       <!-- COUNTDOWN TIMER & EVENT LOGISTICS -->
-      <div class="countdown-wrapper reveal">
+      <div class="countdown-wrapper reveal reveal-scale reveal-delay-2">
         <div class="countdown-container" id="countdown">
           <div class="countdown-header">
             Countdown to the Event
@@ -136,7 +136,7 @@
         </div>
       </div>
 
-      <div class="hero-actions reveal">
+      <div class="hero-actions reveal reveal-delay-3">
         <button type="button" class="btn btn-hero-primary open-reg-modal">
           <i data-lucide="ticket"></i> Register Now
         </button>
@@ -198,7 +198,7 @@
   <!-- ═══════════════════════════════════════════════════════
        DECORATIVE HERO PATTERN DIVIDER (item-parterm.png)
        ═══════════════════════════════════════════════════════ -->
-  <div class="hero-pattern-divider" aria-hidden="true">
+  <div class="hero-pattern-divider reveal reveal-delay-4" aria-hidden="true">
     <img src="./assets/images/item-parterm.png" alt="Oktoberfest decorative pattern divider" class="pattern-divider-img">
   </div>
   <!-- ═══════════════════════════════════════════════════════
@@ -218,7 +218,7 @@
 
       <div class="features-grid">
         
-        <div class="feature-card reveal" style="transition-delay: 0.1s;">
+        <div class="feature-card reveal reveal-delay-1">
           <div class="feature-icon-box">
             <i data-lucide="beer"></i>
           </div>
@@ -226,7 +226,7 @@
           <p class="feature-desc">A selection of golden, amber, and dark beers, with different levels of ABV (Alcohol by Volume) and IBU (International Bitterness Units).</p>
         </div>
 
-        <div class="feature-card reveal" style="transition-delay: 0.2s;">
+        <div class="feature-card reveal reveal-delay-2">
           <div class="feature-icon-box">
             <i data-lucide="utensils"></i>
           </div>
@@ -234,7 +234,7 @@
           <p class="feature-desc">German sausages, pretzels, German potato salad, and assorted cold cuts,...</p>
         </div>
 
-        <div class="feature-card reveal" style="transition-delay: 0.3s;">
+        <div class="feature-card reveal reveal-delay-3">
           <div class="feature-icon-box">
             <i data-lucide="music-4"></i>
           </div>
@@ -242,7 +242,7 @@
           <p class="feature-desc">Dance and sing along to classic songs while enjoying the Oktoberfest spirit.</p>
         </div>
 
-        <div class="feature-card reveal" style="transition-delay: 0.4s;">
+        <div class="feature-card reveal reveal-delay-4">
           <div class="feature-icon-box">
             <i data-lucide="gamepad-2"></i>
           </div>
@@ -260,18 +260,20 @@
        ═══════════════════════════════════════════════════════ -->
   <section class="section dresscode-section" id="dress-code">
     <div class="section-container">
-      <div class="dresscode-card-wrapper reveal">
+      <div class="dresscode-card-wrapper">
         <div class="dresscode-info">
-          <span class="section-tag gold"><i data-lucide="shirt"></i> DRESS CODE GUIDE</span>
-          <h2 class="dresscode-title">Attire Inspiration</h2>
+          <div class="dresscode-heading-box reveal">
+            <span class="section-tag gold"><i data-lucide="shirt"></i> DRESS CODE GUIDE</span>
+            <h2 class="dresscode-title">Attire Inspiration</h2>
+          </div>
           
-          <blockquote class="dresscode-quote">
+          <blockquote class="dresscode-quote reveal reveal-delay-1">
             "There's no official dress code. Casual is perfectly fine, but if you'd like to get into the <span class="font-oktoberfest">Oktoberfest</span> spirit, you're welcome to wear traditional Bavarian attire."
           </blockquote>
 
           <div class="attire-accordion" id="attireAccordion">
             <!-- Item 1: Lederhosen -->
-            <div class="attire-accordion-item active" data-attire="lederhosen">
+            <div class="attire-accordion-item active reveal reveal-delay-2" data-attire="lederhosen">
               <button class="attire-accordion-header" type="button" aria-expanded="true">
                 <span class="attire-header-title">
                   <i data-lucide="check-circle-2"></i>
@@ -295,7 +297,7 @@
             </div>
 
             <!-- Item 2: Dirndl -->
-            <div class="attire-accordion-item" data-attire="dirndl">
+            <div class="attire-accordion-item reveal reveal-delay-3" data-attire="dirndl">
               <button class="attire-accordion-header" type="button" aria-expanded="false">
                 <span class="attire-header-title">
                   <i data-lucide="check-circle-2"></i>
@@ -319,7 +321,7 @@
             </div>
 
             <!-- Item 3: Casual Outfit -->
-            <div class="attire-accordion-item" data-attire="casual">
+            <div class="attire-accordion-item reveal reveal-delay-4" data-attire="casual">
               <button class="attire-accordion-header" type="button" aria-expanded="false">
                 <span class="attire-header-title">
                   <i data-lucide="check-circle-2"></i>
@@ -344,7 +346,7 @@
           </div>
         </div>
 
-        <div class="dresscode-visual dresscode-slider" id="dresscodeSlider">
+        <div class="dresscode-visual dresscode-slider reveal-right reveal-delay-2" id="dresscodeSlider">
           <img src="https://res.cloudinary.com/ren3b5dq/image/upload/v1786526247/oktoberfest/2022/BTpr__81.webp" alt="Traditional Bavarian Attire Inspiration 1" class="dresscode-slide active">
           <img src="https://pub-a8460b3580e04baf852732dbabcd7e00.r2.dev/images/BTpr_327.webp" alt="Traditional Bavarian Attire Inspiration 2" class="dresscode-slide">
         </div>
@@ -363,7 +365,7 @@
       </div>
 
       <!-- MEMORIES SLIDER WRAPPER -->
-      <div class="slider-wrapper reveal" id="memoriesSlider">
+      <div class="slider-wrapper reveal reveal-scale reveal-delay-2" id="memoriesSlider">
         
         <button class="slider-btn prev-btn" id="sliderPrevBtn" aria-label="Previous Slide">
           <i data-lucide="chevron-left"></i>
@@ -589,7 +591,7 @@
       <div class="footer-grid">
         
         <!-- DIV 1: OFFICES (DA NANG & HCMC) -->
-        <div class="footer-col footer-offices-col">
+        <div class="footer-col footer-offices-col reveal reveal-delay-1">
           <div class="office-group">
             <h4 class="footer-col-title">mgm office in Da Nang:</h4>
             <ul class="footer-address-list">
@@ -607,7 +609,7 @@
         </div>
 
         <!-- DIV 2: CONTACT -->
-        <div class="footer-col footer-contact-col">
+        <div class="footer-col footer-contact-col reveal reveal-delay-2">
           <h4 class="footer-col-title">Contact:</h4>
           <a href="mailto:vn_marketing@mgm-tp.com" class="footer-email-link">
             <i data-lucide="mail"></i> vn_marketing@mgm-tp.com
@@ -615,7 +617,7 @@
         </div>
 
         <!-- DIV 3: BRAND / LOGO / SLOGAN (LEFT ALIGNED) -->
-        <div class="footer-col footer-brand-col">
+        <div class="footer-col footer-brand-col reveal reveal-delay-3">
           <img src="./assets/images/mgm-logo-white.svg" alt="mgm logo" class="footer-brand-logo">
           <h3 class="footer-company-name">mgm technology partners Vietnam</h3>
           <div class="footer-colorbar-wrapper">
@@ -771,7 +773,7 @@
   <script src="./js/supabase.js?v=1"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=47"></script>
+  <script src="./js/app.js?v=48"></script>
 </body>
 </html>
 

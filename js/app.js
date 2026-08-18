@@ -142,18 +142,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ─── SCROLL REVEAL OBSERVER ─── */
 function initScrollReveal() {
-  const reveals = document.querySelectorAll('.reveal');
+  const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-group');
 
   const observerOptions = {
     root: null,
-    rootMargin: '0px',
-    threshold: 0.12
+    rootMargin: '0px 0px -40px 0px',
+    threshold: 0.1
   };
 
-  const observer = new IntersectionObserver((entries) => {
+  const observer = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('active');
+        obs.unobserve(entry.target);
       }
     });
   }, observerOptions);

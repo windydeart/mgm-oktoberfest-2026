@@ -184,6 +184,7 @@ button {
   will-change: opacity, transform;
 }
 
+.reveal.revealed,
 .reveal.active {
   opacity: 1;
   transform: translateY(0);
@@ -196,6 +197,7 @@ button {
   will-change: opacity, transform;
 }
 
+.reveal-left.revealed,
 .reveal-left.active {
   opacity: 1;
   transform: translateX(0);
@@ -208,6 +210,7 @@ button {
   will-change: opacity, transform;
 }
 
+.reveal-right.revealed,
 .reveal-right.active {
   opacity: 1;
   transform: translateX(0);
@@ -220,6 +223,7 @@ button {
   will-change: opacity, transform;
 }
 
+.reveal-scale.revealed,
 .reveal-scale.active {
   opacity: 1;
   transform: scale(1) translateY(0);

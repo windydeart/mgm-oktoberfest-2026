@@ -103,10 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 4. Hero Beer Bubbles Canvas Animation
+  // 4. Hero Background Rotating Slider (Cross-fade + Ken Burns Zoom Out)
+  initHeroBgSlider();
+
+  // 5. Hero Beer Bubbles Canvas Animation
   initBeerBubbles();
 
-  // 5. Countdown Timer (Target: Sat, 19 Sep 2026 17:30:00 GMT+7 - 5:30 PM)
+  // 6. Countdown Timer (Target: Sat, 19 Sep 2026 17:30:00 GMT+7 - 5:30 PM)
   initCountdownTimer(new Date('2026-09-19T17:30:00+07:00'));
 
   // 6. Scroll Reveal Observer
@@ -150,6 +153,71 @@ function initScrollReveal() {
   }, observerOptions);
 
   reveals.forEach(el => observer.observe(el));
+}
+
+/* ─── HERO BACKGROUND SLIDER (CROSS-FADE + KEN BURNS ZOOM OUT) ─── */
+function initHeroBgSlider() {
+  const slider = document.getElementById('heroBgSlider');
+  if (!slider) return;
+  const slides = Array.from(slider.querySelectorAll('.hero-bg-slide'));
+  if (slides.length <= 1) return;
+
+  let currentIndex = 0;
+  const SLIDE_INTERVAL = 6500; // 6.5s per slide
+
+  // Preload all background images to avoid flash
+  slides.forEach(slide => {
+    const styleBg = slide.style.backgroundImage || '';
+    const match = styleBg.match(/url\(['"]?(.*?)['"]?\)/i);
+    if (match && match[1]) {
+      const img = new Image();
+      img.src = match[1];
+    }
+  });
+
+  function nextSlide() {
+    const prevIndex = currentIndex;
+    currentIndex = (currentIndex + 1) % slides.length;
+
+    const prevSlide = slides[prevIndex];
+    const nextSlide = slides[currentIndex];
+
+    // Reset next slide to start zoomed in (1.14), invisible, no transition
+    nextSlide.style.transition = 'none';
+    nextSlide.style.transform = 'scale(1.14)';
+    nextSlide.style.opacity = '0';
+
+    // Force reflow
+    void nextSlide.offsetHeight;
+
+    // Restore CSS transition and activate (zooms out to 1.0 & fades in)
+    nextSlide.style.transition = '';
+    nextSlide.classList.add('active');
+    nextSlide.classList.remove('leaving');
+
+    // Fade out previous slide
+    prevSlide.classList.remove('active');
+    prevSlide.classList.add('leaving');
+
+    // Clean up previous slide after transition
+    setTimeout(() => {
+      prevSlide.classList.remove('leaving');
+      prevSlide.style.transition = 'none';
+      prevSlide.style.transform = 'scale(1.14)';
+      prevSlide.style.opacity = '0';
+    }, 2000);
+  }
+
+  let timer = setInterval(nextSlide, SLIDE_INTERVAL);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(timer);
+    } else {
+      clearInterval(timer);
+      timer = setInterval(nextSlide, SLIDE_INTERVAL);
+    }
+  });
 }
 
 /* ─── BEER BUBBLES CANVAS ANIMATION ─── */

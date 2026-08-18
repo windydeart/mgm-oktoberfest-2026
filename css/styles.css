@@ -698,16 +698,40 @@ h1, h2, h3, h4 {
   z-index: 1;
 }
 
-.hero-bg-image {
+/* ─── HERO BACKGROUND SLIDER (CROSS-FADE + KEN BURNS ZOOM OUT) ─── */
+.hero-bg-slider {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  filter: brightness(1.1);
-  transition: transform 10s ease-out;
   z-index: 0;
+  overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
+}
+
+.hero-bg-slide {
+  position: absolute;
+  inset: -25px; /* Slight bleed to prevent white edges during scale */
+  background-size: cover;
+  background-position: center;
+  filter: brightness(1.08);
+  opacity: 0;
+  transform: scale(1.14);
+  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1), transform 7.5s cubic-bezier(0.1, 0, 0.2, 1);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.hero-bg-slide.active {
+  opacity: 1;
+  transform: scale(1.0);
+  z-index: 1;
+}
+
+.hero-bg-slide.leaving {
+  opacity: 0;
+  transform: scale(1.0);
+  z-index: 0;
+  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hero-section::after {

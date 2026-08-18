@@ -648,7 +648,10 @@ function initRegistrationModal() {
 
   function renderRegTurnstile() {
     if (isRegVerified) {
-      if (regGate) regGate.classList.add('verified');
+      if (regGate) {
+        regGate.classList.add('verified');
+        regGate.style.display = 'none';
+      }
       return;
     }
 
@@ -662,8 +665,13 @@ function initRegistrationModal() {
             isRegVerified = true;
             // Short smooth delay so user sees verification checkmark
             setTimeout(() => {
-              if (regGate) regGate.classList.add('verified');
-            }, 350);
+              if (regGate) {
+                regGate.classList.add('verified');
+                setTimeout(() => {
+                  regGate.style.display = 'none';
+                }, 300);
+              }
+            }, 300);
           },
           'expired-callback': () => {
             isRegVerified = false;
@@ -673,12 +681,18 @@ function initRegistrationModal() {
           },
           'error-callback': (code) => {
             console.warn('Registration Turnstile bypass on error:', code);
-            if (regGate) regGate.classList.add('verified');
+            if (regGate) {
+              regGate.classList.add('verified');
+              regGate.style.display = 'none';
+            }
           }
         });
       } catch (e) {
         console.warn('Registration Turnstile init notice:', e);
-        if (regGate) regGate.classList.add('verified');
+        if (regGate) {
+          regGate.classList.add('verified');
+          regGate.style.display = 'none';
+        }
       }
     }
   }

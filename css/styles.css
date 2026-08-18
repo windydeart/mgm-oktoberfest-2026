@@ -2419,25 +2419,28 @@ h1, h2, h3, h4 {
 }
 
 /* ─── REGISTRATION TURNSTILE GATEKEEPER ─── */
-.reg-turnstile-gate {
-  position: absolute;
-  inset: 0;
-  background: rgba(11, 19, 43, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 10;
+.reg-modal-content .reg-turnstile-gate {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(11, 19, 43, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 15;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
   border-radius: var(--radius-lg);
-  transition: opacity 0.4s ease, visibility 0.4s ease;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
-.reg-turnstile-gate.verified {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+.reg-modal-content .reg-turnstile-gate.verified {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  display: none !important;
 }
 
 .reg-gate-card {

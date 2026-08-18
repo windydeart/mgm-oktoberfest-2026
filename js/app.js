@@ -165,7 +165,7 @@ function initHeroBgSlider() {
   let currentIndex = 0;
   const SLIDE_INTERVAL = 6500; // 6.5s per slide
 
-  // Preload all background images to avoid flash
+  // Preload all background images
   slides.forEach(slide => {
     const styleBg = slide.style.backgroundImage || '';
     const match = styleBg.match(/url\(['"]?(.*?)['"]?\)/i);
@@ -176,35 +176,29 @@ function initHeroBgSlider() {
   });
 
   function nextSlide() {
-    const prevIndex = currentIndex;
+    const prevSlide = slides[currentIndex];
     currentIndex = (currentIndex + 1) % slides.length;
-
-    const prevSlide = slides[prevIndex];
     const nextSlide = slides[currentIndex];
 
-    // Reset next slide to start zoomed in (1.14), invisible, no transition
-    nextSlide.style.transition = 'none';
-    nextSlide.style.transform = 'scale(1.14)';
-    nextSlide.style.opacity = '0';
-
-    // Force reflow
-    void nextSlide.offsetHeight;
-
-    // Restore CSS transition and activate (zooms out to 1.0 & fades in)
+    // Clear any leftover inline styles so CSS classes take full effect
+    nextSlide.style.opacity = '';
+    nextSlide.style.transform = '';
     nextSlide.style.transition = '';
-    nextSlide.classList.add('active');
+
+    // Activate next slide
     nextSlide.classList.remove('leaving');
+    nextSlide.classList.add('active');
 
     // Fade out previous slide
     prevSlide.classList.remove('active');
     prevSlide.classList.add('leaving');
 
-    // Clean up previous slide after transition
+    // Clean up leaving state after transition completes
     setTimeout(() => {
       prevSlide.classList.remove('leaving');
-      prevSlide.style.transition = 'none';
-      prevSlide.style.transform = 'scale(1.14)';
-      prevSlide.style.opacity = '0';
+      prevSlide.style.opacity = '';
+      prevSlide.style.transform = '';
+      prevSlide.style.transition = '';
     }, 2000);
   }
 

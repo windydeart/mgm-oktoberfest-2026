@@ -706,31 +706,44 @@ h1, h2, h3, h4 {
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+
+@keyframes kenBurnsZoomOut {
+  0% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1.0);
+  }
 }
 
 .hero-bg-slide {
   position: absolute;
-  inset: -25px; /* Slight bleed to prevent white edges during scale */
+  top: -30px;
+  left: -30px;
+  right: -30px;
+  bottom: -30px;
   background-size: cover;
   background-position: center;
   filter: brightness(1.08);
   opacity: 0;
-  transform: scale(1.14);
-  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1), transform 7.5s cubic-bezier(0.1, 0, 0.2, 1);
+  transform: scale(1.15);
+  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
   pointer-events: none;
 }
 
 .hero-bg-slide.active {
   opacity: 1;
-  transform: scale(1.0);
-  z-index: 1;
+  z-index: 2;
+  animation: kenBurnsZoomOut 7.5s cubic-bezier(0.1, 0, 0.2, 1) forwards;
 }
 
 .hero-bg-slide.leaving {
   opacity: 0;
+  z-index: 1;
   transform: scale(1.0);
-  z-index: 0;
   transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

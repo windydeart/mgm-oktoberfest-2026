@@ -2417,7 +2417,7 @@ h1, h2, h3, h4 {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-lg);
-  min-height: 520px;
+  min-height: 560px;
 }
 
 .dresscode-info {
@@ -2425,7 +2425,7 @@ h1, h2, h3, h4 {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  min-height: 520px;
+  min-height: 560px;
 }
 
 .dresscode-title {
@@ -2461,7 +2461,7 @@ h1, h2, h3, h4 {
   flex-direction: column;
   gap: 0.85rem;
   margin-top: 0.5rem;
-  min-height: 200px;
+  min-height: 240px;
 }
 
 .attire-accordion-item {
@@ -2498,6 +2498,19 @@ h1, h2, h3, h4 {
   font-size: 0.92rem;
   outline: none;
   transition: color 0.2s ease;
+}
+
+.attire-static-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.92rem;
+  cursor: default;
 }
 
 .attire-header-title {
@@ -2647,7 +2660,7 @@ h1, h2, h3, h4 {
 
 .dresscode-visual.dresscode-slider {
   position: relative;
-  min-height: 520px;
+  min-height: 560px;
   height: 100%;
   overflow: hidden;
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;

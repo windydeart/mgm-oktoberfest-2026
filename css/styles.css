@@ -2417,32 +2417,32 @@ h1, h2, h3, h4 {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-lg);
-  min-height: 520px;
+  min-height: 480px;
 }
 
 .dresscode-info {
-  padding: 2.8rem 3rem 2.2rem;
+  padding: 2.2rem 2.8rem 1.6rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  min-height: 520px;
+  min-height: 480px;
 }
 
 .dresscode-title {
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.8rem;
 }
 
 .dresscode-quote {
   font-style: italic;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: var(--text-gold);
   border-left: 3px solid var(--accent-amber);
-  padding-left: 1.2rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
+  padding-left: 1rem;
+  margin-bottom: 1.1rem;
+  line-height: 1.5;
 }
 
 .dresscode-desc {
@@ -2459,9 +2459,9 @@ h1, h2, h3, h4 {
 .attire-accordion {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  min-height: 270px;
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+  min-height: 250px;
 }
 
 .attire-accordion-item {
@@ -2488,14 +2488,14 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1.2rem;
+  padding: 0.72rem 1.1rem;
   background: transparent;
   border: none;
   cursor: pointer;
   color: #fff;
   text-align: left;
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   outline: none;
   transition: color 0.2s ease;
 }
@@ -2505,25 +2505,25 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1.2rem;
+  padding: 0.72rem 1.1rem;
   background: transparent;
   color: #fff;
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   cursor: default;
 }
 
 .attire-header-title {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   flex-wrap: wrap;
 }
 
 .attire-header-title i {
   color: var(--accent-amber);
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
 }
 
@@ -2535,13 +2535,13 @@ h1, h2, h3, h4 {
 
 .attire-subtitle {
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .attire-chevron {
   color: var(--text-muted);
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }
@@ -2566,22 +2566,22 @@ h1, h2, h3, h4 {
 .attire-body-content {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
-  padding: 0.6rem 1.2rem 1.1rem;
+  gap: 1rem;
+  padding: 0.5rem 1.1rem 0.8rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .attire-preview-box {
-  width: 78px;
-  height: 78px;
-  border-radius: 12px;
+  width: 66px;
+  height: 66px;
+  border-radius: 10px;
   background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(255, 255, 255, 0.03) 70%);
   border: 1px solid rgba(245, 158, 11, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 6px;
+  padding: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   position: relative;
 }
@@ -2601,15 +2601,15 @@ h1, h2, h3, h4 {
   position: absolute;
   bottom: -4px;
   right: -4px;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark));
   color: #0b132b;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   opacity: 0;
   transform: scale(0.6);
@@ -2617,8 +2617,8 @@ h1, h2, h3, h4 {
 }
 
 .attire-zoom-badge i {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   stroke-width: 2.5;
   color: #0b132b;
 }
@@ -2645,22 +2645,22 @@ h1, h2, h3, h4 {
 }
 
 .attire-detail-heading {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-gold);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .attire-detail-text {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.4;
   margin: 0;
 }
 
 .dresscode-visual.dresscode-slider {
   position: relative;
-  min-height: 520px;
+  min-height: 480px;
   height: 100%;
   overflow: hidden;
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;

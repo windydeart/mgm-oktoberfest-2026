@@ -57,10 +57,10 @@
     "how_to": "Click the 'Register Now' button on the website or navigate to the Registration section to fill out the form."
   },
   "transportation_and_safety": {
-    "recommendation": "Strongly encourage taking Grab, taxi, or other public transit for traffic safety (Don't drink and drive!)",
-    "note_vi": "Khuyến khích mọi người đi Grab, taxi hoặc phương tiện công cộng khác vì lý do an toàn giao thông (Đã uống rượu bia thì không lái xe).",
-    "note_en": "We strongly encourage everyone to take Grab, taxis, carpool, or use public transportation for safety reasons (Don't drink and drive!).",
-    "note_de": "Aus Gründen der Verkehrssicherheit (Don't drink and drive!) empfehlen wir allen mgmies, mit Grab, Taxi oder öffentlichen Verkehrsmitteln zur Feier zu kommen."
+    "recommendation": "Strongly encourage taking a taxi, ride-hailing services, carpool, or public transit for traffic safety (Don't drink and drive!)",
+    "note_vi": "Khuyến khích mọi người đi taxi, xe dịch vụ hoặc phương tiện công cộng vì lý do an toàn giao thông (Đã uống rượu bia thì không tự lái xe).",
+    "note_en": "We strongly encourage everyone to take a taxi, ride-hailing services, carpool, or use public transportation for safety reasons (Don't drink and drive!).",
+    "note_de": "Aus Gründen der Verkehrssicherheit (Don't drink and drive!) empfehlen wir allen, mit dem Taxi, Fahrgemeinschaften oder öffentlichen Verkehrsmitteln zur Feier zu kommen."
   },
   "history": {
     "past_seasons": ["2016", "2017", "2018", "2019", "2022", "2023"],
@@ -82,7 +82,7 @@
     },
     {
       "q": "How should I travel to the event? / Nên đi phương tiện gì đến sự kiện? / Wie soll ich zur Feier kommen?",
-      "a": "For traffic safety (Don't drink and drive!), we strongly encourage all attendees to take Grab, a taxi, or other public transportation to enjoy the party safely! / Vì lý do an toàn giao thông (Đã uống rượu bia thì không tự lái xe), ban tổ chức khuyến khích mọi người nên đi Grab, taxi hoặc các phương tiện công cộng khác để vui chơi trọn vẹn và an toàn nhé! 🚕🚗🍺"
+      "a": "For traffic safety (Don't drink and drive!), we strongly encourage all attendees to take a taxi, ride-hailing services, or public transportation to enjoy the party safely! / Vì lý do an toàn giao thông (Đã uống rượu bia thì không tự lái xe), ban tổ chức khuyến khích mọi người nên đi taxi, xe dịch vụ hoặc các phương tiện công cộng khác để vui chơi trọn vẹn và an toàn nhé! 🚕🚗🍺 / Aus Gründen der Verkehrssicherheit (Don't drink and drive!) empfehlen wir allen, mit dem Taxi oder öffentlichen Verkehrsmitteln zu kommen! 🚕🚗🍺"
     },
     {
       "q": "Is there a dress code? / Có quy định trang phục không?",

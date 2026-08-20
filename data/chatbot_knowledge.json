@@ -43,19 +43,12 @@
     ]
   },
   "food_and_drinks": {
-    "beer": "Premium curated selection of golden, amber, and dark beers with different levels of ABV (Alcohol by Volume) and IBU (International Bitterness Units)",
-    "food": [
-      "German sausages",
-      "Fresh Pretzels",
-      "German potato salad",
-      "Assorted cold cuts"
-    ],
-    "note": "Authentic Bavarian feast featuring traditional German specialties and craft beers"
+    "craft_beer": "Premium Craft Beer: A selection of golden, amber, and dark beers, with different levels of ABV (Alcohol by Volume) and IBU (International Bitterness Units).",
+    "bavarian_feast": "Bavarian Feast: German sausages, pretzels, German potato salad, and assorted cold cuts,..."
   },
   "activities": [
-    "Folk Music — Dance and sing along to classic songs while enjoying the Oktoberfest spirit",
-    "Fun Activities & Games — Join the games, have fun, and compete to win exciting gifts",
-    "Celebratory photo booth & memories"
+    "Folk Music: Dance and sing along to classic songs while enjoying the Oktoberfest spirit.",
+    "Fun Activities: Join the games, have fun, and compete to win exciting gifts!"
   ],
   "registration": {
     "method": "Online registration via the event website",
@@ -92,40 +85,36 @@
       "a": "For traffic safety (Don't drink and drive!), we strongly encourage all attendees to take Grab, a taxi, or other public transportation to enjoy the party safely! / Vì lý do an toàn giao thông (Đã uống rượu bia thì không tự lái xe), ban tổ chức khuyến khích mọi người nên đi Grab, taxi hoặc các phương tiện công cộng khác để vui chơi trọn vẹn và an toàn nhé! 🚕🚗🍺"
     },
     {
-      "q": "Is there a dress code?",
-      "a": "No mandatory dress code! You can wear anything comfortable. However, traditional Bavarian attire (Lederhosen or Dirndl) is highly encouraged to enhance the festive atmosphere."
+      "q": "Is there a dress code? / Có quy định trang phục không?",
+      "a": "There is no official dress code (casual is perfectly fine), but traditional Bavarian attire (Lederhosen for men, Dirndl for women) is highly encouraged to enjoy the festive spirit! / Sự kiện không bắt buộc trang phục (trang phục tự do, thoải mái là hoàn toàn phù hợp), nhưng khuyến khích mặc trang phục truyền thống Bavaria (Lederhosen cho nam, Dirndl cho nữ) để hòa cùng không khí lễ hội nhé! 👗👔"
     },
     {
-      "q": "How do I register?",
-      "a": "Click the 'Register Now' button on the website to fill out the registration form. You will need your name, work email, and preferred office location."
+      "q": "How do I register? / Đăng ký như thế nào?",
+      "a": "Click the 'Register Now' button on the website to fill out the registration form with your name, work email, and preferred office location. / Bạn chỉ cần bấm nút 'Register Now' trên trang web và điền họ tên, email công việc cùng địa điểm văn phòng tham dự nhé! 📝"
     },
     {
-      "q": "What is the registration deadline?",
-      "a": "The RSVP deadline is Friday, 30 August 2026. Make sure to register before this date!"
+      "q": "What is the registration deadline? / Hạn chót đăng ký là khi nào?",
+      "a": "The RSVP deadline is Friday, 30 August 2026. / Hạn chót đăng ký (RSVP) là Thứ Sáu, ngày 30/08/2026. Bạn nhớ đăng ký trước thời hạn này nhé!"
     },
     {
-      "q": "Where is the event held?",
-      "a": "The event takes place simultaneously at two locations: mgm Da Nang Office & Terrace (71 Quang Trung, Hai Chau Ward) and mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward)."
+      "q": "Where is the event held? / Sự kiện tổ chức ở đâu?",
+      "a": "The event takes place at mgm Da Nang Office (71 Quang Trung, Hai Chau Ward) and mgm HCMC Office (195A Hai Ba Trung, Xuan Hoa Ward). / Sự kiện diễn ra tại văn phòng mgm Đà Nẵng (71 Quang Trung, Hải Châu) và văn phòng mgm TP.HCM (195A Hai Bà Trưng, Phường Xuân Hòa). 📍"
     },
     {
-      "q": "What time does the event start?",
-      "a": "The event starts at 5:30 PM on Saturday, 19 September 2026 and goes on until 10:00 PM."
+      "q": "What time does the event start? / Mấy giờ bắt đầu?",
+      "a": "The event takes place from 5:30 PM to 10:00 PM on Saturday, 19 September 2026. / Sự kiện diễn ra từ 17:30 đến 22:00, Thứ Bảy, ngày 19/09/2026. ⏰"
     },
     {
-      "q": "Is there food and drinks?",
-      "a": "Yes! Enjoy premium German-style craft beers, crispy Schweinhaxe (pork knuckle), grilled Bratwurst sausages, warm pretzels with specialty mustard, and more."
+      "q": "What food and drinks are served? / Có đồ ăn và thức uống gì? / Gibt es Essen und Trinken?",
+      "a": "The event features Premium Craft Beer (golden, amber, and dark beers with various ABV & IBU levels) and a Bavarian Feast with German sausages, pretzels, German potato salad, and assorted cold cuts. / Sự kiện có Bia thủ công cao cấp (vàng, hổ phách, đen với các nồng độ ABV & IBU khác nhau) cùng Đại tiệc Bavarian gồm xúc xích Đức, bánh pretzel, salad khoai tây Đức và thịt nguội thập cẩm,... 🍻🥨"
     },
     {
-      "q": "What activities are planned?",
-      "a": "Live music performances, beer stein holding challenges, interactive mini-games, a photo booth, and more fun activities throughout the evening."
+      "q": "What activities are available? / Có những hoạt động gì? / Welche Aktivitäten gibt es?",
+      "a": "The event features Folk Music (dance and sing along to classic songs while enjoying the Oktoberfest spirit) and Fun Activities (join the games, have fun, and compete to win exciting gifts!). / Sự kiện có Âm nhạc dân gian (hát và nhảy theo các giai điệu cổ điển trong không khí Oktoberfest) và Hoạt động vui chơi (tham gia các trò chơi vui nhộn và tranh tài nhận quà hấp dẫn!). 🎶🎉"
     },
     {
-      "q": "Can I attend at a different office than where I work?",
-      "a": "Please select the office where you plan to attend during registration. If you have special circumstances, contact the event team."
-    },
-    {
-      "q": "Who organizes the event?",
-      "a": "The event is organized by the mgm Vietnam marketing team. Contact vn_marketing@mgm-tp.com for any questions."
+      "q": "Who organizes the event? / Ai tổ chức sự kiện?",
+      "a": "The event is organized by the mgm Vietnam marketing team. Contact vn_marketing@mgm-tp.com for any questions. / Sự kiện được tổ chức bởi ban tổ chức Marketing mgm Vietnam. Bạn có thể liên hệ vn_marketing@mgm-tp.com nếu có thắc mắc nhé!"
     }
   ],
   "company": {

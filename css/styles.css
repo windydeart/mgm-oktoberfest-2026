@@ -6,7 +6,8 @@
 /* ─── LOCAL CUSTOM FONT FACES ─── */
 @font-face {
   font-family: 'Rengkoxpersonal';
-  src: url('../assets/Font/Rengkoxpersonal.otf') format('opentype');
+  src: url('../assets/Font/Rengkoxpersonal.woff2') format('woff2'),
+       url('../assets/Font/Rengkoxpersonal.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;

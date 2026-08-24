@@ -1046,12 +1046,12 @@ function initCalendarDropdown() {
     danang: {
       name: 'Da Nang',
       location: 'mgm Da Nang Office (71 Quang Trung, Hai Chau Ward, Da Nang)',
-      description: 'Join us for mgm Oktoberfest 2026 celebration at mgm Da Nang Office & Terrace (71 Quang Trung, Hai Chau Ward)! Authentic Bavarian food, craft beers & high energy music.'
+      description: 'Join us for mgm Oktoberfest 2026 celebration at mgm Da Nang Office (71 Quang Trung, Hai Chau Ward)!'
     },
     hcmc: {
       name: 'HCMC',
-      location: 'mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward, HCMC)',
-      description: 'Join us for mgm Oktoberfest 2026 celebration at mgm HCMC Lounge (195A Hai Ba Trung, Xuan Hoa Ward)! Authentic Bavarian food, craft beers & high energy music.'
+      location: 'mgm HCMC Office (195A Hai Ba Trung, Xuan Hoa Ward, HCMC)',
+      description: 'Join us for mgm Oktoberfest 2026 celebration at mgm HCMC Office (195A Hai Ba Trung, Xuan Hoa Ward)!'
     }
   };
 

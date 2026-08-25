@@ -546,16 +546,16 @@
     }
   }
 
-    /* ═══════════════════════════════════════════════════════
-     PRECISION DYNAMIC LASER CUT SLICE (A to B across 3 cells)
+      /* ═══════════════════════════════════════════════════════
+     PRECISION TAPERED LASER CUT SLICE (Sharp Tips, Gold Bloom)
      ═══════════════════════════════════════════════════════ */
   function triggerLaserCut(lineKey) {
     const laserSvg = $('#bingoLaserSvg');
-    const laserCore = $('#bingoLaserCore');
-    const laserBack = $('#bingoLaserBackdrop');
+    const glowPath = $('#bingoLaserGlowPath');
+    const corePath = $('#bingoLaserCorePath');
     const laserHead = $('#bingoLaserHead');
     const frame = els.bingoBoardFrame || $('#bingoBoardFrame');
-    if (!laserSvg || !laserCore || !laserBack || !frame) return;
+    if (!laserSvg || !glowPath || !corePath || !frame) return;
 
     const lineMap = {
       'row-0': [0, 2], 'row-1': [3, 5], 'row-2': [6, 8],
@@ -581,28 +581,32 @@
     const dx = x2 - x1;
     const dy = y2 - y1;
     const len = Math.hypot(dx, dy);
-    const extend = 24;
-    const startX = x1 - (dx / len) * extend;
-    const startY = y1 - (dy / len) * extend;
-    const endX = x2 + (dx / len) * extend;
-    const endY = y2 + (dy / len) * extend;
-    const totalLen = Math.round(len + extend * 2);
+    const ux = dx / len;
+    const uy = dy / len;
+    const nx = -uy;
+    const ny = ux;
+
+    const extend = 30;
+    const startX = x1 - ux * extend;
+    const startY = y1 - uy * extend;
+    const endX = x2 + ux * extend;
+    const endY = y2 + uy * extend;
 
     laserSvg.setAttribute('viewBox', `0 0 ${frameRect.width} ${frameRect.height}`);
-
-    [laserCore, laserBack].forEach(line => {
-      line.setAttribute('x1', startX);
-      line.setAttribute('y1', startY);
-      line.setAttribute('x2', endX);
-      line.setAttribute('y2', endY);
-      line.style.strokeDasharray = `${totalLen}`;
-      line.style.strokeDashoffset = `${totalLen}`;
-    });
-
     laserSvg.classList.add('active');
 
+    function buildTaperedPath(ax, ay, bx, by, halfWidth) {
+      const mx = (ax + bx) / 2;
+      const my = (ay + by) / 2;
+      const c1x = mx + nx * halfWidth;
+      const c1y = my + ny * halfWidth;
+      const c2x = mx - nx * halfWidth;
+      const c2y = my - ny * halfWidth;
+      return `M ${ax.toFixed(1)} ${ay.toFixed(1)} Q ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} Q ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${ax.toFixed(1)} ${ay.toFixed(1)} Z`;
+    }
+
     const startTime = performance.now();
-    const duration = 460;
+    const slashDuration = 460;
 
     if (laserHead) {
       laserHead.style.opacity = '1';
@@ -612,19 +616,25 @@
 
     function animateSlash(now) {
       const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
+      const progress = Math.min(1, elapsed / slashDuration);
       // Fast powerful ease-out cut slash
       const ease = 1 - Math.pow(1 - progress, 3);
-      const currentOffset = totalLen * (1 - ease);
 
-      laserCore.style.strokeDashoffset = `${currentOffset}`;
-      laserBack.style.strokeDashoffset = `${currentOffset}`;
+      const curEndX = startX + (endX - startX) * ease;
+      const curEndY = startY + (endY - startY) * ease;
+
+      const currentHalfWidth = Math.max(1.5, 7.5 * Math.sin(ease * Math.PI * 0.9 + 0.1));
+      const currentGlowWidth = currentHalfWidth * 2.2;
+
+      const coreD = buildTaperedPath(startX, startY, curEndX, curEndY, currentHalfWidth);
+      const glowD = buildTaperedPath(startX, startY, curEndX, curEndY, currentGlowWidth);
+
+      corePath.setAttribute('d', coreD);
+      glowPath.setAttribute('d', glowD);
 
       if (laserHead) {
-        const curX = startX + (endX - startX) * ease;
-        const curY = startY + (endY - startY) * ease;
-        laserHead.setAttribute('cx', curX);
-        laserHead.setAttribute('cy', curY);
+        laserHead.setAttribute('cx', curEndX);
+        laserHead.setAttribute('cy', curEndY);
       }
 
       if (progress < 1) {
@@ -639,7 +649,6 @@
 
     requestAnimationFrame(animateSlash);
   }
-
   function onBingo(data) {
     gameState.status = 'completed';
     gameState.elapsedMs = data.elapsed_ms || (Date.now() - (gameState.startedAt || Date.now()));

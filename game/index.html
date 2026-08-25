@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=110">
+  <link rel="stylesheet" href="/game/game.css?v=115">
 </head>
 <body class="dark-theme game-page">
 
@@ -104,12 +104,19 @@
           <div class="frame-corner corner-bl"></div>
           <div class="frame-corner corner-br"></div>
 
-                    <!-- Dynamic SVG Laser Light Cut Slice across winning 3 cells -->
+                    <!-- Dynamic SVG Laser Light Cut Slice with Tapered Ends (Pointed on both tips) -->
           <svg class="bingo-laser-svg" id="bingoLaserSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
+              <linearGradient id="laserBladeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3" />
+                <stop offset="20%" stop-color="#fbbf24" stop-opacity="0.9" />
+                <stop offset="50%" stop-color="#ffffff" stop-opacity="1" />
+                <stop offset="80%" stop-color="#fbbf24" stop-opacity="0.9" />
+                <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.3" />
+              </linearGradient>
               <filter id="laserGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="4" result="blur1" />
-                <feGaussianBlur stdDeviation="10" result="blur2" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur1" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur2" />
                 <feMerge>
                   <feMergeNode in="blur2" />
                   <feMergeNode in="blur1" />
@@ -117,9 +124,12 @@
                 </feMerge>
               </filter>
             </defs>
-            <line id="bingoLaserBackdrop" class="laser-line-backdrop" x1="0" y1="0" x2="0" y2="0" />
-            <line id="bingoLaserCore" class="laser-line-core" x1="0" y1="0" x2="0" y2="0" />
-            <circle id="bingoLaserHead" class="laser-spark-head" r="7" cx="0" cy="0" />
+            <!-- Outer Glow Tapered Aura -->
+            <path id="bingoLaserGlowPath" class="laser-blade-glow" d="" />
+            <!-- Inner Brilliant White-Gold Core Tapered Blade -->
+            <path id="bingoLaserCorePath" class="laser-blade-core" d="" />
+            <!-- Leading Spark Head -->
+            <circle id="bingoLaserHead" class="laser-spark-head" r="8" cx="0" cy="0" />
           </svg>
 
           <!-- Welcome Screen (Natural flow inside frame) -->
@@ -554,6 +564,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=110"></script>
+  <script src="/game/game.js?v=115"></script>
 </body>
 </html>

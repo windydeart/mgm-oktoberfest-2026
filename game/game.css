@@ -2107,7 +2107,7 @@ body.game-page::before {
    CINEMATIC BINGO CELEBRATION & LASER SLICE
    ═══════════════════════════════════════════════════════ */
 
-/* ─── High Precision Dynamic SVG Laser Cut Slice ─── */
+/* ─── High Precision Dynamic SVG Laser Cut Slice (Tapered Razor-Sharp Tips) ─── */
 .bingo-laser-svg {
   position: absolute;
   inset: 0;
@@ -2116,7 +2116,7 @@ body.game-page::before {
   pointer-events: none;
   z-index: 2800;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
   overflow: visible;
 }
 
@@ -2124,26 +2124,22 @@ body.game-page::before {
   opacity: 1;
 }
 
-.laser-line-backdrop {
-  stroke: #f59e0b;
-  stroke-width: 14;
-  stroke-linecap: round;
+.laser-blade-glow {
+  fill: #f59e0b;
+  opacity: 0.85;
   filter: url(#laserGlow);
-  opacity: 0.9;
 }
 
-.laser-line-core {
-  stroke: #ffffff;
-  stroke-width: 5;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 25px #f59e0b);
+.laser-blade-core {
+  fill: url(#laserBladeGrad);
+  filter: drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 25px #fbbf24);
 }
 
 .laser-spark-head {
   fill: #ffffff;
   stroke: #fbbf24;
-  stroke-width: 3;
-  filter: drop-shadow(0 0 15px #ffffff) drop-shadow(0 0 30px #fbbf24);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 18px #ffffff) drop-shadow(0 0 35px #f59e0b);
   opacity: 0;
   transition: opacity 0.15s ease;
 }

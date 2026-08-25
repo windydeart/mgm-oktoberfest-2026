@@ -9,11 +9,6 @@
 
   /* ─── CONSTANTS ─── */
   const API_BASE = '/api/game';
-  const BINGO_LINES = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],   // rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],   // cols
-    [0, 4, 8], [2, 4, 6]               // diagonals
-  ];
   const BINGO_LINE_NAMES = {
     'row-0': 'Row 1', 'row-1': 'Row 2', 'row-2': 'Row 3',
     'col-0': 'Col 1', 'col-1': 'Col 2', 'col-2': 'Col 3',
@@ -23,12 +18,13 @@
   /* ─── GAME STATE ─── */
   let gameState = {
     sessionId: null,
+    sessionToken: null,
     playerName: '',
     location: 'danang',
-    challenges: [],         // 9 challenge objects
-    completedCells: [],     // indices of completed cells
-    status: 'idle',         // idle | playing | completed
-    startedAt: null,        // ISO string from server
+    challenges: [],
+    completedCells: [],
+    status: 'idle',
+    startedAt: null,
     elapsedMs: null,
     bingoLine: null,
     rank: null
@@ -41,7 +37,7 @@
   /* ─── CAMERA ─── */
   let cameraStream = null;
   let currentCellIndex = null;
-  let facingMode = 'environment'; // 'user' or 'environment'
+  let facingMode = 'environment';
 
   /* ─── DOM ELEMENTS ─── */
   const $ = (sel) => document.querySelector(sel);
@@ -105,19 +101,19 @@
     els.toastContainer = $('#gameToastContainer');
   }
 
-
   /* ═══════════════════════════════════════════════════════
      MODAL HELPERS
      ═══════════════════════════════════════════════════════ */
   function openModal(modalEl) {
+    if (!modalEl) return;
     modalEl.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
   function closeModal(modalEl) {
+    if (!modalEl) return;
     modalEl.classList.remove('active');
     document.body.style.overflow = '';
   }
-
 
   /* ═══════════════════════════════════════════════════════
      TOAST NOTIFICATIONS
@@ -140,23 +136,23 @@
     setTimeout(dismiss, duration);
   }
 
-
   /* ═══════════════════════════════════════════════════════
      TIMER
      ═══════════════════════════════════════════════════════ */
   function startTimer() {
-    timerStartTime = new Date(gameState.startedAt).getTime();
+    timerStartTime = typeof gameState.startedAt === 'number' ? gameState.startedAt : new Date(gameState.startedAt).getTime();
     els.gameTimer.classList.add('timer-running');
     els.gameTimer.classList.remove('timer-idle', 'timer-stopped');
 
+    if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       const elapsed = Date.now() - timerStartTime;
       els.timerDisplay.textContent = formatTime(elapsed);
-    }, 37); // ~27fps for smooth centiseconds
+    }, 41);
   }
 
   function stopTimer(finalMs) {
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
     timerInterval = null;
     els.gameTimer.classList.remove('timer-running');
     els.gameTimer.classList.add('timer-stopped');
@@ -166,7 +162,7 @@
   }
 
   function resetTimer() {
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
     timerInterval = null;
     els.timerDisplay.textContent = '00:00.00';
     els.gameTimer.classList.remove('timer-running', 'timer-stopped');
@@ -181,7 +177,6 @@
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(cents).padStart(2, '0')}`;
   }
 
-
   /* ═══════════════════════════════════════════════════════
      BINGO BOARD RENDERING
      ═══════════════════════════════════════════════════════ */
@@ -193,24 +188,20 @@
         cell.querySelector('.cell-icon').textContent = '❓';
         cell.querySelector('.cell-text').textContent = '???';
         cell.className = 'bingo-cell';
-        cell.style.backgroundImage = '';
         return;
       }
 
-      cell.querySelector('.cell-icon').textContent = challenge.icon;
+      cell.querySelector('.cell-icon').textContent = challenge.icon || '🎯';
       cell.querySelector('.cell-text').textContent = challenge.challenge;
 
-      // Completed state
       if (gameState.completedCells.includes(i)) {
         cell.classList.add('completed');
       } else {
         cell.classList.remove('completed');
       }
 
-      // Bingo line highlight
       if (gameState.bingoLine) {
-        const lineKey = gameState.bingoLine;
-        const lineIdx = getBingoLineIndices(lineKey);
+        const lineIdx = getBingoLineIndices(gameState.bingoLine);
         if (lineIdx && lineIdx.includes(i)) {
           cell.classList.add('bingo-line-cell');
         }
@@ -232,46 +223,40 @@
       const cells = $$('.bingo-cell');
       cells.forEach((cell, i) => {
         cell.classList.add('revealing');
-        // Stagger each cell
         setTimeout(() => {
           cell.classList.remove('revealing');
           cell.classList.add('revealed');
           const challenge = gameState.challenges[i];
-          cell.querySelector('.cell-icon').textContent = challenge.icon;
-          cell.querySelector('.cell-text').textContent = challenge.challenge;
-        }, 300 + i * 200);
+          if (challenge) {
+            cell.querySelector('.cell-icon').textContent = challenge.icon || '🎯';
+            cell.querySelector('.cell-text').textContent = challenge.challenge;
+          }
+        }, 200 + i * 150);
       });
-      // All revealed after last cell
-      setTimeout(resolve, 300 + 9 * 200 + 300);
+      setTimeout(resolve, 200 + 9 * 150 + 250);
     });
   }
-
 
   /* ═══════════════════════════════════════════════════════
      GAME FLOW
      ═══════════════════════════════════════════════════════ */
-
-  // Step 1: User clicks "Start Game" → show player modal
   function onStartGame() {
     openModal(els.playerModal);
-    els.playerName.focus();
-    // Auto-detect location via IP (best effort)
+    setTimeout(() => els.playerName?.focus(), 200);
     detectLocation();
   }
 
-  // Step 2: User submits name + location → create session on server
   async function onPlayerSubmit(e) {
     e.preventDefault();
 
-    const name = els.playerName.value.trim();
+    const name = (els.playerName.value || '').trim();
     if (name.length < 2 || name.length > 30) {
-      showToast('Name must be 2-30 characters', 'error');
+      showToast('Tên người chơi phải từ 2 - 30 ký tự', 'error');
       els.playerName.classList.add('shake');
       setTimeout(() => els.playerName.classList.remove('shake'), 500);
       return;
     }
 
-    // Show loading
     els.submitPlayerBtn.querySelector('.btn-text').style.display = 'none';
     els.submitPlayerBtn.querySelector('.btn-loading').style.display = 'inline-flex';
     els.submitPlayerBtn.disabled = true;
@@ -289,11 +274,11 @@
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to start game');
+        throw new Error(data.error || 'Không thể bắt đầu game');
       }
 
-      // Update state
       gameState.sessionId = data.session_id;
+      gameState.sessionToken = data.session_token;
       gameState.playerName = name;
       gameState.challenges = data.challenges;
       gameState.startedAt = data.started_at;
@@ -303,23 +288,17 @@
       gameState.elapsedMs = null;
       gameState.rank = null;
 
-      // Save session to localStorage for recovery
       saveSession();
 
-      // Close modal, hide welcome
       closeModal(els.playerModal);
       els.gameWelcome.classList.add('hidden');
 
-      // Run reveal animation
       await runRevealAnimation();
-
-      // Start timer
       startTimer();
-
-      showToast('Game started! Tap a cell to begin 📸', 'success');
+      showToast('Game đã bắt đầu! Chạm vào ô bất kỳ để chụp ảnh 📸', 'success');
 
     } catch (err) {
-      showToast(err.message || 'Server error. Please try again.', 'error');
+      showToast(err.message || 'Lỗi kết nối máy chủ. Thử lại sau.', 'error');
     } finally {
       els.submitPlayerBtn.querySelector('.btn-text').style.display = '';
       els.submitPlayerBtn.querySelector('.btn-loading').style.display = 'none';
@@ -327,50 +306,45 @@
     }
   }
 
-  // Step 3: User taps a cell → open camera
   function onCellTap(cellIndex) {
-    if (gameState.status !== 'playing') return;
+    if (gameState.status !== 'playing') {
+      onStartGame();
+      return;
+    }
     if (gameState.completedCells.includes(cellIndex)) {
-      showToast('This cell is already completed! ✅', 'info');
+      showToast('Ô này đã hoàn thành rồi! ✅', 'info');
       return;
     }
 
     currentCellIndex = cellIndex;
     const challenge = gameState.challenges[cellIndex];
-    els.cameraIcon.textContent = challenge.icon;
-    els.cameraChallenge.textContent = challenge.challenge;
+    if (challenge) {
+      els.cameraIcon.textContent = challenge.icon || '📸';
+      els.cameraChallenge.textContent = challenge.challenge;
+    }
 
     openCamera();
   }
 
-  // Step 4: Capture photo
   function capturePhoto() {
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Compress to JPEG
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
     els.previewImage.src = dataUrl;
 
-    // Show preview, hide live controls
     els.cameraControls.style.display = 'none';
     els.cameraPreview.style.display = 'flex';
-
-    // Shutter flash effect
-    els.cameraOverlay.classList.add('shutter-flash');
-    setTimeout(() => els.cameraOverlay.classList.remove('shutter-flash'), 200);
   }
 
-  // Step 5: Submit photo to server
   async function submitPhoto() {
     const dataUrl = els.previewImage.src;
     const base64 = dataUrl.split(',')[1];
 
-    // Show loading
     els.cameraPreview.style.display = 'none';
     els.cameraLoading.style.display = 'flex';
 
@@ -379,28 +353,29 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_id: gameState.sessionId,
+          session_token: gameState.sessionToken,
           cell_index: currentCellIndex,
           photo_base64: base64
         })
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Upload failed');
-      }
-
       els.cameraLoading.style.display = 'none';
 
+      if (!res.ok) {
+        throw new Error(data.error || 'Nộp ảnh thất bại');
+      }
+
       if (data.verified) {
-        // Show success result
+        if (data.session_token) {
+          gameState.sessionToken = data.session_token;
+        }
+
         els.resultIcon.textContent = '✅';
-        els.resultText.textContent = 'Approved!';
-        els.cameraResult.style.display = 'flex';
+        els.resultText.textContent = 'Hợp lệ! Tuyệt vời!';
+        els.cameraResult.style.display = 'block';
         els.cameraResult.className = 'camera-result result-success';
 
-        // Update state
         gameState.completedCells.push(currentCellIndex);
         saveSession();
 
@@ -408,50 +383,42 @@
           closeCamera();
           renderBoard();
 
-          // Check bingo
           if (data.is_bingo) {
             onBingo(data);
           }
-        }, 1000);
+        }, 1100);
 
       } else {
-        // Show rejection
         els.resultIcon.textContent = '❌';
-        els.resultText.textContent = data.reason || 'Photo doesn\'t match. Try again!';
-        els.cameraResult.style.display = 'flex';
+        els.resultText.textContent = data.reason || 'Ảnh chưa khớp thử thách, hãy thử lại nhé!';
+        els.cameraResult.style.display = 'block';
         els.cameraResult.className = 'camera-result result-fail';
 
         setTimeout(() => {
           els.cameraResult.style.display = 'none';
-          // Return to camera live view
           els.cameraControls.style.display = 'flex';
-        }, 2000);
+        }, 2200);
       }
 
     } catch (err) {
       els.cameraLoading.style.display = 'none';
-      showToast(err.message || 'Upload error. Please try again.', 'error');
+      showToast(err.message || 'Lỗi gửi ảnh. Vui lòng thử lại.', 'error');
       els.cameraControls.style.display = 'flex';
     }
   }
 
-  // Step 6: BINGO! celebration
   function onBingo(data) {
     gameState.status = 'completed';
     gameState.elapsedMs = data.elapsed_ms;
     gameState.bingoLine = data.bingo_line;
-    gameState.rank = data.rank;
+    gameState.rank = data.rank || 1;
     saveSession();
 
-    // Stop timer
     stopTimer(data.elapsed_ms);
-
-    // Highlight winning line
     renderBoard();
 
-    // Show victory modal
     els.victoryTime.textContent = formatTime(data.elapsed_ms);
-    els.victoryRank.textContent = data.rank ? `#${data.rank}` : '-';
+    els.victoryRank.textContent = `#${data.rank || 1}`;
     els.victoryLine.textContent = BINGO_LINE_NAMES[data.bingo_line] || data.bingo_line;
 
     setTimeout(() => {
@@ -459,7 +426,6 @@
       fireConfetti();
     }, 600);
   }
-
 
   /* ═══════════════════════════════════════════════════════
      CAMERA MANAGEMENT
@@ -484,7 +450,7 @@
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
     } catch (err) {
-      showToast('Camera access denied. Please allow camera access in your browser settings.', 'error', 5000);
+      showToast('Không thể mở camera. Vui lòng cấp quyền truy cập camera trong trình duyệt.', 'error', 5000);
       closeCamera();
     }
   }
@@ -494,7 +460,7 @@
       cameraStream.getTracks().forEach(t => t.stop());
       cameraStream = null;
     }
-    els.cameraVideo.srcObject = null;
+    if (els.cameraVideo) els.cameraVideo.srcObject = null;
     els.cameraOverlay.classList.remove('active');
     document.body.style.overflow = '';
     currentCellIndex = null;
@@ -512,10 +478,9 @@
       });
       els.cameraVideo.srcObject = cameraStream;
     } catch (err) {
-      showToast('Could not switch camera.', 'error');
+      showToast('Không thể đổi camera.', 'error');
     }
   }
-
 
   /* ═══════════════════════════════════════════════════════
      LEADERBOARD
@@ -551,7 +516,7 @@
       const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`;
       const isMe = entry.player_name === gameState.playerName &&
                     entry.location === gameState.location &&
-                    entry.elapsed_ms === gameState.elapsedMs;
+                    Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
 
       const tr = document.createElement('tr');
       if (isMe) tr.classList.add('lb-current-player');
@@ -560,7 +525,7 @@
       tr.innerHTML = `
         <td class="lb-rank">${medal}</td>
         <td class="lb-name">${escapeHtml(entry.player_name)}</td>
-        <td class="lb-time">${formatTime(entry.elapsed_ms)}</td>
+        <td class="lb-time">${formatTime(entry.elapsed_ms || 0)}</td>
         <td class="lb-location">
           <span class="lb-loc-badge lb-loc-${entry.location}">
             ${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}
@@ -576,7 +541,6 @@
     renderLeaderboard(currentLbLocation);
     if (window.lucide) window.lucide.createIcons();
   }
-
 
   /* ═══════════════════════════════════════════════════════
      LOCATION DETECTION
@@ -605,51 +569,38 @@
     });
   }
 
-
   /* ═══════════════════════════════════════════════════════
-     SESSION PERSISTENCE (Recovery on refresh)
+     SESSION PERSISTENCE
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
     try {
-      localStorage.setItem('bingo_session', JSON.stringify({
-        sessionId: gameState.sessionId,
-        playerName: gameState.playerName,
-        location: gameState.location,
-        status: gameState.status
-      }));
+      localStorage.setItem('bingo_session_token', gameState.sessionToken || '');
     } catch (e) { /* ignore */ }
   }
 
   function clearSession() {
-    try { localStorage.removeItem('bingo_session'); } catch (e) { /* ignore */ }
+    try { localStorage.removeItem('bingo_session_token'); } catch (e) { /* ignore */ }
   }
 
   async function tryRecoverSession() {
     try {
-      const saved = localStorage.getItem('bingo_session');
-      if (!saved) return false;
+      const savedToken = localStorage.getItem('bingo_session_token');
+      if (!savedToken) return false;
 
-      const { sessionId, playerName, location, status } = JSON.parse(saved);
-      if (!sessionId || status !== 'playing') {
-        clearSession();
-        return false;
-      }
-
-      // Fetch session from server
-      const res = await fetch(`${API_BASE}/session?id=${sessionId}`);
+      const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
       if (!res.ok) {
         clearSession();
         return false;
       }
 
       const data = await res.json();
-      if (!data.session_id || data.status !== 'playing') {
+      if (!data.session_id) {
         clearSession();
         return false;
       }
 
-      // Restore state
       gameState.sessionId = data.session_id;
+      gameState.sessionToken = savedToken;
       gameState.playerName = data.player_name;
       gameState.location = data.location;
       gameState.challenges = data.challenges;
@@ -657,12 +608,11 @@
       gameState.completedCells = data.completed_cells || [];
       gameState.status = 'playing';
 
-      // Update UI
       els.gameWelcome.classList.add('hidden');
       renderBoard();
       startTimer();
 
-      showToast('Session recovered! Continue playing 🎮', 'success');
+      showToast('Đã khôi phục phiên chơi trước đó! 🎮', 'success');
       return true;
 
     } catch (e) {
@@ -671,28 +621,22 @@
     }
   }
 
-
   /* ═══════════════════════════════════════════════════════
      CONFETTI CELEBRATION
      ═══════════════════════════════════════════════════════ */
   function fireConfetti() {
     if (!window.confetti) return;
-
-    // First burst
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
       colors: ['#f59e0b', '#fbbf24', '#d97706', '#ffffff', '#0284c7']
     });
-
-    // Delayed side bursts
     setTimeout(() => {
       confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f59e0b', '#fbbf24'] });
       confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d97706', '#fbbf24'] });
     }, 250);
   }
-
 
   /* ═══════════════════════════════════════════════════════
      PLAY AGAIN
@@ -703,54 +647,41 @@
     clearSession();
 
     gameState = {
-      sessionId: null, playerName: '', location: gameState.location,
+      sessionId: null, sessionToken: null, playerName: '', location: gameState.location,
       challenges: [], completedCells: [], status: 'idle',
       startedAt: null, elapsedMs: null, bingoLine: null, rank: null
     };
 
-    // Reset board cells
     $$('.bingo-cell').forEach(cell => {
       cell.className = 'bingo-cell';
-      cell.style.backgroundImage = '';
       cell.querySelector('.cell-icon').textContent = '❓';
       cell.querySelector('.cell-text').textContent = '???';
     });
 
-    // Show welcome
     els.gameWelcome.classList.remove('hidden');
   }
 
-
-  /* ═══════════════════════════════════════════════════════
-     UTILITIES
-     ═══════════════════════════════════════════════════════ */
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
-
   /* ═══════════════════════════════════════════════════════
      EVENT LISTENERS
      ═══════════════════════════════════════════════════════ */
   function bindEvents() {
-    // Start game
     els.startGameBtn.addEventListener('click', onStartGame);
-
-    // Player form
     els.playerForm.addEventListener('submit', onPlayerSubmit);
     els.closePlayerModal.addEventListener('click', () => closeModal(els.playerModal));
     els.playerModal.addEventListener('click', (e) => {
       if (e.target === els.playerModal) closeModal(els.playerModal);
     });
 
-    // Location toggle
     $$('.location-btn').forEach(btn => {
       btn.addEventListener('click', () => setLocation(btn.dataset.location));
     });
 
-    // Cell taps
     $$('.bingo-cell').forEach(cell => {
       cell.addEventListener('click', () => {
         const idx = parseInt(cell.dataset.cell, 10);
@@ -758,7 +689,6 @@
       });
     });
 
-    // Camera controls
     els.cameraShutterBtn.addEventListener('click', capturePhoto);
     els.cameraCancelBtn.addEventListener('click', closeCamera);
     els.cameraSwitchBtn.addEventListener('click', switchCamera);
@@ -769,14 +699,12 @@
     });
     els.submitPhotoBtn.addEventListener('click', submitPhoto);
 
-    // Victory modal
     els.victoryLeaderboardBtn.addEventListener('click', () => {
       closeModal(els.victoryModal);
       openLeaderboard();
     });
     els.victoryPlayAgainBtn.addEventListener('click', playAgain);
 
-    // Leaderboard
     els.leaderboardToggleBtn.addEventListener('click', openLeaderboard);
     els.welcomeLeaderboardBtn.addEventListener('click', openLeaderboard);
     els.closeLeaderboardBtn.addEventListener('click', () => closeModal(els.leaderboardModal));
@@ -784,7 +712,6 @@
       if (e.target === els.leaderboardModal) closeModal(els.leaderboardModal);
     });
 
-    // Leaderboard tabs
     els.leaderboardTabs.addEventListener('click', (e) => {
       const tab = e.target.closest('.lb-tab');
       if (!tab) return;
@@ -793,7 +720,6 @@
       renderLeaderboard(tab.dataset.lbLocation);
     });
 
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (els.cameraOverlay.classList.contains('active')) closeCamera();
@@ -804,25 +730,20 @@
     });
   }
 
-
   /* ═══════════════════════════════════════════════════════
      INITIALIZATION
      ═══════════════════════════════════════════════════════ */
   async function init() {
     cacheDom();
     bindEvents();
-
-    // Initialize Lucide icons
     if (window.lucide) window.lucide.createIcons();
 
-    // Try to recover existing session
     const recovered = await tryRecoverSession();
     if (!recovered) {
       resetTimer();
     }
   }
 
-  // Boot
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

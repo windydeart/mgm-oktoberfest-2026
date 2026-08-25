@@ -1101,18 +1101,29 @@
       const bingoLine = data.bingo_line || checkBingo(completedCells);
       const isCompleted = data.status === 'completed' || bingoLine !== null;
 
+      // Merge pending review cells and photos across server data and local cache
+      const pendingReviewCells = Array.from(new Set([
+        ...(data.pending_review_cells || []),
+        ...(localState && localState.pendingReviewCells ? localState.pendingReviewCells : []),
+        ...(gameState.pendingReviewCells || [])
+      ]));
+
+      const cellPhotos = Object.assign({}, localState && localState.cellPhotos ? localState.cellPhotos : {}, gameState.cellPhotos || {});
+
       gameState.sessionId = data.session_id;
       gameState.playerName = data.player_name;
       gameState.location = data.location;
       gameState.challenges = data.challenges || [];
       gameState.completedCells = completedCells;
-      if (localState && localState.cellPhotos) gameState.cellPhotos = localState.cellPhotos;
-      if (localState && localState.pendingReviewCells) gameState.pendingReviewCells = localState.pendingReviewCells;
+      gameState.pendingReviewCells = pendingReviewCells;
+      gameState.cellPhotos = cellPhotos;
       gameState.startedAt = data.started_at;
       gameState.status = isCompleted ? 'completed' : 'playing';
       gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);
       gameState.bingoLine = bingoLine;
       gameState.rank = data.rank || gameState.rank || 1;
+
+      saveSession();
 
       els.gameWelcome.style.display = 'none';
       els.bingoBoard.style.display = 'grid';

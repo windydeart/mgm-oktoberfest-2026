@@ -168,9 +168,18 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     });
   }
 
-  // Update completed cells
-  completedCells.push(cell_index);
+  // Update completed cells & pending review cells
+  if (!completedCells.includes(cell_index)) {
+    completedCells.push(cell_index);
+  }
   session.completed_cells = completedCells;
+
+  if (is_pending_review) {
+    session.pending_review_cells = session.pending_review_cells || [];
+    if (!session.pending_review_cells.includes(cell_index)) {
+      session.pending_review_cells.push(cell_index);
+    }
+  }
 
   const bingoLine = checkBingo(completedCells);
   const is_bingo = bingoLine !== null;

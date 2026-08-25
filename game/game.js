@@ -905,6 +905,25 @@
     } catch (e) { /* ignore */ }
   }
 
+    function resetToWelcome() {
+    clearSession();
+    gameState = {
+      sessionId: null, sessionToken: null, playerName: '', location: gameState.location || 'danang',
+      challenges: [], completedCells: [], cellPhotos: {}, status: 'idle',
+      startedAt: null, elapsedMs: null, bingoLine: null, rank: null
+    };
+    $$('.bingo-cell').forEach(cell => {
+      cell.className = 'bingo-cell';
+      cell.style.backgroundImage = '';
+      const textP = cell.querySelector('.cell-challenge-text');
+      if (textP) textP.textContent = 'Ready to play...';
+    });
+    if (els.gameWelcome) els.gameWelcome.style.display = '';
+    if (els.bingoBoard) els.bingoBoard.style.display = 'none';
+    if (els.gameStatusBar) els.gameStatusBar.style.display = 'none';
+    resetTimer();
+  }
+
   async function tryRecoverSession() {
     try {
       const savedToken = localStorage.getItem('bingo_session_token');
@@ -916,7 +935,7 @@
 
       if (!savedToken && !localState) return false;
 
-      // 1. FAST LOCAL HYDRATION: If local state exists, immediately hydrate into memory
+      // 1. FAST LOCAL HYDRATION: Temporarily render UI while checking with server
       if (localState && localState.sessionId) {
         gameState = Object.assign({}, gameState, localState);
         els.gameWelcome.style.display = 'none';
@@ -928,83 +947,59 @@
           gameState.status = 'completed';
           if (!gameState.bingoLine) gameState.bingoLine = checkBingo(gameState.completedCells);
           stopTimer(gameState.elapsedMs || 0);
-          return true;
         } else {
           startTimer();
         }
       }
 
-      // 2. SERVER VERIFICATION
-      if (!savedToken) return false;
+      // 2. ALWAYS VALIDATE WITH SERVER AS TRUE SOURCE OF TRUTH
+      if (!savedToken) {
+        resetToWelcome();
+        return false;
+      }
 
       const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
       if (!res.ok) {
-        // If server says session is invalid (e.g. database was reset), wipe local session and start fresh
-        clearSession();
-        gameState = {
-          sessionId: null, sessionToken: null, playerName: '', location: gameState.location,
-          challenges: [], completedCells: [], cellPhotos: {}, status: 'idle',
-          startedAt: null, elapsedMs: null, bingoLine: null, rank: null
-        };
-        $$('.bingo-cell').forEach(cell => {
-          cell.className = 'bingo-cell';
-          cell.style.backgroundImage = '';
-          const textP = cell.querySelector('.cell-challenge-text');
-          if (textP) textP.textContent = 'Ready to play...';
-        });
-        els.gameWelcome.style.display = '';
-        els.bingoBoard.style.display = 'none';
-        els.gameStatusBar.style.display = 'none';
-        resetTimer();
+        // If server says session is invalid (e.g. database was reset/purged), wipe local session and start fresh!
+        resetToWelcome();
         return false;
       }
 
       const data = await res.json();
       if (!data.session_id) {
-        clearSession();
+        resetToWelcome();
         return false;
       }
 
       const completedCells = data.completed_cells || gameState.completedCells || [];
       const bingoLine = data.bingo_line || checkBingo(completedCells);
-      const isCompleted = data.status === 'completed' || bingoLine !== null || gameState.status === 'completed';
+      const isCompleted = data.status === 'completed' || bingoLine !== null;
 
       gameState.sessionId = data.session_id;
-      gameState.sessionToken = savedToken;
-      gameState.playerName = data.player_name || gameState.playerName;
-      gameState.location = data.location || gameState.location;
-      gameState.challenges = data.challenges || gameState.challenges;
-      gameState.startedAt = data.started_at || gameState.startedAt;
+      gameState.playerName = data.player_name;
+      gameState.location = data.location;
+      gameState.challenges = data.challenges || [];
       gameState.completedCells = completedCells;
-      if (localState && localState.cellPhotos) gameState.cellPhotos = localState.cellPhotos;
+      gameState.startedAt = data.started_at;
       gameState.status = isCompleted ? 'completed' : 'playing';
-      gameState.elapsedMs = data.elapsed_ms || gameState.elapsedMs || (isCompleted ? Date.now() - (data.started_at || Date.now()) : null);
+      gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);
       gameState.bingoLine = bingoLine;
       gameState.rank = data.rank || gameState.rank || 1;
-
-      saveSession();
 
       els.gameWelcome.style.display = 'none';
       els.bingoBoard.style.display = 'grid';
       renderBoard();
 
-      // ABSOLUTE GUARANTEE: If completed, STOP AND FREEZE THE TIMER!
       if (isCompleted) {
         stopTimer(gameState.elapsedMs || 0);
-        showToast('Completed game state restored! 🏆', 'success');
       } else {
         startTimer();
-        showToast('Active game session restored! 🎮', 'success');
       }
 
       return true;
-
     } catch (e) {
-      if (gameState.status === 'completed') {
-        stopTimer(gameState.elapsedMs || 0);
-        return true;
-      }
-      clearSession();
+      console.warn('Session recovery error:', e);
+      resetToWelcome();
       return false;
     }
   }

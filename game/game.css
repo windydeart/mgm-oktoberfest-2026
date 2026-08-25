@@ -6,8 +6,8 @@
 /* ─── 1. FONT FACES & ROOT VARIABLES ─── */
 @font-face {
   font-family: 'Rengkoxpersonal';
-  src: url('../assets/Font/Rengkoxpersonal.woff2') format('woff2'),
-       url('../assets/Font/Rengkoxpersonal.otf') format('opentype');
+  src: url('/assets/Font/Rengkoxpersonal.woff2') format('woff2'),
+       url('/assets/Font/Rengkoxpersonal.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -15,7 +15,7 @@
 
 @font-face {
   font-family: 'Boombie';
-  src: url('../assets/Font/Boombie.otf') format('opentype');
+  src: url('/assets/Font/Boombie.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -23,7 +23,7 @@
 
 @font-face {
   font-family: 'Roboto';
-  src: url('../assets/Font/Roboto-Thin.ttf') format('truetype');
+  src: url('/assets/Font/Roboto-Thin.ttf') format('truetype');
   font-weight: 100;
   font-style: normal;
   font-display: swap;
@@ -31,7 +31,7 @@
 
 @font-face {
   font-family: 'Roboto';
-  src: url('../assets/Font/Roboto-Light.ttf') format('truetype');
+  src: url('/assets/Font/Roboto-Light.ttf') format('truetype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -39,7 +39,7 @@
 
 @font-face {
   font-family: 'Roboto';
-  src: url('../assets/Font/Roboto-Bold.ttf') format('truetype');
+  src: url('/assets/Font/Roboto-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -126,7 +126,7 @@ body {
   width: 100%;
   min-height: 100vh;
   position: relative;
-  background-image: url('../assets/images/oktoberfest_pattern.png');
+  background-image: url('/assets/images/oktoberfest_pattern.png');
   background-size: 300px;
   background-repeat: repeat;
   background-attachment: fixed;

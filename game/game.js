@@ -683,11 +683,11 @@
     setTimeout(() => {
       if (backdrop) backdrop.classList.remove('active');
       document.body.classList.remove('celebrating-bingo');
-      if (laser) laser.className = 'bingo-laser-beam';
 
       setTimeout(() => {
         openModal(els.victoryModal);
         loadSidebarLeaderboard();
+        if (window.lucide) window.lucide.createIcons();
       }, 350);
     }, 2800);
   }

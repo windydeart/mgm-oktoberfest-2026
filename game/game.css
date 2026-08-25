@@ -1610,9 +1610,34 @@ body.game-page::before {
   height: 10px;
 }
 
+/* ─── Current User Highlight (Soft Sky Blue - distinguishable from Gold Winner) ─── */
 .lb-ranking-table tr.current-player-row {
-  background: rgba(245, 158, 11, 0.15) !important;
-  border-left: 3px solid var(--accent-amber);
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-left: 3px solid #38bdf8 !important;
+}
+
+.lb-ranking-table tr.current-player-row td.lb-name {
+  color: #e0f2fe !important;
+}
+
+.lb-ranking-table tr.current-player-row td.lb-time {
+  color: #7dd3fc !important;
+}
+
+.sidebar-lb-item.current-player-item {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+}
+
+.current-user-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
 }
 
 .lb-no-records {

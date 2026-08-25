@@ -630,7 +630,7 @@
 
       const tr = document.createElement('tr');
       if (isTop1) tr.classList.add('lb-winner-row');
-      if (isMe) tr.classList.add('current-player-row');
+      if (isMe && !isTop1) tr.classList.add('current-player-row');
 
       tr.innerHTML = `
         <td class="lb-rank">
@@ -639,7 +639,7 @@
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
-            ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
+            ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : (isMe ? `<span class="current-user-tag">YOU</span>` : '')}
           </div>
         </td>
         <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
@@ -666,12 +666,15 @@
     els.sidebarLbList.innerHTML = top5.map((entry, idx) => {
       const isWinner = idx === 0;
       const medal = isWinner ? '👑 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx+1}`;
+      const isMe = entry.player_name === gameState.playerName &&
+                    entry.location === gameState.location &&
+                    Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
       return `
-        <div class="sidebar-lb-item ${isWinner ? 'sidebar-lb-winner' : ''}">
-          <span class="sidebar-lb-rank" style="color:${isWinner?'#fbbf24':'inherit'};">${medal}</span>
+        <div class="sidebar-lb-item ${isWinner ? 'sidebar-lb-winner' : (isMe ? 'current-player-item' : '')}">
+          <span class="sidebar-lb-rank" style="color:${isWinner?'#fbbf24':(isMe?'#38bdf8':'inherit')};">${medal}</span>
           <div class="sidebar-lb-name-group">
             <span class="sidebar-lb-name">${escapeHtml(entry.player_name)}</span>
-            ${isWinner ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
+            ${isWinner ? `<span class="sidebar-prize-badge">WINNER</span>` : (isMe ? `<span class="current-user-tag">YOU</span>` : '')}
           </div>
           <span class="sidebar-lb-time">${formatTime(entry.elapsed_ms || 0)}</span>
         </div>

@@ -261,11 +261,15 @@
         textP.textContent = challenge.challenge;
       }
 
-      // 3. Completed State
+      // 3. Completed State & Translucent Photo Background
       if (gameState.completedCells.includes(i)) {
         cell.classList.add('completed');
+        if (gameState.cellPhotos && gameState.cellPhotos[i]) {
+          cell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.58), rgba(11, 19, 43, 0.78)), url('${gameState.cellPhotos[i]}')`;
+        }
       } else {
         cell.classList.remove('completed');
+        cell.style.backgroundImage = '';
       }
 
       // 4. Winning Line Highlight (waving pulse)
@@ -418,6 +422,23 @@
     }
 
     openCamera();
+  }
+
+    function createThumbnail(dataUrl, maxWidth = 260) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = maxWidth / Math.max(img.width, img.height);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.65));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
   }
 
   function capturePhoto() {
@@ -733,6 +754,7 @@
         location: gameState.location,
         challenges: gameState.challenges,
         completedCells: gameState.completedCells,
+        cellPhotos: gameState.cellPhotos || {},
         status: gameState.status,
         startedAt: gameState.startedAt,
         elapsedMs: gameState.elapsedMs,
@@ -810,6 +832,7 @@
       gameState.challenges = data.challenges || gameState.challenges;
       gameState.startedAt = data.started_at || gameState.startedAt;
       gameState.completedCells = completedCells;
+      if (localState && localState.cellPhotos) gameState.cellPhotos = localState.cellPhotos;
       gameState.status = isCompleted ? 'completed' : 'playing';
       gameState.elapsedMs = data.elapsed_ms || gameState.elapsedMs || (isCompleted ? Date.now() - (data.started_at || Date.now()) : null);
       gameState.bingoLine = bingoLine;
@@ -869,7 +892,7 @@
 
     gameState = {
       sessionId: null, sessionToken: null, playerName: '', location: gameState.location,
-      challenges: [], completedCells: [], status: 'idle',
+      challenges: [], completedCells: [], cellPhotos: {}, status: 'idle',
       startedAt: null, elapsedMs: null, bingoLine: null, rank: null
     };
 

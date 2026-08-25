@@ -685,6 +685,68 @@ body.game-page::before {
   opacity: 1;
 }
 
+/* ─── Cell Verifying / Checking State (Asynchronous Non-blocking) ─── */
+.bingo-cell.verifying {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.45) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  cursor: wait !important;
+  pointer-events: none;
+}
+
+.bingo-cell.verifying .cell-cam-watermark {
+  opacity: 0 !important;
+}
+
+.cell-verifying-badge {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.6);
+  z-index: 5;
+  animation: verifyingPulse 1.4s ease-in-out infinite;
+}
+
+.bingo-cell.verifying .cell-verifying-badge {
+  display: inline-flex;
+}
+
+.bingo-cell.verifying .cell-challenge-text {
+  color: #ffffff !important;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.98), 0 0 10px rgba(0, 0, 0, 0.95);
+}
+
+.bingo-cell.verifying .cell-tap-hint {
+  color: #38bdf8 !important;
+  font-weight: 700;
+  opacity: 1;
+  font-style: normal;
+}
+
+@keyframes verifyingPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.82; transform: scale(1.04); }
+}
+
+.spin-icon {
+  animation: spinIconAnim 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spinIconAnim {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* ─── Cell Completed State (Translucent submitted photo background) ─── */
 .bingo-cell.completed {
   border-color: #22c55e !important;

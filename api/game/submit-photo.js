@@ -94,7 +94,7 @@ module.exports = async (req, res) => {
   let ai_verified = false;
   let ai_reason = "Photo does not match the challenge requirement.";
 
-  for (const model of candidateModels) {
+    for (const model of candidateModels) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
       const geminiRes = await fetch(apiUrl, {
@@ -103,30 +103,26 @@ module.exports = async (req, res) => {
         body: JSON.stringify({
           system_instruction: {
             parts: [{
-              text: `You are an AI photo challenge judge for the mgm Oktoberfest 2026 Photo Bingo party game.
-Your task is to inspect the submitted photo and verify whether it reasonably satisfies the active challenge: "${challenge.challenge}".
-
-JUDGING GUIDELINES:
-- REJECT (approved: false): Completely black/blank images, screenshots of code/text/wallpapers, or photos that have zero relation to the challenge.
-- APPROVE (approved: true): Genuine photos showing the requested subject, action, beer, outfit, people, food, smile, or Oktoberfest festive element.
-- Be festive and reasonable for a party game.
-
-Reply with ONLY a JSON object:
-{"approved": true, "reason": "Great photo! Challenge approved."} OR {"approved": false, "reason": "No matching subject found for this challenge. Please try again!"}`
+              text: `Judge if this Oktoberfest party photo matches: "${challenge.challenge}".
+APPROVE if genuine photo showing matching subject/beer/festive element/smile/food/people.
+REJECT if pitch black/blank, desktop code screenshot, or totally unrelated.
+Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false, "reason": "Brief reason"}`
             }]
           },
           contents: [{
             role: 'user',
             parts: [
               { inline_data: { mime_type: 'image/jpeg', data: base64Data } },
-              { text: `Evaluate this photo for challenge: "${challenge.challenge}".` }
+              { text: `Match "${challenge.challenge}"?` }
             ]
           }],
           generationConfig: {
-            temperature: 0.1,
+            temperature: 0.0,
+            maxOutputTokens: 60,
             responseMimeType: "application/json"
           }
         })
+      });
       });
 
       if (geminiRes.ok) {

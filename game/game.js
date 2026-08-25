@@ -445,12 +445,18 @@
   function capturePhoto() {
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    const vw = video.videoWidth || 640;
+    const vh = video.videoHeight || 480;
+    const maxDim = 480;
+    const scale = Math.min(1, maxDim / Math.max(vw, vh));
+    
+    canvas.width = Math.round(vw * scale);
+    canvas.height = Math.round(vh * scale);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    // High speed compact JPEG (~25KB for instant transmission)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
     els.previewImage.src = dataUrl;
 
     els.cameraControls.style.display = 'none';
@@ -460,23 +466,37 @@
   async function submitPhoto() {
     const dataUrl = els.previewImage.src;
     const base64 = dataUrl.split(',')[1];
+    const targetIdx = currentCellIndex;
+    const challenge = gameState.challenges[targetIdx];
 
-    els.cameraPreview.style.display = 'none';
-    els.cameraLoading.style.display = 'flex';
+    // ─── 1. Instantly close camera & unblock player ───
+    closeCamera();
 
+    // ─── 2. Set cell into Verifying state immediately ───
+    const targetCell = $$('.bingo-cell')[targetIdx];
+    if (targetCell) {
+      targetCell.classList.add('verifying');
+      targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
+      const hint = targetCell.querySelector('.cell-tap-hint');
+      if (hint) hint.textContent = '⏳ Verifying photo...';
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    showToast('Photo submitted! AI is verifying in background...', 'info', 2200);
+
+    // ─── 3. Background Asynchronous Verification (Player can shoot other cells) ───
     try {
       const res = await fetch(`${API_BASE}/submit-photo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_token: gameState.sessionToken,
-          cell_index: currentCellIndex,
+          cell_index: targetIdx,
           photo_base64: base64
         })
       });
 
       const data = await res.json();
-      els.cameraLoading.style.display = 'none';
 
       if (!res.ok) {
         throw new Error(data.error || 'Photo submission failed.');
@@ -487,62 +507,55 @@
           gameState.sessionToken = data.session_token;
         }
 
-        els.resultText.textContent = 'Challenge Approved!';
-        els.cameraResult.style.display = 'block';
-        els.cameraResult.className = 'camera-result-flash result-success';
-
-        if (!gameState.completedCells.includes(currentCellIndex)) {
-          gameState.completedCells.push(currentCellIndex);
+        if (!gameState.completedCells.includes(targetIdx)) {
+          gameState.completedCells.push(targetIdx);
         }
 
-        // Store photo in gameState.cellPhotos
         if (!gameState.cellPhotos) gameState.cellPhotos = {};
-        gameState.cellPhotos[currentCellIndex] = dataUrl;
+        gameState.cellPhotos[targetIdx] = dataUrl;
+
+        if (targetCell) {
+          targetCell.classList.remove('verifying');
+          targetCell.classList.add('completed');
+          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
+          const hint = targetCell.querySelector('.cell-tap-hint');
+          if (hint) hint.textContent = '';
+          if (window.lucide) window.lucide.createIcons();
+        }
 
         if (data.is_bingo) {
           gameState.status = 'completed';
           gameState.elapsedMs = data.elapsed_ms;
           gameState.bingoLine = data.bingo_line;
           gameState.rank = data.rank || 1;
+          saveSession();
+          onBingo(data);
+        } else {
+          saveSession();
+          showToast(`🎯 Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
         }
-
-        saveSession();
-
-        // Immediately apply to DOM cell
-        const targetCell = $$('.bingo-cell')[currentCellIndex];
-        if (targetCell) {
-          targetCell.classList.add('completed');
-          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
-          targetCell.style.backgroundSize = 'cover';
-          targetCell.style.backgroundPosition = 'center';
-        }
-
-        setTimeout(() => {
-          closeCamera();
-          renderBoard();
-
-          if (data.is_bingo) {
-            onBingo(data);
-          } else {
-            showToast('Cell completed! Keep going for 3 in a row 🎯', 'success');
-          }
-        }, 1100);
 
       } else {
-        els.resultText.textContent = data.reason || "Photo doesn't match the challenge. Please try again!";
-        els.cameraResult.style.display = 'block';
-        els.cameraResult.className = 'camera-result-flash result-fail';
-
-        setTimeout(() => {
-          els.cameraResult.style.display = 'none';
-          els.cameraControls.style.display = 'flex';
-        }, 2200);
+        // AI Rejected
+        if (targetCell) {
+          targetCell.classList.remove('verifying');
+          targetCell.style.backgroundImage = '';
+          const hint = targetCell.querySelector('.cell-tap-hint');
+          if (hint) hint.textContent = 'Tap to Snap';
+          if (window.lucide) window.lucide.createIcons();
+        }
+        showToast(`❌ Photo not approved: ${data.reason || "Doesn't match challenge"}. Please try again!`, 'error', 5500);
       }
 
     } catch (err) {
-      els.cameraLoading.style.display = 'none';
-      showToast(err.message || 'Error submitting photo. Please try again.', 'error');
-      els.cameraControls.style.display = 'flex';
+      if (targetCell) {
+        targetCell.classList.remove('verifying');
+        targetCell.style.backgroundImage = '';
+        const hint = targetCell.querySelector('.cell-tap-hint');
+        if (hint) hint.textContent = 'Tap to Snap';
+        if (window.lucide) window.lucide.createIcons();
+      }
+      showToast(err.message || 'Error verifying photo. Please try again.', 'error', 4000);
     }
   }
 

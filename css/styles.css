@@ -2407,6 +2407,37 @@ h1, h2, h3, h4 {
   color: var(--text-muted);
 }
 
+.feature-game-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1rem;
+  padding: 6px 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-full);
+  color: var(--text-gold);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+.feature-game-link:hover {
+  background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark));
+  color: #0b132b;
+  border-color: var(--accent-amber);
+  transform: translateX(3px);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+}
+.feature-game-link i {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--transition-fast);
+}
+.feature-game-link:hover i {
+  transform: translateX(3px);
+}
+
 /* ─── DRESS CODE SECTION ─── */
 .dresscode-card-wrapper {
   background: var(--card-bg);

@@ -1,0 +1,886 @@
+/* ═════════════════════════════════════════════════════════════════
+   mgm VIETNAM OKTOBERFEST 2026 — PHOTO BINGO MINI-GAME
+   Design Aesthetic: Bavarian Festive Tech Fusion (Midnight & Amber Gold)
+   ═════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. FONT FACES & ROOT VARIABLES ─── */
+@font-face {
+  font-family: 'Rengkoxpersonal';
+  src: url('../assets/Font/Rengkoxpersonal.woff2') format('woff2'),
+       url('../assets/Font/Rengkoxpersonal.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Boombie';
+  src: url('../assets/Font/Boombie.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('../assets/Font/Roboto-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('../assets/Font/Roboto-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('../assets/Font/Roboto-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg-primary: #0b132b;
+  --bg-secondary: #16203d;
+  --bg-tertiary: #1c2951;
+  --card-bg: rgba(22, 32, 61, 0.75);
+  --card-border: rgba(245, 158, 11, 0.25);
+  --glass-bg: rgba(11, 19, 43, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.12);
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-gold: #fbbf24;
+
+  --accent-amber: #f59e0b;
+  --accent-amber-dark: #d97706;
+  --accent-glow: rgba(245, 158, 11, 0.5);
+  --mgm-red: #e11d48;
+  --bavarian-blue: #0284c7;
+
+  --font-heading: 'Roboto', sans-serif;
+  --font-body: 'Roboto', sans-serif;
+  --font-hero: 'Rengkoxpersonal', cursive, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --shadow-glow: 0 0 25px rgba(245, 158, 11, 0.35);
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── 14. DARK SCROLLBAR ─── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080e20;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.35);
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.35) #080e20;
+}
+
+/* ─── 2. GAME LAYOUT ─── */
+.game-page {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  background-image: url('../assets/images/oktoberfest_pattern.png');
+  background-size: 300px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+  background-blend-mode: overlay;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+}
+
+/* ─── 3. GAME HEADER ─── */
+.game-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
+  z-index: 100;
+  margin-bottom: 1rem;
+}
+
+.game-header-left, .game-header-right {
+  flex: 1;
+  display: flex;
+}
+
+.game-header-right {
+  justify-content: flex-end;
+}
+
+.game-header-center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  transition: color var(--transition-fast);
+}
+
+.back-btn:hover {
+  color: var(--text-gold);
+}
+
+.timer-display {
+  font-family: monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  transition: all var(--transition-normal);
+}
+
+.timer-idle {
+  color: var(--text-muted);
+}
+
+.timer-running {
+  color: var(--text-gold);
+  text-shadow: var(--shadow-glow);
+  animation: timerPulse 2s infinite ease-in-out;
+}
+
+.timer-stopped {
+  color: #22c55e;
+  text-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+}
+
+.menu-toggle {
+  color: var(--text-main);
+  font-size: 1.5rem;
+}
+
+.menu-toggle:hover {
+  color: var(--text-gold);
+}
+
+
+/* ─── 4. BINGO BOARD (3x3 Grid) ─── */
+.bingo-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 0 auto;
+  width: 95vw;
+  max-width: 480px;
+  perspective: 1000px;
+}
+
+.bingo-cell {
+  aspect-ratio: 1 / 1;
+  background: var(--glass-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.bingo-cell:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-amber);
+  box-shadow: var(--shadow-glow);
+}
+
+.cell-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.category-icon {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  border: 1px solid var(--accent-amber);
+  color: var(--text-gold);
+}
+
+.challenge-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bingo-cell.active {
+  border-color: var(--accent-amber);
+  box-shadow: var(--shadow-glow);
+  animation: pulse-border 1.5s infinite;
+}
+
+.bingo-cell.completed {
+  border-color: #22c55e;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+.bingo-cell.completed .cell-content {
+  background: rgba(0,0,0,0.6);
+}
+
+.completed-check {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: #22c55e;
+  opacity: 0.8;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.bingo-cell.completed .completed-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.bingo-cell.bingo-line {
+  animation: bingoGlow 2s infinite ease-in-out;
+  border-color: var(--accent-amber);
+}
+
+/* ─── 5. START/WELCOME OVERLAY ─── */
+.game-welcome {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 19, 43, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 2rem;
+  text-align: center;
+}
+
+.welcome-title {
+  font-family: var(--font-hero);
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  max-width: 500px;
+  margin-bottom: 2rem;
+}
+
+.leaderboard-preview {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ─── 6. PLAYER REGISTRATION MODAL ─── */
+.player-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2500;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.4s ease-out;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-field {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.toggle-group {
+  display: flex;
+  background: var(--bg-primary);
+  border-radius: var(--radius-full);
+  padding: 0.25rem;
+  border: 1px solid var(--glass-border);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.toggle-btn.active {
+  background: var(--accent-amber);
+  color: #000;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+}
+
+/* ─── 7. CAMERA OVERLAY ─── */
+.camera-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-viewfinder {
+  flex: 1;
+  width: 100%;
+  object-fit: cover;
+}
+
+.camera-challenge-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+  padding: 2rem 1rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.shutter-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid rgba(255,255,255,0.5);
+  box-shadow: 0 0 15px rgba(255,255,255,0.3);
+  transition: all var(--transition-fast);
+}
+
+.shutter-btn:active {
+  transform: scale(0.9);
+  background: #ddd;
+}
+
+.camera-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 3010;
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-preview img {
+  flex: 1;
+  object-fit: cover;
+  width: 100%;
+}
+
+.preview-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-around;
+  background: rgba(0,0,0,0.7);
+}
+
+.camera-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 3020;
+}
+
+.camera-result {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  z-index: 3030;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ─── 8. VICTORY/BINGO MODAL ─── */
+.victory-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 19, 43, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  padding: 2rem;
+  text-align: center;
+}
+
+.victory-title {
+  font-family: var(--font-hero);
+  font-size: 6rem;
+  color: var(--text-gold);
+  text-shadow: 0 0 40px rgba(245, 158, 11, 0.8);
+  animation: victoryScale 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.victory-stats {
+  margin: 2rem 0;
+  font-size: 1.5rem;
+}
+
+/* ─── 9. LEADERBOARD PANEL ─── */
+.leaderboard-panel {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  max-width: 400px;
+  height: 100%;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--glass-border);
+  z-index: 2000;
+  transition: right 0.4s ease;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.leaderboard-panel.active {
+  right: 0;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem;
+}
+
+.lb-tab {
+  flex: 1;
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.lb-tab.active {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--text-gold);
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.leaderboard-table tr.current-player {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid var(--accent-amber);
+}
+
+.leaderboard-empty {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 2rem;
+}
+
+/* ─── 10. CHALLENGE REVEAL ANIMATION ─── */
+.reveal-animation {
+  animation: cellReveal 0.6s ease-out forwards;
+}
+
+.cell-lock-in {
+  animation: cellLockIn 0.8s ease-out forwards;
+}
+
+.delay-0 { animation-delay: 0s; }
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+.delay-7 { animation-delay: 0.7s; }
+.delay-8 { animation-delay: 0.8s; }
+
+/* ─── 11. UTILITY CLASSES ─── */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #fff59d 0%, #fbbf24 45%, #f59e0b 80%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none !important;
+  display: inline-block;
+}
+
+.font-oktoberfest {
+  font-family: var(--font-hero);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark));
+  color: #000;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  transition: all var(--transition-normal);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  transition: all var(--transition-normal);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.btn-hero-primary {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  color: #0b132b;
+  border: 1px solid transparent;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 2rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.btn-hero-primary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -120%;
+  width: 70%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.35) 65%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+  animation: btnLightningSweep 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--text-gold);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.pulse-glow {
+  animation: timerPulse 2s infinite ease-in-out;
+}
+
+/* ─── 13. ANIMATIONS & KEYFRAMES ─── */
+@keyframes timerPulse {
+  0% { transform: scale(1); text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+  50% { transform: scale(1.05); text-shadow: 0 0 25px rgba(245, 158, 11, 0.8); }
+  100% { transform: scale(1); text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+}
+
+@keyframes cellReveal {
+  0% { transform: perspective(1000px) rotateY(90deg); opacity: 0; }
+  100% { transform: perspective(1000px) rotateY(0deg); opacity: 1; }
+}
+
+@keyframes cellLockIn {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(245, 158, 11, 1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bingoGlow {
+  0% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(251, 191, 36, 1); border-color: #fbbf24; }
+  100% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+}
+
+@keyframes shutterFlash {
+  0% { background: rgba(255, 255, 255, 1); opacity: 1; }
+  100% { background: rgba(255, 255, 255, 0); opacity: 0; }
+}
+
+@keyframes victoryScale {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(50px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+@keyframes confettiBurst {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes btnLightningSweep {
+  0% { left: -120%; }
+  42% { left: 200%; }
+  100% { left: 200%; }
+}
+
+@keyframes pulse-border {
+  0% { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+  50% { border-color: rgba(245, 158, 11, 1); box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+  100% { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+}
+
+/* ─── 12. RESPONSIVE BREAKPOINTS ─── */
+/* Mobile First is default above */
+
+@media (min-width: 480px) {
+  .bingo-board {
+    max-width: 420px;
+  }
+}
+
+@media (min-width: 768px) {
+  .bingo-board {
+    max-width: 480px;
+  }
+  
+  .leaderboard-panel {
+    /* Side leaderboard option for desktop */
+    border-left: 1px solid var(--glass-border);
+  }
+}
+
+/* ─── 15. PRINT / REDUCED MOTION ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

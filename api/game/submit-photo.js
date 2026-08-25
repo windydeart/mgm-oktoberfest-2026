@@ -154,18 +154,15 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     }
   }
 
-  // ─── If AI was unavailable or timed out (> 4.5s), fail-open to PENDING REVIEW ───
-  if (!ai_decision_made) {
+  // ─── If AI approved with confidence -> DONE (verified). Otherwise -> PENDING REVIEW ───
+  if (ai_decision_made && ai_verified) {
+    is_pending_review = false;
+    ai_reason = ai_reason || "Challenge Approved!";
+  } else {
+    // Non-approved, unconfident, or timed out photos automatically enter PENDING REVIEW for organizers
     ai_verified = true;
     is_pending_review = true;
-    ai_reason = "Photo submitted. Under manual review by organizers.";
-  }
-
-  if (!ai_verified) {
-    return res.status(200).json({
-      verified: false,
-      reason: ai_reason || "Photo doesn't match the challenge. Please take a clearer photo and try again!"
-    });
+    ai_reason = ai_reason || "Photo submitted. Under manual review by organizers.";
   }
 
   // Update completed cells & pending review cells

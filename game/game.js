@@ -930,11 +930,23 @@
 
       const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
       if (!res.ok) {
-        if (gameState.status === 'completed') {
-          stopTimer(gameState.elapsedMs || 0);
-          return true;
-        }
+        // If server says session is invalid (e.g. database was reset), wipe local session and start fresh
         clearSession();
+        gameState = {
+          sessionId: null, sessionToken: null, playerName: '', location: gameState.location,
+          challenges: [], completedCells: [], cellPhotos: {}, status: 'idle',
+          startedAt: null, elapsedMs: null, bingoLine: null, rank: null
+        };
+        $$('.bingo-cell').forEach(cell => {
+          cell.className = 'bingo-cell';
+          cell.style.backgroundImage = '';
+          const textP = cell.querySelector('.cell-challenge-text');
+          if (textP) textP.textContent = 'Ready to play...';
+        });
+        els.gameWelcome.style.display = '';
+        els.bingoBoard.style.display = 'none';
+        els.gameStatusBar.style.display = 'none';
+        resetTimer();
         return false;
       }
 

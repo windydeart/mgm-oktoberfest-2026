@@ -65,14 +65,18 @@ module.exports = async (req, res) => {
   let elapsed_ms = session.elapsed_ms || null;
   let rank = session.rank || null;
 
-  if (isCompleted && !elapsed_ms) {
+  if (isCompleted) {
     try {
       const scoreRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
       if (scoreRes.ok) {
         const scores = await scoreRes.json();
-        if (scores && scores.length > 0 && scores[0].duration_seconds) {
+        if (!scores || scores.length === 0) {
+          // If database was reset or score was deleted, invalidate session so browser can start a fresh game!
+          return res.status(404).json({ error: 'Session was reset or expired' });
+        }
+        if (scores[0].duration_seconds) {
           elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
         }
       }

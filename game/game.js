@@ -265,11 +265,19 @@
       // 3. Completed State & Translucent Photo Background
       if (gameState.completedCells.includes(i)) {
         cell.classList.add('completed');
-        if (gameState.cellPhotos && gameState.cellPhotos[i]) {
-          cell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.58), rgba(11, 19, 43, 0.78)), url('${gameState.cellPhotos[i]}')`;
+        if (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(i)) {
+          cell.classList.add('pending-review');
+        } else {
+          cell.classList.remove('pending-review');
+        }
+        const photoUrl = gameState.cellPhotos && gameState.cellPhotos[i];
+        if (photoUrl) {
+          cell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${photoUrl}')`;
+          cell.style.backgroundSize = 'cover';
+          cell.style.backgroundPosition = 'center';
         }
       } else {
-        cell.classList.remove('completed');
+        cell.classList.remove('completed', 'pending-review');
         cell.style.backgroundImage = '';
       }
 
@@ -400,16 +408,14 @@
   }
 
   function onCellTap(cellIndex) {
-    if (gameState.status === 'completed') {
-      showToast('Game completed! Check out the Leaderboard 🏆', 'info');
-      return;
-    }
-    if (gameState.status !== 'playing') {
+    if (gameState.status !== 'playing' && gameState.status !== 'completed') {
       onStartGame();
       return;
     }
+
+    // If cell is already completed or pending review -> Open Photo Detail & Review Modal!
     if (gameState.completedCells.includes(cellIndex)) {
-      showToast('This challenge is already completed! ✅', 'info');
+      openPhotoReview(cellIndex);
       return;
     }
 
@@ -423,6 +429,50 @@
     }
 
     openCamera();
+  }
+
+  function openPhotoReview(cellIndex) {
+    const challenge = gameState.challenges[cellIndex];
+    if (!challenge) return;
+
+    const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
+    const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
+
+    const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
+    const iconSpan = $('#photoReviewCatIcon');
+    if (iconSpan) iconSpan.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+
+    const challengeText = $('#photoReviewChallengeText');
+    if (challengeText) challengeText.textContent = challenge.challenge;
+
+    const img = $('#photoReviewImg');
+    if (img) {
+      img.src = photoUrl || '';
+      img.style.display = photoUrl ? 'block' : 'none';
+    }
+
+    const pill = $('#photoReviewStatusPill');
+    const statusText = $('#photoReviewStatusText');
+    if (isPending) {
+      if (pill) {
+        pill.className = 'photo-review-status-pill status-pending';
+        pill.innerHTML = '<i data-lucide="clock"></i> <span>PENDING REVIEW</span>';
+      }
+      if (statusText) {
+        statusText.textContent = 'This submission is queued for manual verification by the Organizing Committee.';
+      }
+    } else {
+      if (pill) {
+        pill.className = 'photo-review-status-pill status-done';
+        pill.innerHTML = '<i data-lucide="check"></i> <span>APPROVED</span>';
+      }
+      if (statusText) {
+        statusText.textContent = 'Verified and approved by AI photo challenge engine.';
+      }
+    }
+
+    openModal($('#photoReviewModal'));
+    if (window.lucide) window.lucide.createIcons();
   }
 
     function createThumbnail(dataUrl, maxWidth = 260) {
@@ -1056,6 +1106,8 @@
       gameState.location = data.location;
       gameState.challenges = data.challenges || [];
       gameState.completedCells = completedCells;
+      if (localState && localState.cellPhotos) gameState.cellPhotos = localState.cellPhotos;
+      if (localState && localState.pendingReviewCells) gameState.pendingReviewCells = localState.pendingReviewCells;
       gameState.startedAt = data.started_at;
       gameState.status = isCompleted ? 'completed' : 'playing';
       gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);

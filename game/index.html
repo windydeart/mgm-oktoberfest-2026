@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=90">
+  <link rel="stylesheet" href="/game/game.css?v=95">
 </head>
 <body class="dark-theme game-page">
 
@@ -457,15 +457,16 @@
   <div class="modal-backdrop" id="victoryModal">
     <div class="modal-content glass-card victory-dialog">
       <div class="victory-crown-glow">
+        <div class="victory-halo-aura"></div>
         <i data-lucide="trophy" class="victory-flat-trophy"></i>
       </div>
       <h2 class="victory-huge-title gold-gradient-text">BINGO!</h2>
-      <p class="victory-cheer">Outstanding! You completed a winning line!</p>
+      <p class="victory-cheer">Congratulations! You completed a winning line!</p>
 
       <div class="victory-metric-grid">
         <div class="metric-card">
           <span class="metric-label">TIME</span>
-          <span class="metric-val" id="victoryTime">00:00.00</span>
+          <span class="metric-val metric-time" id="victoryTime">00:00.00</span>
         </div>
         <div class="metric-card">
           <span class="metric-label">RANK</span>
@@ -473,17 +474,19 @@
         </div>
         <div class="metric-card">
           <span class="metric-label">WINNING LINE</span>
-          <span class="metric-val" id="victoryLine">Row 1</span>
+          <span class="metric-val metric-line" id="victoryLine">Diagonal ↘</span>
         </div>
       </div>
 
       <div class="victory-action-group">
-        <button type="button" class="btn-hero-play" id="victoryLeaderboardBtn">
-          <i data-lucide="trophy"></i> View Leaderboard
+        <button type="button" class="btn-hero-play victory-primary-btn" id="victoryLeaderboardBtn">
+          <i data-lucide="trophy"></i>
+          <span>View Leaderboard</span>
         </button>
-        <button type="button" class="btn-outline-lb" id="victoryPlayAgainBtn">
-          <i data-lucide="rotate-ccw"></i> Play Again
-        </button>
+        <a href="/" class="btn-outline-back" id="victoryBackHomeBtn">
+          <i data-lucide="arrow-left"></i>
+          <span>Back to Homepage</span>
+        </a>
       </div>
     </div>
   </div>
@@ -536,6 +539,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=90"></script>
+  <script src="/game/game.js?v=95"></script>
 </body>
 </html>

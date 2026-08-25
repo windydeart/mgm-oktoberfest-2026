@@ -13,7 +13,7 @@
   const BINGO_LINE_NAMES = {
     'row-0': 'Row 1 (Top)', 'row-1': 'Row 2 (Middle)', 'row-2': 'Row 3 (Bottom)',
     'col-0': 'Column 1 (Left)', 'col-1': 'Column 2 (Center)', 'col-2': 'Column 3 (Right)',
-    'diag-main': 'Main Diagonal ↘', 'diag-anti': 'Anti-Diagonal ↙'
+    'diag-main': 'Diagonal ↘', 'diag-anti': 'Diagonal ↙'
   };
 
   const CATEGORY_ICONS = {
@@ -109,7 +109,7 @@
     els.victoryRank = $('#victoryRank');
     els.victoryLine = $('#victoryLine');
     els.victoryLeaderboardBtn = $('#victoryLeaderboardBtn');
-    els.victoryPlayAgainBtn = $('#victoryPlayAgainBtn');
+    els.victoryBackHomeBtn = $('#victoryBackHomeBtn');
 
     // Leaderboard Modal
     els.leaderboardModal = $('#leaderboardModal');
@@ -1038,7 +1038,7 @@
       closeModal(els.victoryModal);
       openLeaderboard();
     });
-    els.victoryPlayAgainBtn.addEventListener('click', playAgain);
+    
 
     els.leaderboardToggleBtn.addEventListener('click', openLeaderboard);
     if (els.welcomeLeaderboardBtn) els.welcomeLeaderboardBtn.addEventListener('click', openLeaderboard);

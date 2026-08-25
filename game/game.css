@@ -1349,44 +1349,69 @@ body.game-page::before {
 }
 
 /* ═══════════════════════════════════════════════════════
-   VICTORY DIALOG
+   VICTORY DIALOG (Redesigned & Premium)
    ═══════════════════════════════════════════════════════ */
 .victory-dialog {
   text-align: center;
+  max-width: 440px;
+  width: 95%;
+  padding: 2.2rem 1.8rem;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(245, 158, 11, 0.25);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
 }
 
 .victory-crown-glow {
-  margin-bottom: 0.3rem;
+  position: relative;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: crownBounce 1s ease infinite alternate;
+}
+
+.victory-halo-aura {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.45) 0%, transparent 70%);
+  animation: haloPulse 2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes haloPulse {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1.3); opacity: 1; }
 }
 
 .victory-flat-trophy {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   color: var(--text-gold);
-  filter: drop-shadow(0 4px 18px rgba(245, 158, 11, 0.6));
+  filter: drop-shadow(0 4px 20px rgba(245, 158, 11, 0.7));
+  animation: trophyFloat 1.2s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 1;
 }
 
-@keyframes crownBounce {
+@keyframes trophyFloat {
   from { transform: translateY(0); }
-  to { transform: translateY(-8px); }
+  to { transform: translateY(-6px); }
 }
 
 .victory-huge-title {
   font-family: var(--font-heading);
-  font-size: 3.8rem;
+  font-size: 3.6rem;
   font-weight: 900;
   line-height: 1;
-  letter-spacing: 1px;
-  margin-bottom: 0.3rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.4rem;
 }
 
 .victory-cheer {
   color: var(--text-muted);
   font-size: 0.95rem;
+  line-height: 1.4;
   margin-bottom: 1.6rem;
 }
 
@@ -1398,25 +1423,34 @@ body.game-page::before {
 }
 
 .metric-card {
-  background: rgba(11, 19, 43, 0.75);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(11, 19, 43, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.28);
   border-radius: var(--radius-md);
-  padding: 0.8rem 0.5rem;
+  padding: 0.9rem 0.4rem;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .metric-label {
   font-size: 0.68rem;
   color: var(--text-muted);
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
 
 .metric-val {
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.metric-time {
   color: var(--text-gold);
   font-family: monospace;
 }
@@ -1425,10 +1459,46 @@ body.game-page::before {
   color: #38bdf8;
 }
 
+.metric-line {
+  color: #fbbf24;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .victory-action-group {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.btn-outline-back {
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-outline-back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-outline-back svg,
+.btn-outline-back i {
+  width: 18px;
+  height: 18px;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2117,24 +2187,57 @@ body.game-page::before {
   100% { transform: rotate(-45deg) scaleX(1); opacity: 1; }
 }
 
+
 /* ─── Spotlight Zoom & Whole Website Dimming ─── */
-body.celebrating-bingo .bingo-board-wrapper {
+body.celebrating-bingo .game-header,
+body.celebrating-bingo .game-sidebar,
+body.celebrating-bingo .game-timer-wrapper,
+body.celebrating-bingo .game-arena-header,
+body.celebrating-bingo .game-status-bar {
+  opacity: 0.12;
+  filter: blur(4px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+}
+
+body.celebrating-bingo .game-main-content {
   position: relative;
   z-index: 2600;
 }
 
+body.celebrating-bingo .game-arena-grid {
+  position: relative;
+  z-index: 2610;
+}
+
+body.celebrating-bingo .bingo-board-container {
+  position: relative;
+  z-index: 2620;
+}
+
+body.celebrating-bingo .bingo-board-frame {
+  position: relative;
+  z-index: 2630;
+}
+
+body.celebrating-bingo .bingo-board {
+  position: relative;
+  z-index: 2640;
+}
+
 body.celebrating-bingo .bingo-cell.bingo-line-cell {
-  transform: scale(1.14) !important;
-  box-shadow: 0 0 50px #fbbf24, 0 0 90px rgba(245, 158, 11, 0.9), inset 0 0 25px #fbbf24 !important;
+  position: relative;
+  z-index: 2750 !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 0 55px #fbbf24, 0 0 100px rgba(245, 158, 11, 0.95), inset 0 0 30px #fbbf24 !important;
   border-color: #ffffff !important;
-  z-index: 2700 !important;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease !important;
 }
 
 body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
-  opacity: 0.3;
-  filter: grayscale(50%) blur(1.5px);
-  transform: scale(0.94);
+  opacity: 0.22;
+  filter: grayscale(75%) blur(1.5px);
+  transform: scale(0.93);
   transition: all 0.4s ease;
 }
 
@@ -2142,15 +2245,15 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 .bingo-celebration-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 9, 20, 0.82);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(5, 9, 20, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 2500;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 5vh;
+  padding-top: 4vh;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -2166,53 +2269,41 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   text-align: center;
   width: 90%;
   max-width: 500px;
+  position: relative;
+  z-index: 2800;
 }
 
 .bingo-splash-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 800;
   color: var(--text-gold);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  background: rgba(245, 158, 11, 0.18);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.45);
   padding: 5px 18px;
   border-radius: var(--radius-full);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
 }
 
 .bingo-splash-text {
   font-family: var(--font-heading);
-  font-size: 5rem;
+  font-size: 4.8rem;
   font-weight: 900;
   letter-spacing: 3px;
   line-height: 1;
-  text-shadow: 0 0 35px rgba(251, 191, 36, 0.85), 0 0 70px rgba(245, 158, 11, 0.65);
+  text-shadow: 0 0 35px rgba(251, 191, 36, 0.9), 0 0 70px rgba(245, 158, 11, 0.7);
   animation: bingoGrandEntrance 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .bingo-splash-sub {
   color: #fff;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
 }
 
-@keyframes bingoGrandEntrance {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) translateY(40px) rotate(-8deg);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.15) translateY(-10px) rotate(3deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0) rotate(0deg);
-  }
-}

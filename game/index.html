@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=30">
+  <link rel="stylesheet" href="/game/game.css?v=35">
 </head>
 <body class="dark-theme game-page">
 
@@ -62,7 +62,7 @@
        ═══════════════════════════════════════════════════════ -->
   <main class="game-main-content">
     
-    <!-- Hero Banner (Heading removed as requested) -->
+    <!-- Hero Banner -->
     <div class="game-arena-header">
       <h1 class="game-arena-title">
         Snap, Match & <span class="gold-gradient-text">Win!</span>
@@ -112,7 +112,7 @@
                 <span class="gold-gradient-text">Photo Bingo</span>
               </h2>
               <p class="welcome-description">
-                Grab your camera, capture festive moments, and race the clock to win the Bavarian Grand Prize!
+                Grab your camera, capture festive moments, and race the clock to dominate the Leaderboard!
               </p>
 
               <div class="welcome-rules-box">
@@ -126,7 +126,7 @@
                 </div>
                 <div class="rule-row">
                   <span class="rule-badge">3</span>
-                  <span>Fastest completion time wins the Bavarian Grand Prize!</span>
+                  <span>Fastest completion time claims the Top Winner spot!</span>
                 </div>
               </div>
 
@@ -268,7 +268,7 @@
 
       <!-- Right Sidebar (Live Leaderboard Snippet & Tips) -->
       <aside class="game-sidebar">
-        <!-- Live Quick Leaderboard Card with Grand Winner Highlight -->
+        <!-- Live Quick Leaderboard Card with Winner Highlight -->
         <div class="sidebar-card glass-card">
           <div class="sidebar-card-header">
             <h3 class="sidebar-card-title"><i data-lucide="trophy" class="gold-icon"></i> Top Champions</h3>
@@ -281,9 +281,9 @@
 
         <!-- How to Play Quick Card -->
         <div class="sidebar-card glass-card rules-mini-card">
-          <h3 class="sidebar-card-title"><i data-lucide="gift" class="gold-icon"></i> Bavarian Grand Prize</h3>
+          <h3 class="sidebar-card-title"><i data-lucide="info" class="blue-icon"></i> Pro Tips</h3>
           <ul class="mini-tips-list">
-            <li><strong>👑 Top 1 Winner:</strong> The fastest player on the Leaderboard wins the Bavarian Grand Prize!</li>
+            <li><strong>Be Quick:</strong> Total time is recorded from start until you connect 3 in a row.</li>
             <li><strong>Clear Photos:</strong> AI judges each photo — ensure good lighting and clear subject.</li>
             <li><strong>Any Line Counts:</strong> Horizontal rows, vertical columns, or diagonals all score BINGO!</li>
           </ul>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════
-       FULL LEADERBOARD MODAL WITH TOP 1 WINNER HIGHLIGHT
+       FULL LEADERBOARD MODAL (Clean & Consistent WINNER badge)
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="leaderboardModal">
     <div class="modal-content glass-card leaderboard-dialog">
@@ -454,9 +454,8 @@
       </button>
 
       <div class="lb-modal-header">
-        <div class="section-tag gold"><i data-lucide="gift"></i> GRAND PRIZE LEADERBOARD</div>
+        <div class="section-tag gold"><i data-lucide="trophy"></i> HALL OF FAME</div>
         <h2 class="lb-modal-title">Oktoberfest Leaderboard</h2>
-        <p class="lb-modal-subtitle">👑 Top 1 Winner at event close receives the Bavarian Grand Prize!</p>
 
         <!-- Office Filter Tabs -->
         <div class="lb-tabs-container" id="leaderboardTabs">
@@ -493,6 +492,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=30"></script>
+  <script src="/game/game.js?v=35"></script>
 </body>
 </html>

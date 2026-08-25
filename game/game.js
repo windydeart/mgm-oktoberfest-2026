@@ -639,7 +639,7 @@
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
-            ${isTop1 ? `<span class="lb-prize-pill"><i data-lucide="gift"></i> Grand Winner</span>` : ''}
+            ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
           </div>
         </td>
         <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>

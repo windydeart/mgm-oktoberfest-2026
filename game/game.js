@@ -926,7 +926,7 @@
     els.victoryPlayAgainBtn.addEventListener('click', playAgain);
 
     els.leaderboardToggleBtn.addEventListener('click', openLeaderboard);
-    els.welcomeLeaderboardBtn.addEventListener('click', openLeaderboard);
+    if (els.welcomeLeaderboardBtn) els.welcomeLeaderboardBtn.addEventListener('click', openLeaderboard);
     if (els.sidebarViewAllBtn) els.sidebarViewAllBtn.addEventListener('click', openLeaderboard);
     els.closeLeaderboardBtn.addEventListener('click', () => closeModal(els.leaderboardModal));
     els.leaderboardModal.addEventListener('click', (e) => {

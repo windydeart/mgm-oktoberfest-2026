@@ -142,7 +142,7 @@ body.game-page::before {
   text-transform: uppercase;
   padding: 5px 14px;
   border-radius: var(--radius-full);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
 }
 
 .section-tag.gold {
@@ -468,7 +468,7 @@ body.game-page::before {
   position: relative;
   overflow: hidden;
   transition: all var(--transition-fast);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
 }
 
 .btn-hero-play::before {

@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /game
+Disallow: /game/
+Disallow: /api/game/
+Allow: /

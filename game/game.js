@@ -1190,6 +1190,12 @@
      INITIALIZATION
      ═══════════════════════════════════════════════════════ */
   async function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset') === '1' || urlParams.get('reset') === 'true') {
+      clearSession();
+      try { window.history.replaceState({}, document.title, window.location.pathname); } catch (e) {}
+    }
+
     cacheDom();
     bindEvents();
     if (window.lucide) window.lucide.createIcons();

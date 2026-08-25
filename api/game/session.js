@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
+const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
 
 function verifyToken(token) {
   if (!token || typeof token !== 'string') return null;
@@ -60,6 +62,25 @@ module.exports = async (req, res) => {
   const calculatedBingoLine = checkBingo(completedCells);
   const isCompleted = session.status === 'completed' || calculatedBingoLine !== null;
 
+  let elapsed_ms = session.elapsed_ms || null;
+  let rank = session.rank || null;
+
+  if (isCompleted && !elapsed_ms) {
+    try {
+      const scoreRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      if (scoreRes.ok) {
+        const scores = await scoreRes.json();
+        if (scores && scores.length > 0 && scores[0].duration_seconds) {
+          elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to lookup score in session recovery:', e);
+    }
+  }
+
   return res.status(200).json({
     success: true,
     session_id: session.session_id,
@@ -69,8 +90,8 @@ module.exports = async (req, res) => {
     started_at: session.started_at,
     completed_cells: completedCells,
     status: isCompleted ? 'completed' : 'playing',
-    elapsed_ms: session.elapsed_ms || null,
+    elapsed_ms: elapsed_ms,
     bingo_line: session.bingo_line || calculatedBingoLine,
-    rank: session.rank || null
+    rank: rank || 1
   });
 };

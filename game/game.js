@@ -193,11 +193,43 @@
   }
 
   function formatTime(ms) {
-    const totalSec = Math.floor(ms / 1000);
+    const totalSec = Math.floor((ms || 0) / 1000);
     const mins = Math.floor(totalSec / 60);
     const secs = totalSec % 60;
-    const cents = Math.floor((ms % 1000) / 10);
+    const cents = Math.floor(((ms || 0) % 1000) / 10);
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(cents).padStart(2, '0')}`;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     BINGO HELPER
+     ═══════════════════════════════════════════════════════ */
+  function checkBingo(cells) {
+    if (!cells || !cells.length) return null;
+    const lines = [
+      { indices: [0, 1, 2], name: 'row-0' },
+      { indices: [3, 4, 5], name: 'row-1' },
+      { indices: [6, 7, 8], name: 'row-2' },
+      { indices: [0, 3, 6], name: 'col-0' },
+      { indices: [1, 4, 7], name: 'col-1' },
+      { indices: [2, 5, 8], name: 'col-2' },
+      { indices: [0, 4, 8], name: 'diag-main' },
+      { indices: [2, 4, 6], name: 'diag-anti' }
+    ];
+    for (const line of lines) {
+      if (line.indices.every(i => cells.includes(i))) {
+        return line.name;
+      }
+    }
+    return null;
+  }
+
+  function getBingoLineIndices(lineKey) {
+    const map = {
+      'row-0': [0,1,2], 'row-1': [3,4,5], 'row-2': [6,7,8],
+      'col-0': [0,3,6], 'col-1': [1,4,7], 'col-2': [2,5,8],
+      'diag-main': [0,4,8], 'diag-anti': [2,4,6]
+    };
+    return map[lineKey] || null;
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -205,7 +237,8 @@
      ═══════════════════════════════════════════════════════ */
   function renderBoard() {
     const cells = $$('.bingo-cell');
-    const winningIndices = gameState.bingoLine ? getBingoLineIndices(gameState.bingoLine) : [];
+    const winningLine = gameState.bingoLine || checkBingo(gameState.completedCells || []);
+    const winningIndices = winningLine ? getBingoLineIndices(winningLine) : [];
 
     cells.forEach((cell, i) => {
       const challenge = gameState.challenges[i];
@@ -258,15 +291,6 @@
     }
 
     if (window.lucide) window.lucide.createIcons();
-  }
-
-  function getBingoLineIndices(lineKey) {
-    const map = {
-      'row-0': [0,1,2], 'row-1': [3,4,5], 'row-2': [6,7,8],
-      'col-0': [0,3,6], 'col-1': [1,4,7], 'col-2': [2,5,8],
-      'diag-main': [0,4,8], 'diag-anti': [2,4,6]
-    };
-    return map[lineKey] || null;
   }
 
   function runRevealAnimation() {
@@ -439,7 +463,17 @@
         els.cameraResult.style.display = 'block';
         els.cameraResult.className = 'camera-result-flash result-success';
 
-        gameState.completedCells.push(currentCellIndex);
+        if (!gameState.completedCells.includes(currentCellIndex)) {
+          gameState.completedCells.push(currentCellIndex);
+        }
+
+        if (data.is_bingo) {
+          gameState.status = 'completed';
+          gameState.elapsedMs = data.elapsed_ms;
+          gameState.bingoLine = data.bingo_line;
+          gameState.rank = data.rank || 1;
+        }
+
         saveSession();
 
         // Apply photo thumbnail to cell background
@@ -479,18 +513,18 @@
 
   function onBingo(data) {
     gameState.status = 'completed';
-    gameState.elapsedMs = data.elapsed_ms;
-    gameState.bingoLine = data.bingo_line;
+    gameState.elapsedMs = data.elapsed_ms || (Date.now() - (gameState.startedAt || Date.now()));
+    gameState.bingoLine = data.bingo_line || checkBingo(gameState.completedCells);
     gameState.rank = data.rank || 1;
     saveSession();
 
-    // Freeze timer at final completion time
-    stopTimer(data.elapsed_ms);
+    // Freeze timer immediately at final completion time
+    stopTimer(gameState.elapsedMs);
     renderBoard();
 
-    els.victoryTime.textContent = formatTime(data.elapsed_ms);
-    els.victoryRank.textContent = `#${data.rank || 1}`;
-    els.victoryLine.textContent = BINGO_LINE_NAMES[data.bingo_line] || data.bingo_line;
+    els.victoryTime.textContent = formatTime(gameState.elapsedMs);
+    els.victoryRank.textContent = `#${gameState.rank || 1}`;
+    els.victoryLine.textContent = BINGO_LINE_NAMES[gameState.bingoLine] || gameState.bingoLine;
 
     setTimeout(() => {
       openModal(els.victoryModal);
@@ -665,21 +699,68 @@
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
     try {
+      const dataToSave = {
+        sessionId: gameState.sessionId,
+        sessionToken: gameState.sessionToken,
+        playerName: gameState.playerName,
+        location: gameState.location,
+        challenges: gameState.challenges,
+        completedCells: gameState.completedCells,
+        status: gameState.status,
+        startedAt: gameState.startedAt,
+        elapsedMs: gameState.elapsedMs,
+        bingoLine: gameState.bingoLine,
+        rank: gameState.rank
+      };
       localStorage.setItem('bingo_session_token', gameState.sessionToken || '');
+      localStorage.setItem('bingo_game_state', JSON.stringify(dataToSave));
     } catch (e) { /* ignore */ }
   }
 
   function clearSession() {
-    try { localStorage.removeItem('bingo_session_token'); } catch (e) { /* ignore */ }
+    try {
+      localStorage.removeItem('bingo_session_token');
+      localStorage.removeItem('bingo_game_state');
+    } catch (e) { /* ignore */ }
   }
 
   async function tryRecoverSession() {
     try {
       const savedToken = localStorage.getItem('bingo_session_token');
+      const savedLocalStateStr = localStorage.getItem('bingo_game_state');
+      let localState = null;
+      if (savedLocalStateStr) {
+        try { localState = JSON.parse(savedLocalStateStr); } catch (e) {}
+      }
+
+      if (!savedToken && !localState) return false;
+
+      // 1. FAST LOCAL HYDRATION: If local state exists, immediately hydrate into memory
+      if (localState && localState.sessionId) {
+        gameState = Object.assign({}, gameState, localState);
+        els.gameWelcome.classList.add('hidden');
+        renderBoard();
+
+        const isLocalCompleted = gameState.status === 'completed' || checkBingo(gameState.completedCells || []) !== null;
+        if (isLocalCompleted) {
+          gameState.status = 'completed';
+          if (!gameState.bingoLine) gameState.bingoLine = checkBingo(gameState.completedCells);
+          stopTimer(gameState.elapsedMs || 0);
+          return true;
+        } else {
+          startTimer();
+        }
+      }
+
+      // 2. SERVER VERIFICATION
       if (!savedToken) return false;
 
       const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
       if (!res.ok) {
+        if (gameState.status === 'completed') {
+          stopTimer(gameState.elapsedMs || 0);
+          return true;
+        }
         clearSession();
         return false;
       }
@@ -690,24 +771,30 @@
         return false;
       }
 
+      const completedCells = data.completed_cells || gameState.completedCells || [];
+      const bingoLine = data.bingo_line || checkBingo(completedCells);
+      const isCompleted = data.status === 'completed' || bingoLine !== null || gameState.status === 'completed';
+
       gameState.sessionId = data.session_id;
       gameState.sessionToken = savedToken;
-      gameState.playerName = data.player_name;
-      gameState.location = data.location;
-      gameState.challenges = data.challenges;
-      gameState.startedAt = data.started_at;
-      gameState.completedCells = data.completed_cells || [];
-      gameState.status = data.status || 'playing';
-      gameState.elapsedMs = data.elapsed_ms || null;
-      gameState.bingoLine = data.bingo_line || null;
-      gameState.rank = data.rank || null;
+      gameState.playerName = data.player_name || gameState.playerName;
+      gameState.location = data.location || gameState.location;
+      gameState.challenges = data.challenges || gameState.challenges;
+      gameState.startedAt = data.started_at || gameState.startedAt;
+      gameState.completedCells = completedCells;
+      gameState.status = isCompleted ? 'completed' : 'playing';
+      gameState.elapsedMs = data.elapsed_ms || gameState.elapsedMs || (isCompleted ? Date.now() - (data.started_at || Date.now()) : null);
+      gameState.bingoLine = bingoLine;
+      gameState.rank = data.rank || gameState.rank || 1;
+
+      saveSession();
 
       els.gameWelcome.classList.add('hidden');
       renderBoard();
 
-      // IF COMPLETED: FREEZE THE TIMER AT FINAL TIME! DO NOT COUNT UP!
-      if (gameState.status === 'completed' && gameState.elapsedMs != null) {
-        stopTimer(gameState.elapsedMs);
+      // ABSOLUTE GUARANTEE: If completed, STOP AND FREEZE THE TIMER!
+      if (isCompleted) {
+        stopTimer(gameState.elapsedMs || 0);
         showToast('Completed game state restored! 🏆', 'success');
       } else {
         startTimer();
@@ -717,6 +804,10 @@
       return true;
 
     } catch (e) {
+      if (gameState.status === 'completed') {
+        stopTimer(gameState.elapsedMs || 0);
+        return true;
+      }
       clearSession();
       return false;
     }

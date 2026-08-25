@@ -1,7 +1,8 @@
 /**
- * mgm Oktoberfest 2026 — Photo Bingo Game
- * ═══════════════════════════════════════════
- * Game logic, camera capture, timer, leaderboard, and anti-cheat.
+ * mgm Oktoberfest 2026 — Photo Bingo Mini-Game Engine
+ * ══════════════════════════════════════════════════════
+ * 100% English localization, luxury UI state management, camera capture,
+ * AI challenge verification, live timer, and leaderboard synchronization.
  */
 
 (function () {
@@ -10,9 +11,9 @@
   /* ─── CONSTANTS ─── */
   const API_BASE = '/api/game';
   const BINGO_LINE_NAMES = {
-    'row-0': 'Row 1', 'row-1': 'Row 2', 'row-2': 'Row 3',
-    'col-0': 'Col 1', 'col-1': 'Col 2', 'col-2': 'Col 3',
-    'diag-main': 'Diagonal ↘', 'diag-anti': 'Diagonal ↙'
+    'row-0': 'Row 1 (Top)', 'row-1': 'Row 2 (Middle)', 'row-2': 'Row 3 (Bottom)',
+    'col-0': 'Column 1 (Left)', 'col-1': 'Column 2 (Center)', 'col-2': 'Column 3 (Right)',
+    'diag-main': 'Main Diagonal ↘', 'diag-anti': 'Anti-Diagonal ↙'
   };
 
   /* ─── GAME STATE ─── */
@@ -39,32 +40,39 @@
   let currentCellIndex = null;
   let facingMode = 'environment';
 
-  /* ─── DOM ELEMENTS ─── */
+  /* ─── DOM SELECTORS ─── */
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
   const els = {};
   function cacheDom() {
+    // Welcome Overlay & Board
     els.gameWelcome = $('#gameWelcome');
     els.bingoBoard = $('#bingoBoard');
     els.startGameBtn = $('#startGameBtn');
     els.welcomeLeaderboardBtn = $('#welcomeLeaderboardBtn');
 
-    // Player modal
+    // Status bar
+    els.gameStatusBar = $('#gameStatusBar');
+    els.statusPlayerName = $('#statusPlayerName');
+    els.statusLocation = $('#statusLocation');
+    els.statusProgress = $('#statusProgress');
+    els.statusGoalPill = $('#statusGoalPill');
+
+    // Player Registration Modal
     els.playerModal = $('#playerModal');
     els.closePlayerModal = $('#closePlayerModal');
     els.playerForm = $('#playerForm');
     els.playerName = $('#playerName');
     els.submitPlayerBtn = $('#submitPlayerBtn');
 
-    // Timer
+    // Stopwatch
     els.gameTimer = $('#gameTimer');
     els.timerDisplay = $('#timerDisplay');
 
-    // Camera
+    // Camera Overlay
     els.cameraOverlay = $('#cameraOverlay');
     els.cameraVideo = $('#cameraVideo');
-    els.cameraChallengeBar = $('#cameraChallengeBar');
     els.cameraIcon = $('#cameraIcon');
     els.cameraChallenge = $('#cameraChallenge');
     els.cameraControls = $('#cameraControls');
@@ -81,7 +89,7 @@
     els.resultText = $('#resultText');
     els.cameraCanvas = $('#cameraCanvas');
 
-    // Victory
+    // Victory Modal
     els.victoryModal = $('#victoryModal');
     els.victoryTime = $('#victoryTime');
     els.victoryRank = $('#victoryRank');
@@ -89,7 +97,7 @@
     els.victoryLeaderboardBtn = $('#victoryLeaderboardBtn');
     els.victoryPlayAgainBtn = $('#victoryPlayAgainBtn');
 
-    // Leaderboard
+    // Leaderboard Modal
     els.leaderboardModal = $('#leaderboardModal');
     els.leaderboardToggleBtn = $('#leaderboardToggleBtn');
     els.closeLeaderboardBtn = $('#closeLeaderboardBtn');
@@ -97,12 +105,16 @@
     els.leaderboardTableBody = $('#leaderboardTableBody');
     els.leaderboardEmpty = $('#leaderboardEmpty');
 
-    // Toast
+    // Sidebar
+    els.sidebarLbList = $('#sidebarLbList');
+    els.sidebarViewAllBtn = $('#sidebarViewAllBtn');
+
+    // Toast Container
     els.toastContainer = $('#gameToastContainer');
   }
 
   /* ═══════════════════════════════════════════════════════
-     MODAL HELPERS
+     MODAL CONTROLS
      ═══════════════════════════════════════════════════════ */
   function openModal(modalEl) {
     if (!modalEl) return;
@@ -116,7 +128,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     TOAST NOTIFICATIONS
+     TOAST NOTIFICATIONS (100% English)
      ═══════════════════════════════════════════════════════ */
   function showToast(message, type = 'info', duration = 3500) {
     const toast = document.createElement('div');
@@ -137,7 +149,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     TIMER
+     TIMER ENGINE
      ═══════════════════════════════════════════════════════ */
   function startTimer() {
     timerStartTime = typeof gameState.startedAt === 'number' ? gameState.startedAt : new Date(gameState.startedAt).getTime();
@@ -185,12 +197,14 @@
     cells.forEach((cell, i) => {
       const challenge = gameState.challenges[i];
       if (!challenge) {
+        cell.querySelector('.cell-cat-pill').textContent = '🎯 BINGO';
         cell.querySelector('.cell-icon').textContent = '❓';
-        cell.querySelector('.cell-text').textContent = '???';
+        cell.querySelector('.cell-text').textContent = 'Ready to play...';
         cell.className = 'bingo-cell';
         return;
       }
 
+      cell.querySelector('.cell-cat-pill').textContent = `${challenge.icon || '🎯'} ${(challenge.category || 'CHALLENGE').toUpperCase()}`;
       cell.querySelector('.cell-icon').textContent = challenge.icon || '🎯';
       cell.querySelector('.cell-text').textContent = challenge.challenge;
 
@@ -207,6 +221,16 @@
         }
       }
     });
+
+    // Update Status Bar
+    if (gameState.status === 'playing') {
+      els.gameStatusBar.style.display = 'inline-flex';
+      els.statusPlayerName.textContent = gameState.playerName || 'Player';
+      els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
+      els.statusProgress.textContent = `${gameState.completedCells.length} / 9 Completed`;
+    } else {
+      els.gameStatusBar.style.display = 'none';
+    }
   }
 
   function getBingoLineIndices(lineKey) {
@@ -228,12 +252,13 @@
           cell.classList.add('revealed');
           const challenge = gameState.challenges[i];
           if (challenge) {
+            cell.querySelector('.cell-cat-pill').textContent = `${challenge.icon || '🎯'} ${(challenge.category || 'CHALLENGE').toUpperCase()}`;
             cell.querySelector('.cell-icon').textContent = challenge.icon || '🎯';
             cell.querySelector('.cell-text').textContent = challenge.challenge;
           }
-        }, 200 + i * 150);
+        }, 150 + i * 120);
       });
-      setTimeout(resolve, 200 + 9 * 150 + 250);
+      setTimeout(resolve, 150 + 9 * 120 + 200);
     });
   }
 
@@ -251,7 +276,7 @@
 
     const name = (els.playerName.value || '').trim();
     if (name.length < 2 || name.length > 30) {
-      showToast('Tên người chơi phải từ 2 - 30 ký tự', 'error');
+      showToast('Please enter a player name between 2 and 30 characters.', 'error');
       els.playerName.classList.add('shake');
       setTimeout(() => els.playerName.classList.remove('shake'), 500);
       return;
@@ -274,7 +299,7 @@
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Không thể bắt đầu game');
+        throw new Error(data.error || 'Failed to start game session.');
       }
 
       gameState.sessionId = data.session_id;
@@ -294,11 +319,12 @@
       els.gameWelcome.classList.add('hidden');
 
       await runRevealAnimation();
+      renderBoard();
       startTimer();
-      showToast('Game đã bắt đầu! Chạm vào ô bất kỳ để chụp ảnh 📸', 'success');
+      showToast('Game started! Tap any challenge cell to photograph 📸', 'success');
 
     } catch (err) {
-      showToast(err.message || 'Lỗi kết nối máy chủ. Thử lại sau.', 'error');
+      showToast(err.message || 'Server connection error. Please try again.', 'error');
     } finally {
       els.submitPlayerBtn.querySelector('.btn-text').style.display = '';
       els.submitPlayerBtn.querySelector('.btn-loading').style.display = 'none';
@@ -312,7 +338,7 @@
       return;
     }
     if (gameState.completedCells.includes(cellIndex)) {
-      showToast('Ô này đã hoàn thành rồi! ✅', 'info');
+      showToast('This challenge is already completed! ✅', 'info');
       return;
     }
 
@@ -334,7 +360,7 @@
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
     els.previewImage.src = dataUrl;
 
     els.cameraControls.style.display = 'none';
@@ -363,7 +389,7 @@
       els.cameraLoading.style.display = 'none';
 
       if (!res.ok) {
-        throw new Error(data.error || 'Nộp ảnh thất bại');
+        throw new Error(data.error || 'Photo submission failed.');
       }
 
       if (data.verified) {
@@ -372,12 +398,18 @@
         }
 
         els.resultIcon.textContent = '✅';
-        els.resultText.textContent = 'Hợp lệ! Tuyệt vời!';
+        els.resultText.textContent = 'Challenge Approved!';
         els.cameraResult.style.display = 'block';
-        els.cameraResult.className = 'camera-result result-success';
+        els.cameraResult.className = 'camera-result-flash result-success';
 
         gameState.completedCells.push(currentCellIndex);
         saveSession();
+
+        // Apply photo thumbnail to cell background
+        const targetCell = $$('.bingo-cell')[currentCellIndex];
+        if (targetCell) {
+          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.65), rgba(11, 19, 43, 0.85)), url('${dataUrl}')`;
+        }
 
         setTimeout(() => {
           closeCamera();
@@ -385,14 +417,16 @@
 
           if (data.is_bingo) {
             onBingo(data);
+          } else {
+            showToast('Cell completed! Keep going for 3 in a row 🎯', 'success');
           }
         }, 1100);
 
       } else {
         els.resultIcon.textContent = '❌';
-        els.resultText.textContent = data.reason || 'Ảnh chưa khớp thử thách, hãy thử lại nhé!';
+        els.resultText.textContent = data.reason || "Photo doesn't match the challenge. Please try again!";
         els.cameraResult.style.display = 'block';
-        els.cameraResult.className = 'camera-result result-fail';
+        els.cameraResult.className = 'camera-result-flash result-fail';
 
         setTimeout(() => {
           els.cameraResult.style.display = 'none';
@@ -402,7 +436,7 @@
 
     } catch (err) {
       els.cameraLoading.style.display = 'none';
-      showToast(err.message || 'Lỗi gửi ảnh. Vui lòng thử lại.', 'error');
+      showToast(err.message || 'Error submitting photo. Please try again.', 'error');
       els.cameraControls.style.display = 'flex';
     }
   }
@@ -424,6 +458,7 @@
     setTimeout(() => {
       openModal(els.victoryModal);
       fireConfetti();
+      loadSidebarLeaderboard();
     }, 600);
   }
 
@@ -450,7 +485,7 @@
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
     } catch (err) {
-      showToast('Không thể mở camera. Vui lòng cấp quyền truy cập camera trong trình duyệt.', 'error', 5000);
+      showToast('Unable to access camera. Please allow camera permissions in your browser.', 'error', 5000);
       closeCamera();
     }
   }
@@ -478,12 +513,12 @@
       });
       els.cameraVideo.srcObject = cameraStream;
     } catch (err) {
-      showToast('Không thể đổi camera.', 'error');
+      showToast('Unable to switch camera.', 'error');
     }
   }
 
   /* ═══════════════════════════════════════════════════════
-     LEADERBOARD
+     LEADERBOARD (100% English)
      ═══════════════════════════════════════════════════════ */
   let currentLbLocation = 'all';
 
@@ -505,7 +540,7 @@
     tbody.innerHTML = '';
 
     if (!entries.length) {
-      els.leaderboardEmpty.style.display = 'flex';
+      els.leaderboardEmpty.style.display = 'block';
       return;
     }
 
@@ -513,27 +548,46 @@
 
     entries.forEach((entry, i) => {
       const rank = i + 1;
-      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`;
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
       const isMe = entry.player_name === gameState.playerName &&
                     entry.location === gameState.location &&
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
 
       const tr = document.createElement('tr');
-      if (isMe) tr.classList.add('lb-current-player');
-      if (rank <= 3) tr.classList.add(`lb-top-${rank}`);
+      if (isMe) tr.classList.add('current-player-row');
 
       tr.innerHTML = `
-        <td class="lb-rank">${medal}</td>
-        <td class="lb-name">${escapeHtml(entry.player_name)}</td>
-        <td class="lb-time">${formatTime(entry.elapsed_ms || 0)}</td>
+        <td class="lb-rank" style="font-weight:700; color:${rank<=3?'var(--text-gold)':'inherit'}">${medal}</td>
+        <td class="lb-name" style="font-weight:600;">${escapeHtml(entry.player_name)}</td>
+        <td class="lb-time" style="font-family:monospace; font-weight:700; color:var(--text-gold);">${formatTime(entry.elapsed_ms || 0)}</td>
         <td class="lb-location">
-          <span class="lb-loc-badge lb-loc-${entry.location}">
-            ${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}
-          </span>
+          <span class="status-loc-badge">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span>
         </td>
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  async function loadSidebarLeaderboard() {
+    const entries = await fetchLeaderboard('all');
+    if (!els.sidebarLbList) return;
+
+    if (!entries.length) {
+      els.sidebarLbList.innerHTML = '<div class="sidebar-lb-empty">No champions yet. Be the first!</div>';
+      return;
+    }
+
+    const top5 = entries.slice(0, 5);
+    els.sidebarLbList.innerHTML = top5.map((entry, idx) => {
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
+      return `
+        <div class="sidebar-lb-item">
+          <span class="sidebar-lb-rank">${medal}</span>
+          <span class="sidebar-lb-name">${escapeHtml(entry.player_name)}</span>
+          <span class="sidebar-lb-time">${formatTime(entry.elapsed_ms || 0)}</span>
+        </div>
+      `;
+    }).join('');
   }
 
   function openLeaderboard() {
@@ -564,13 +618,13 @@
 
   function setLocation(loc) {
     gameState.location = loc;
-    $$('.location-btn').forEach(btn => {
+    $$('.loc-toggle-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.location === loc);
     });
   }
 
   /* ═══════════════════════════════════════════════════════
-     SESSION PERSISTENCE
+     SESSION PERSISTENCE & RECOVERY
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
     try {
@@ -612,7 +666,7 @@
       renderBoard();
       startTimer();
 
-      showToast('Đã khôi phục phiên chơi trước đó! 🎮', 'success');
+      showToast('Previous active session restored! 🎮', 'success');
       return true;
 
     } catch (e) {
@@ -627,14 +681,14 @@
   function fireConfetti() {
     if (!window.confetti) return;
     confetti({
-      particleCount: 100,
-      spread: 70,
+      particleCount: 110,
+      spread: 75,
       origin: { y: 0.6 },
       colors: ['#f59e0b', '#fbbf24', '#d97706', '#ffffff', '#0284c7']
     });
     setTimeout(() => {
-      confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f59e0b', '#fbbf24'] });
-      confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d97706', '#fbbf24'] });
+      confetti({ particleCount: 60, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f59e0b', '#fbbf24'] });
+      confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d97706', '#fbbf24'] });
     }, 250);
   }
 
@@ -654,21 +708,24 @@
 
     $$('.bingo-cell').forEach(cell => {
       cell.className = 'bingo-cell';
+      cell.style.backgroundImage = '';
+      cell.querySelector('.cell-cat-pill').textContent = '🎯 BINGO';
       cell.querySelector('.cell-icon').textContent = '❓';
-      cell.querySelector('.cell-text').textContent = '???';
+      cell.querySelector('.cell-text').textContent = 'Ready to play...';
     });
 
     els.gameWelcome.classList.remove('hidden');
+    els.gameStatusBar.style.display = 'none';
   }
 
   function escapeHtml(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str || '';
     return div.innerHTML;
   }
 
   /* ═══════════════════════════════════════════════════════
-     EVENT LISTENERS
+     EVENT BINDINGS
      ═══════════════════════════════════════════════════════ */
   function bindEvents() {
     els.startGameBtn.addEventListener('click', onStartGame);
@@ -678,7 +735,7 @@
       if (e.target === els.playerModal) closeModal(els.playerModal);
     });
 
-    $$('.location-btn').forEach(btn => {
+    $$('.loc-toggle-btn').forEach(btn => {
       btn.addEventListener('click', () => setLocation(btn.dataset.location));
     });
 
@@ -707,15 +764,16 @@
 
     els.leaderboardToggleBtn.addEventListener('click', openLeaderboard);
     els.welcomeLeaderboardBtn.addEventListener('click', openLeaderboard);
+    if (els.sidebarViewAllBtn) els.sidebarViewAllBtn.addEventListener('click', openLeaderboard);
     els.closeLeaderboardBtn.addEventListener('click', () => closeModal(els.leaderboardModal));
     els.leaderboardModal.addEventListener('click', (e) => {
       if (e.target === els.leaderboardModal) closeModal(els.leaderboardModal);
     });
 
     els.leaderboardTabs.addEventListener('click', (e) => {
-      const tab = e.target.closest('.lb-tab');
+      const tab = e.target.closest('.lb-filter-tab');
       if (!tab) return;
-      $$('.lb-tab').forEach(t => t.classList.remove('active'));
+      $$('.lb-filter-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       renderLeaderboard(tab.dataset.lbLocation);
     });
@@ -737,6 +795,8 @@
     cacheDom();
     bindEvents();
     if (window.lucide) window.lucide.createIcons();
+
+    loadSidebarLeaderboard();
 
     const recovered = await tryRecoverSession();
     if (!recovered) {

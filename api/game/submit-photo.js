@@ -60,21 +60,21 @@ module.exports = async (req, res) => {
 
   const session = verifyToken(session_token);
   if (!session) {
-    return res.status(400).json({ error: 'Phiên chơi không hợp lệ hoặc đã hết hạn.' });
+    return res.status(400).json({ error: 'Session expired or invalid. Please refresh and play again.' });
   }
 
   if (typeof cell_index !== 'number' || cell_index < 0 || cell_index > 8 || !photo_base64) {
-    return res.status(400).json({ error: 'Dữ liệu không hợp lệ.' });
+    return res.status(400).json({ error: 'Invalid parameters.' });
   }
 
   let completedCells = session.completed_cells || [];
   if (completedCells.includes(cell_index)) {
-    return res.status(400).json({ error: 'Ô này đã được hoàn thành rồi!' });
+    return res.status(400).json({ error: 'This cell is already completed!' });
   }
 
   const challenge = session.challenges?.[cell_index];
   if (!challenge) {
-    return res.status(400).json({ error: 'Không tìm thấy thử thách tương ứng.' });
+    return res.status(400).json({ error: 'Challenge not found.' });
   }
 
   // AI Verification via Gemini Vision
@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system_instruction: {
-            parts: [{ text: `You are a friendly photo challenge judge for a fun party game. The player needs to take a photo matching this challenge: "${challenge.challenge}". Look at the photo and determine if it reasonably matches the challenge. Be lenient and festive. Only reject if the photo is clearly unrelated (e.g., pitch black, completely empty wall, screenshot). Reply with ONLY JSON: {"approved": true/false, "reason": "brief reason"}` }]
+            parts: [{ text: `You are a friendly photo challenge judge for a fun Oktoberfest party game. The player needs to take a photo matching this challenge: "${challenge.challenge}". Look at the photo and determine if it reasonably matches the challenge. Be lenient and festive. Only reject if the photo is clearly unrelated (e.g. pitch black, completely empty wall, screenshot). Reply with ONLY JSON: {"approved": true/false, "reason": "brief reason"}` }]
           },
           contents: [{
             role: 'user',
@@ -115,11 +115,11 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('Gemini verification error, failing open:', err.message);
     ai_verified = true;
-    ai_reason = 'Auto-approved (offline fallback)';
+    ai_reason = 'Auto-approved';
   }
 
   if (!ai_verified) {
-    return res.status(200).json({ verified: false, reason: ai_reason || 'Ảnh chưa khớp với thử thách, thử lại nhé!' });
+    return res.status(200).json({ verified: false, reason: ai_reason || "Photo doesn't match the challenge. Please try again!" });
   }
 
   // Update completed cells

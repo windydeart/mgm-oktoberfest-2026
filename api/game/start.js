@@ -12,7 +12,7 @@ function createToken(data) {
 
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000;
-const RATE_LIMIT_MAX = 15;
+const RATE_LIMIT_MAX = 20;
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -40,15 +40,15 @@ module.exports = async (req, res) => {
 
   const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || req.socket?.remoteAddress || 'unknown';
   if (isRateLimited(clientIP)) {
-    return res.status(429).json({ error: 'Vui lòng chờ một chút trước khi thử lại.' });
+    return res.status(429).json({ error: 'Too many requests. Please wait a moment before trying again.' });
   }
 
   const { player_name, location } = req.body || {};
   if (!player_name || typeof player_name !== 'string' || player_name.trim().length < 2 || player_name.trim().length > 30) {
-    return res.status(400).json({ error: 'Tên người chơi phải từ 2 - 30 ký tự' });
+    return res.status(400).json({ error: 'Player name must be between 2 and 30 characters.' });
   }
   if (location !== 'danang' && location !== 'hcmc') {
-    return res.status(400).json({ error: 'Vui lòng chọn Da Nang hoặc HCMC' });
+    return res.status(400).json({ error: 'Please select either Da Nang or HCMC.' });
   }
 
   let allChallenges = [];
@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
     allChallenges = JSON.parse(readFileSync(filePath, 'utf-8'));
   } catch (err) {
     console.error('Failed to load challenges:', err);
-    return res.status(500).json({ error: 'Failed to load challenges' });
+    return res.status(500).json({ error: 'Failed to load challenge library.' });
   }
 
   // Balanced random selection (max 2 per category)

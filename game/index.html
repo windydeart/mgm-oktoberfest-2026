@@ -8,7 +8,7 @@
   <meta property="og:title" content="Photo Bingo — mgm Oktoberfest 2026">
   <meta property="og:description" content="Complete photo challenges and race to the top of the leaderboard!">
 
-  <!-- Favicon -->
+  <!-- Favicons -->
   <link rel="icon" href="/assets/images/favicon.svg?v=2" type="image/svg+xml">
   <link rel="icon" href="/assets/images/favicon.png?v=2" type="image/png">
   <link rel="apple-touch-icon" href="/assets/images/favicon.png?v=2">
@@ -23,301 +23,410 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=5">
+  <link rel="stylesheet" href="/game/game.css?v=10">
 </head>
 <body class="dark-theme game-page">
 
   <!-- ═══════════════════════════════════════════════════════
-       GAME HEADER (Sticky Top Bar)
+       GAME TOP NAVIGATION BAR
        ═══════════════════════════════════════════════════════ -->
   <header class="game-header" id="gameHeader">
-    <a href="/" class="game-back-btn" aria-label="Back to Oktoberfest">
-      <i data-lucide="arrow-left"></i>
-      <span class="game-back-text"><span class="font-oktoberfest">Oktoberfest</span> 2026</span>
-    </a>
+    <div class="game-header-container">
+      <a href="/" class="game-brand-link" aria-label="Back to Oktoberfest Homepage">
+        <i data-lucide="arrow-left" class="back-icon"></i>
+        <img src="/assets/images/mgm-logo-white.svg" alt="mgm logo" class="game-nav-logo">
+        <span class="brand-divider">|</span>
+        <span class="game-brand-text"><span class="font-oktoberfest">Oktoberfest</span> <span class="year-highlight">2026</span></span>
+      </a>
 
-    <div class="game-timer" id="gameTimer">
-      <i data-lucide="timer" class="timer-icon"></i>
-      <span class="timer-display" id="timerDisplay">00:00.00</span>
+      <!-- Digital Floating Stopwatch -->
+      <div class="game-timer" id="gameTimer" title="Game Stopwatch">
+        <div class="timer-pulse-dot"></div>
+        <i data-lucide="timer" class="timer-icon"></i>
+        <span class="timer-display" id="timerDisplay">00:00.00</span>
+      </div>
+
+      <!-- Leaderboard Action Button -->
+      <div class="game-nav-actions">
+        <button type="button" class="btn-nav-leaderboard" id="leaderboardToggleBtn" aria-label="Open Leaderboard">
+          <i data-lucide="trophy"></i>
+          <span class="btn-nav-lb-label">Leaderboard</span>
+        </button>
+      </div>
     </div>
-
-    <button type="button" class="game-menu-btn" id="leaderboardToggleBtn" aria-label="Leaderboard">
-      <i data-lucide="trophy"></i>
-    </button>
   </header>
 
-
   <!-- ═══════════════════════════════════════════════════════
-       GAME BOARD (3×3 Bingo Grid)
+       MAIN GAME ARENA
        ═══════════════════════════════════════════════════════ -->
-  <main class="game-container">
+  <main class="game-main-content">
+    
+    <!-- Hero Banner & Status -->
+    <div class="game-arena-header">
+      <div class="section-tag gold">
+        <i data-lucide="sparkles"></i> PHOTO BINGO ARENA
+      </div>
+      <h1 class="game-arena-title">
+        Snap, Match & <span class="font-oktoberfest gold-gradient-text">Win!</span>
+      </h1>
+      <p class="game-arena-subtitle">
+        Complete 3 challenges in any row, column, or diagonal to score <strong>BINGO!</strong>
+      </p>
 
-    <!-- Welcome / Start Overlay -->
-    <div class="game-welcome" id="gameWelcome">
-      <div class="welcome-content">
-        <div class="welcome-icon">📸</div>
-        <h1 class="welcome-title">
-          <span class="font-oktoberfest gold-gradient-text">Photo Bingo</span>
-        </h1>
-        <p class="welcome-subtitle">
-          Complete photo challenges at <span class="lowercase-brand">mgm</span> <span class="font-oktoberfest">Oktoberfest</span> 2026!
-        </p>
-
-        <div class="welcome-rules">
-          <div class="rule-item"><span class="rule-num">1</span> Take photos matching each challenge</div>
-          <div class="rule-item"><span class="rule-num">2</span> Complete 3 in a row — horizontal, vertical, or diagonal</div>
-          <div class="rule-item"><span class="rule-num">3</span> Fastest time wins!</div>
+      <!-- Live Player & Game Status Bar -->
+      <div class="game-status-bar" id="gameStatusBar" style="display:none;">
+        <div class="status-pill player-pill">
+          <i data-lucide="user"></i>
+          <span id="statusPlayerName">Player</span>
+          <span class="status-loc-badge" id="statusLocation">Da Nang</span>
         </div>
-
-        <button type="button" class="btn-start-game" id="startGameBtn">
-          <i data-lucide="camera"></i>
-          <span>Start Game</span>
-        </button>
-
-        <button type="button" class="btn-view-leaderboard" id="welcomeLeaderboardBtn">
-          <i data-lucide="trophy"></i>
-          <span>View Leaderboard</span>
-        </button>
+        <div class="status-pill progress-pill">
+          <i data-lucide="target"></i>
+          <span id="statusProgress">0 / 9 Completed</span>
+        </div>
+        <div class="status-pill goal-pill" id="statusGoalPill">
+          <i data-lucide="zap"></i>
+          <span>Complete 3 in a line!</span>
+        </div>
       </div>
     </div>
 
-    <!-- Bingo Board -->
-    <div class="bingo-board" id="bingoBoard">
-      <!-- 9 cells will be generated by JS -->
-      <div class="bingo-cell" data-cell="0">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
+    <!-- Arena Layout (Board + Sidebar on Desktop) -->
+    <div class="game-arena-layout">
+      
+      <!-- Center: 3x3 Bingo Grid Container -->
+      <div class="bingo-board-wrapper">
+        <div class="bingo-board-frame glass-card">
+          
+          <!-- Corner Festive Rivets -->
+          <div class="frame-corner corner-tl"></div>
+          <div class="frame-corner corner-tr"></div>
+          <div class="frame-corner corner-bl"></div>
+          <div class="frame-corner corner-br"></div>
+
+          <!-- Welcome Overlay (Shown Before Starting) -->
+          <div class="game-welcome-overlay" id="gameWelcome">
+            <div class="welcome-card glass-card">
+              <div class="welcome-icon-glow">
+                <span class="welcome-icon">📸</span>
+              </div>
+              <h2 class="welcome-headline">
+                <span class="font-oktoberfest gold-gradient-text">Photo Bingo</span>
+              </h2>
+              <p class="welcome-description">
+                Grab your camera, find festive moments, and race the clock to dominate the Leaderboard!
+              </p>
+
+              <div class="welcome-rules-box">
+                <div class="rule-row">
+                  <span class="rule-badge">1</span>
+                  <span>Tap any cell to photograph the matching challenge</span>
+                </div>
+                <div class="rule-row">
+                  <span class="rule-badge">2</span>
+                  <span>Connect 3 in a row — horizontal, vertical, or diagonal</span>
+                </div>
+                <div class="rule-row">
+                  <span class="rule-badge">3</span>
+                  <span>Fastest completion time wins the Bavarian prize!</span>
+                </div>
+              </div>
+
+              <button type="button" class="btn-hero-play" id="startGameBtn">
+                <i data-lucide="play"></i>
+                <span>START GAME</span>
+              </button>
+
+              <button type="button" class="btn-outline-lb" id="welcomeLeaderboardBtn">
+                <i data-lucide="trophy"></i>
+                <span>View Leaderboard</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3x3 Grid of 9 Bingo Cells -->
+          <div class="bingo-board" id="bingoBoard">
+            <div class="bingo-cell" data-cell="0">
+              <div class="cell-top-bar"><span class="cell-cat-pill">🍺 BEER</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="1">
+              <div class="cell-top-bar"><span class="cell-cat-pill">🥨 FOOD</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="2">
+              <div class="cell-top-bar"><span class="cell-cat-pill">👗 OUTFIT</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="3">
+              <div class="cell-top-bar"><span class="cell-cat-pill">👤 PEOPLE</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="4">
+              <div class="cell-top-bar"><span class="cell-cat-pill">🎉 PARTY</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="5">
+              <div class="cell-top-bar"><span class="cell-cat-pill">😂 FUNNY</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="6">
+              <div class="cell-top-bar"><span class="cell-cat-pill">📍 VENUE</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="7">
+              <div class="cell-top-bar"><span class="cell-cat-pill">🤝 TEAM</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+            <div class="bingo-cell" data-cell="8">
+              <div class="cell-top-bar"><span class="cell-cat-pill">🍺 BEER</span></div>
+              <span class="cell-icon">❓</span>
+              <p class="cell-text">Ready to play...</p>
+              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+            </div>
+          </div>
+
+        </div>
       </div>
-      <div class="bingo-cell" data-cell="1">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="2">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="3">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="4">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="5">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="6">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="7">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
-      <div class="bingo-cell" data-cell="8">
-        <span class="cell-icon">❓</span>
-        <span class="cell-text">???</span>
-      </div>
+
+      <!-- Right Sidebar (Live Leaderboard Snippet & Tips) -->
+      <aside class="game-sidebar">
+        <!-- Live Quick Leaderboard Card -->
+        <div class="sidebar-card glass-card">
+          <div class="sidebar-card-header">
+            <h3 class="sidebar-card-title"><i data-lucide="trophy" class="gold-icon"></i> Top Champions</h3>
+            <button type="button" class="sidebar-view-all-btn" id="sidebarViewAllBtn">View All →</button>
+          </div>
+          <div class="sidebar-lb-list" id="sidebarLbList">
+            <div class="sidebar-lb-empty">Loading top scores...</div>
+          </div>
+        </div>
+
+        <!-- How to Play Quick Card -->
+        <div class="sidebar-card glass-card rules-mini-card">
+          <h3 class="sidebar-card-title"><i data-lucide="info" class="blue-icon"></i> Pro Tips</h3>
+          <ul class="mini-tips-list">
+            <li><strong>Be Quick:</strong> Your total time starts as soon as you enter the game arena.</li>
+            <li><strong>Clear Photos:</strong> AI judges every photo — make sure the subject is well lit and visible.</li>
+            <li><strong>Any Line Counts:</strong> Horizontal rows, vertical columns, or diagonals all score BINGO!</li>
+          </ul>
+        </div>
+      </aside>
+
     </div>
 
   </main>
 
-
   <!-- ═══════════════════════════════════════════════════════
        PLAYER REGISTRATION MODAL
        ═══════════════════════════════════════════════════════ -->
-  <div class="modal-backdrop player-modal" id="playerModal">
-    <div class="modal-content glass-card player-modal-content">
-      <button class="modal-close" id="closePlayerModal" aria-label="Close">
+  <div class="modal-backdrop" id="playerModal">
+    <div class="modal-content glass-card player-modal-dialog">
+      <button class="modal-close" id="closePlayerModal" aria-label="Close Registration Dialog">
         <i data-lucide="x"></i>
       </button>
 
-      <div class="modal-header-icon">🎮</div>
-      <h2 class="modal-title">Ready to Play?</h2>
-      <p class="modal-subtitle">Enter your name and select your location</p>
+      <div class="modal-badge-icon">🎮</div>
+      <h2 class="modal-title font-oktoberfest gold-gradient-text">Ready to Play?</h2>
+      <p class="modal-subtitle">Enter your player name and select your event office</p>
 
       <form id="playerForm" class="player-form" autocomplete="off">
         <div class="form-group">
           <label for="playerName" class="form-label">
-            <i data-lucide="user"></i> Your Name
+            <i data-lucide="user"></i> Player Name
           </label>
-          <input type="text" id="playerName" class="form-input" placeholder="Enter your name..." 
-                 minlength="2" maxlength="30" required autocomplete="off">
+          <input type="text" id="playerName" class="form-input" placeholder="e.g. Alex Nguyen" 
+                 minlength="2" maxlength="30" required autocomplete="off" autofocus>
         </div>
 
         <div class="form-group">
           <label class="form-label">
-            <i data-lucide="map-pin"></i> Location
+            <i data-lucide="map-pin"></i> Event Office
           </label>
-          <div class="location-toggle">
-            <button type="button" class="location-btn active" data-location="danang" id="locDanang">
-              <i data-lucide="map-pin"></i> Da Nang
+          <div class="location-toggle-grid">
+            <button type="button" class="loc-toggle-btn active" data-location="danang" id="locDanang">
+              <i data-lucide="map-pin"></i> Da Nang Office
             </button>
-            <button type="button" class="location-btn" data-location="hcmc" id="locHcmc">
-              <i data-lucide="map-pin"></i> HCMC
+            <button type="button" class="loc-toggle-btn" data-location="hcmc" id="locHcmc">
+              <i data-lucide="map-pin"></i> HCMC Office
             </button>
           </div>
         </div>
 
         <button type="submit" class="btn-submit-player" id="submitPlayerBtn">
-          <span class="btn-text">LET'S GO!</span>
+          <span class="btn-text"><i data-lucide="zap"></i> LET'S GO!</span>
           <span class="btn-loading" style="display:none;">
-            <span class="spinner"></span> Starting...
+            <span class="spinner-small"></span> Starting arena...
           </span>
         </button>
       </form>
     </div>
   </div>
 
-
   <!-- ═══════════════════════════════════════════════════════
-       CAMERA OVERLAY (Fullscreen)
+       FULLSCREEN CAMERA OVERLAY
        ═══════════════════════════════════════════════════════ -->
   <div class="camera-overlay" id="cameraOverlay">
-    <!-- Challenge Bar (Top) -->
-    <div class="camera-challenge-bar" id="cameraChallengeBar">
-      <span class="challenge-icon" id="cameraIcon">🍺</span>
-      <span class="challenge-text" id="cameraChallenge">Take a photo!</span>
+    <!-- Top Challenge Prompt Bar -->
+    <div class="camera-top-bar">
+      <div class="camera-challenge-badge">
+        <span class="camera-challenge-icon" id="cameraIcon">🍺</span>
+        <div class="camera-challenge-details">
+          <span class="camera-challenge-label">ACTIVE CHALLENGE:</span>
+          <p class="camera-challenge-text" id="cameraChallenge">Loading challenge...</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Video Viewfinder -->
+    <!-- Live Camera Viewfinder -->
     <video class="camera-viewfinder" id="cameraVideo" autoplay playsinline muted></video>
 
-    <!-- Controls (Bottom) -->
-    <div class="camera-controls" id="cameraControls">
-      <button type="button" class="camera-cancel-btn" id="cameraCancelBtn">
+    <!-- Bottom Camera Controls -->
+    <div class="camera-bottom-bar" id="cameraControls">
+      <button type="button" class="cam-btn cam-cancel-btn" id="cameraCancelBtn" title="Cancel">
         <i data-lucide="x"></i>
       </button>
-      <button type="button" class="camera-shutter-btn" id="cameraShutterBtn">
-        <span class="shutter-ring"></span>
-        <span class="shutter-inner"></span>
+
+      <button type="button" class="cam-shutter-btn" id="cameraShutterBtn" title="Take Photo">
+        <span class="shutter-outer-ring"></span>
+        <span class="shutter-center-core"></span>
       </button>
-      <button type="button" class="camera-switch-btn" id="cameraSwitchBtn">
+
+      <button type="button" class="cam-btn cam-switch-btn" id="cameraSwitchBtn" title="Switch Camera">
         <i data-lucide="switch-camera"></i>
       </button>
     </div>
 
-    <!-- Photo Preview (after capture) -->
-    <div class="camera-preview" id="cameraPreview" style="display:none;">
-      <img class="preview-image" id="previewImage" alt="Captured photo">
-      <div class="preview-actions">
-        <button type="button" class="btn-retake" id="retakeBtn">
+    <!-- Photo Preview (Captured Frame) -->
+    <div class="camera-preview-stage" id="cameraPreview" style="display:none;">
+      <img class="preview-snapshot" id="previewImage" alt="Captured Challenge Photo">
+      <div class="preview-action-bar">
+        <button type="button" class="btn-retake-photo" id="retakeBtn">
           <i data-lucide="rotate-ccw"></i> Retake
         </button>
-        <button type="button" class="btn-submit-photo" id="submitPhotoBtn">
-          <i data-lucide="check"></i> Submit
+        <button type="button" class="btn-confirm-photo" id="submitPhotoBtn">
+          <i data-lucide="check"></i> Submit Photo
         </button>
       </div>
     </div>
 
-    <!-- Loading State (AI verification) -->
-    <div class="camera-loading" id="cameraLoading" style="display:none;">
-      <div class="loading-spinner-large"></div>
-      <p class="loading-text">Verifying photo...</p>
+    <!-- AI Verification Loading Screen -->
+    <div class="camera-ai-loading" id="cameraLoading" style="display:none;">
+      <div class="ai-pulse-ring">
+        <div class="spinner-large"></div>
+      </div>
+      <h3 class="ai-loading-title">Verifying Photo with AI...</h3>
+      <p class="ai-loading-desc">Scanning photo against the active challenge requirement</p>
     </div>
 
-    <!-- Result Flash -->
-    <div class="camera-result" id="cameraResult" style="display:none;">
-      <div class="result-icon" id="resultIcon">✅</div>
-      <div class="result-text" id="resultText">Approved!</div>
+    <!-- AI Result Banner Flash -->
+    <div class="camera-result-flash" id="cameraResult" style="display:none;">
+      <div class="result-badge-icon" id="resultIcon">✅</div>
+      <h3 class="result-badge-title" id="resultText">Approved!</h3>
     </div>
 
-    <!-- Hidden canvas for capturing frames -->
     <canvas id="cameraCanvas" style="display:none;"></canvas>
   </div>
 
-
   <!-- ═══════════════════════════════════════════════════════
-       VICTORY / BINGO MODAL
+       VICTORY / BINGO CONGRATULATIONS MODAL
        ═══════════════════════════════════════════════════════ -->
-  <div class="modal-backdrop victory-modal" id="victoryModal">
-    <div class="modal-content glass-card victory-modal-content">
-      <div class="victory-emoji">🏆</div>
-      <h2 class="victory-title font-oktoberfest gold-gradient-text">BINGO!</h2>
-      <p class="victory-subtitle">You completed the challenge!</p>
+  <div class="modal-backdrop" id="victoryModal">
+    <div class="modal-content glass-card victory-dialog">
+      <div class="victory-crown-glow">🏆</div>
+      <h2 class="victory-huge-title font-oktoberfest gold-gradient-text">BINGO!</h2>
+      <p class="victory-cheer">Outstanding! You completed a winning line!</p>
 
-      <div class="victory-stats">
-        <div class="victory-stat">
-          <span class="stat-label">Time</span>
-          <span class="stat-value" id="victoryTime">00:00.00</span>
+      <div class="victory-metric-grid">
+        <div class="metric-card">
+          <span class="metric-label">TIME</span>
+          <span class="metric-val" id="victoryTime">00:00.00</span>
         </div>
-        <div class="victory-stat">
-          <span class="stat-label">Rank</span>
-          <span class="stat-value" id="victoryRank">#1</span>
+        <div class="metric-card">
+          <span class="metric-label">RANK</span>
+          <span class="metric-val rank-highlight" id="victoryRank">#1</span>
         </div>
-        <div class="victory-stat">
-          <span class="stat-label">Line</span>
-          <span class="stat-value" id="victoryLine">Row 1</span>
+        <div class="metric-card">
+          <span class="metric-label">WINNING LINE</span>
+          <span class="metric-val" id="victoryLine">Row 1</span>
         </div>
       </div>
 
-      <div class="victory-actions">
-        <button type="button" class="btn-primary" id="victoryLeaderboardBtn">
+      <div class="victory-action-group">
+        <button type="button" class="btn-hero-play" id="victoryLeaderboardBtn">
           <i data-lucide="trophy"></i> View Leaderboard
         </button>
-        <button type="button" class="btn-secondary" id="victoryPlayAgainBtn">
+        <button type="button" class="btn-outline-lb" id="victoryPlayAgainBtn">
           <i data-lucide="rotate-ccw"></i> Play Again
         </button>
       </div>
     </div>
   </div>
 
-
   <!-- ═══════════════════════════════════════════════════════
-       LEADERBOARD PANEL
+       FULL LEADERBOARD MODAL
        ═══════════════════════════════════════════════════════ -->
-  <div class="modal-backdrop leaderboard-modal" id="leaderboardModal">
-    <div class="modal-content glass-card leaderboard-modal-content">
-      <button class="modal-close" id="closeLeaderboardBtn" aria-label="Close">
+  <div class="modal-backdrop" id="leaderboardModal">
+    <div class="modal-content glass-card leaderboard-dialog">
+      <button class="modal-close" id="closeLeaderboardBtn" aria-label="Close Leaderboard">
         <i data-lucide="x"></i>
       </button>
 
-      <div class="leaderboard-header">
-        <h2 class="leaderboard-title">
-          <i data-lucide="trophy"></i> Leaderboard
-        </h2>
+      <div class="lb-modal-header">
+        <div class="section-tag gold"><i data-lucide="trophy"></i> HALL OF FAME</div>
+        <h2 class="lb-modal-title">Oktoberfest Leaderboard</h2>
 
-        <div class="leaderboard-tabs" id="leaderboardTabs">
-          <button type="button" class="lb-tab active" data-lb-location="all">All</button>
-          <button type="button" class="lb-tab" data-lb-location="danang">📍 Da Nang</button>
-          <button type="button" class="lb-tab" data-lb-location="hcmc">📍 HCMC</button>
+        <!-- Office Filter Tabs -->
+        <div class="lb-tabs-container" id="leaderboardTabs">
+          <button type="button" class="lb-filter-tab active" data-lb-location="all">All Offices</button>
+          <button type="button" class="lb-filter-tab" data-lb-location="danang">📍 Da Nang</button>
+          <button type="button" class="lb-filter-tab" data-lb-location="hcmc">📍 HCMC</button>
         </div>
       </div>
 
-      <div class="leaderboard-body" id="leaderboardBody">
-        <table class="leaderboard-table">
+      <div class="lb-scrollable-body" id="leaderboardBody">
+        <table class="lb-ranking-table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Player</th>
-              <th>Time</th>
-              <th>Location</th>
+              <th>RANK</th>
+              <th>PLAYER</th>
+              <th>TIME</th>
+              <th>LOCATION</th>
             </tr>
           </thead>
           <tbody id="leaderboardTableBody">
-            <!-- Rows rendered by JS -->
+            <!-- Dynamically populated rows -->
           </tbody>
         </table>
 
-        <div class="leaderboard-empty" id="leaderboardEmpty" style="display:none;">
-          <i data-lucide="trophy"></i>
-          <p>No winners yet. Be the first!</p>
+        <div class="lb-no-records" id="leaderboardEmpty" style="display:none;">
+          <div class="empty-trophy">🏆</div>
+          <p>No completions yet. Be the first Bavarian Champion!</p>
         </div>
       </div>
     </div>
   </div>
 
-
-  <!-- ═══════════════════════════════════════════════════════
-       TOAST CONTAINER
-       ═══════════════════════════════════════════════════════ -->
+  <!-- Global Toast Notification Container -->
   <div id="gameToastContainer" class="toast-container"></div>
 
-
-  <!-- Game JavaScript -->
-  <script src="/game/game.js?v=5"></script>
-
+  <!-- Game JavaScript Engine -->
+  <script src="/game/game.js?v=10"></script>
 </body>
 </html>

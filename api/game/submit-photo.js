@@ -123,7 +123,6 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
           }
         })
       });
-      });
 
       if (geminiRes.ok) {
         const geminiData = await geminiRes.json();

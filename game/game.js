@@ -496,7 +496,13 @@
         })
       });
 
-      const data = await res.json();
+      const rawText = await res.text();
+      let data = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch (parseErr) {
+        throw new Error('Server is currently processing. Please try again.');
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Photo submission failed.');

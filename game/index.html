@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=95">
+  <link rel="stylesheet" href="/game/game.css?v=100">
 </head>
 <body class="dark-theme game-page">
 
@@ -104,8 +104,23 @@
           <div class="frame-corner corner-bl"></div>
           <div class="frame-corner corner-br"></div>
 
-                    <!-- Laser Light Cut Slice across winning 3 cells -->
-          <div class="bingo-laser-beam" id="bingoLaserBeam"></div>
+                    <!-- Dynamic SVG Laser Light Cut Slice across winning 3 cells -->
+          <svg class="bingo-laser-svg" id="bingoLaserSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <filter id="laserGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="blur1" />
+                <feGaussianBlur stdDeviation="10" result="blur2" />
+                <feMerge>
+                  <feMergeNode in="blur2" />
+                  <feMergeNode in="blur1" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <line id="bingoLaserBackdrop" class="laser-line-backdrop" x1="0" y1="0" x2="0" y2="0" />
+            <line id="bingoLaserCore" class="laser-line-core" x1="0" y1="0" x2="0" y2="0" />
+            <circle id="bingoLaserHead" class="laser-spark-head" r="7" cx="0" cy="0" />
+          </svg>
 
           <!-- Welcome Screen (Natural flow inside frame) -->
           <div class="game-welcome-box" id="gameWelcome">
@@ -483,10 +498,10 @@
           <i data-lucide="trophy"></i>
           <span>View Leaderboard</span>
         </button>
-        <a href="/" class="btn-outline-back" id="victoryBackHomeBtn">
-          <i data-lucide="arrow-left"></i>
-          <span>Back to Homepage</span>
-        </a>
+        <button type="button" class="btn-outline-back" id="victoryBackGameBtn">
+          <i data-lucide="grid"></i>
+          <span>Back to Game</span>
+        </button>
       </div>
     </div>
   </div>
@@ -539,6 +554,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=95"></script>
+  <script src="/game/game.js?v=100"></script>
 </body>
 </html>

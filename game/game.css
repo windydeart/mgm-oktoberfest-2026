@@ -1055,22 +1055,44 @@ body.game-page::before {
 
 .btn-submit-player {
   width: 100%;
-  height: 50px;
+  height: 52px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
   border: none;
   color: #0b132b;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   cursor: pointer;
   margin-top: 0.6rem;
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
 }
 
 .btn-submit-player:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.65);
+}
+
+.btn-submit-player .btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  font-family: var(--font-heading);
+}
+
+.btn-submit-player .btn-text svg,
+.btn-submit-player .btn-text i {
+  width: 20px;
+  height: 20px;
+  color: #0b132b;
+  display: block;
+  flex-shrink: 0;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2085,106 +2107,45 @@ body.game-page::before {
    CINEMATIC BINGO CELEBRATION & LASER SLICE
    ═══════════════════════════════════════════════════════ */
 
-/* ─── Laser Beam Slice across 3 cells ─── */
-.bingo-laser-beam {
+/* ─── High Precision Dynamic SVG Laser Cut Slice ─── */
+.bingo-laser-svg {
   position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 2800;
   opacity: 0;
-  background: linear-gradient(90deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
-  box-shadow: 0 0 25px #fbbf24, 0 0 50px #f59e0b, 0 0 80px rgba(251, 191, 36, 0.9);
-  border-radius: var(--radius-full);
+  transition: opacity 0.25s ease;
+  overflow: visible;
 }
 
-/* Horizontal rows */
-.bingo-laser-beam.laser-row-0 {
-  top: calc(16.66% + 1.25rem);
-  left: 4%;
-  width: 92%;
-  height: 7px;
-  animation: laserSweepH 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.bingo-laser-beam.laser-row-1 {
-  top: 50%;
-  left: 4%;
-  width: 92%;
-  height: 7px;
-  animation: laserSweepH 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.bingo-laser-beam.laser-row-2 {
-  top: calc(83.33% - 1.25rem);
-  left: 4%;
-  width: 92%;
-  height: 7px;
-  animation: laserSweepH 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.bingo-laser-svg.active {
+  opacity: 1;
 }
 
-/* Vertical columns */
-.bingo-laser-beam.laser-col-0 {
-  left: calc(16.66% + 1.25rem);
-  top: 4%;
-  height: 92%;
-  width: 7px;
-  background: linear-gradient(180deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
-  animation: laserSweepV 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.bingo-laser-beam.laser-col-1 {
-  left: 50%;
-  top: 4%;
-  height: 92%;
-  width: 7px;
-  background: linear-gradient(180deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
-  animation: laserSweepV 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.bingo-laser-beam.laser-col-2 {
-  left: calc(83.33% - 1.25rem);
-  top: 4%;
-  height: 92%;
-  width: 7px;
-  background: linear-gradient(180deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
-  animation: laserSweepV 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.laser-line-backdrop {
+  stroke: #f59e0b;
+  stroke-width: 14;
+  stroke-linecap: round;
+  filter: url(#laserGlow);
+  opacity: 0.9;
 }
 
-/* Diagonals */
-.bingo-laser-beam.laser-diag-main {
-  top: 50%;
-  left: -8%;
-  width: 116%;
-  height: 7px;
-  transform: rotate(45deg);
-  animation: laserSweepDiagMain 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.bingo-laser-beam.laser-diag-anti {
-  top: 50%;
-  left: -8%;
-  width: 116%;
-  height: 7px;
-  transform: rotate(-45deg);
-  animation: laserSweepDiagAnti 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.laser-line-core {
+  stroke: #ffffff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 25px #f59e0b);
 }
 
-@keyframes laserSweepH {
-  0% { transform: scaleX(0); opacity: 0; }
-  25% { opacity: 1; }
-  100% { transform: scaleX(1); opacity: 1; }
-}
-
-@keyframes laserSweepV {
-  0% { transform: scaleY(0); opacity: 0; }
-  25% { opacity: 1; }
-  100% { transform: scaleY(1); opacity: 1; }
-}
-
-@keyframes laserSweepDiagMain {
-  0% { transform: rotate(45deg) scaleX(0); opacity: 0; }
-  25% { opacity: 1; }
-  100% { transform: rotate(45deg) scaleX(1); opacity: 1; }
-}
-
-@keyframes laserSweepDiagAnti {
-  0% { transform: rotate(-45deg) scaleX(0); opacity: 0; }
-  25% { opacity: 1; }
-  100% { transform: rotate(-45deg) scaleX(1); opacity: 1; }
+.laser-spark-head {
+  fill: #ffffff;
+  stroke: #fbbf24;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 15px #ffffff) drop-shadow(0 0 30px #fbbf24);
+  opacity: 0;
+  transition: opacity 0.15s ease;
 }
 
 

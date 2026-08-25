@@ -109,7 +109,8 @@
     els.victoryRank = $('#victoryRank');
     els.victoryLine = $('#victoryLine');
     els.victoryLeaderboardBtn = $('#victoryLeaderboardBtn');
-    els.victoryBackHomeBtn = $('#victoryBackHomeBtn');
+    els.victoryBackGameBtn = $('#victoryBackGameBtn');
+    els.bingoBoardFrame = $('#bingoBoardFrame');
 
     // Leaderboard Modal
     els.leaderboardModal = $('#leaderboardModal');
@@ -545,6 +546,100 @@
     }
   }
 
+    /* ═══════════════════════════════════════════════════════
+     PRECISION DYNAMIC LASER CUT SLICE (A to B across 3 cells)
+     ═══════════════════════════════════════════════════════ */
+  function triggerLaserCut(lineKey) {
+    const laserSvg = $('#bingoLaserSvg');
+    const laserCore = $('#bingoLaserCore');
+    const laserBack = $('#bingoLaserBackdrop');
+    const laserHead = $('#bingoLaserHead');
+    const frame = els.bingoBoardFrame || $('#bingoBoardFrame');
+    if (!laserSvg || !laserCore || !laserBack || !frame) return;
+
+    const lineMap = {
+      'row-0': [0, 2], 'row-1': [3, 5], 'row-2': [6, 8],
+      'col-0': [0, 6], 'col-1': [1, 7], 'col-2': [2, 8],
+      'diag-main': [0, 8], 'diag-anti': [2, 6]
+    };
+
+    const indices = lineMap[lineKey] || [0, 2];
+    const cells = $$('.bingo-cell');
+    const cellA = cells[indices[0]];
+    const cellB = cells[indices[1]];
+    if (!cellA || !cellB) return;
+
+    const frameRect = frame.getBoundingClientRect();
+    const rectA = cellA.getBoundingClientRect();
+    const rectB = cellB.getBoundingClientRect();
+
+    const x1 = (rectA.left + rectA.right) / 2 - frameRect.left;
+    const y1 = (rectA.top + rectA.bottom) / 2 - frameRect.top;
+    const x2 = (rectB.left + rectB.right) / 2 - frameRect.left;
+    const y2 = (rectB.top + rectB.bottom) / 2 - frameRect.top;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    const extend = 24;
+    const startX = x1 - (dx / len) * extend;
+    const startY = y1 - (dy / len) * extend;
+    const endX = x2 + (dx / len) * extend;
+    const endY = y2 + (dy / len) * extend;
+    const totalLen = Math.round(len + extend * 2);
+
+    laserSvg.setAttribute('viewBox', `0 0 ${frameRect.width} ${frameRect.height}`);
+
+    [laserCore, laserBack].forEach(line => {
+      line.setAttribute('x1', startX);
+      line.setAttribute('y1', startY);
+      line.setAttribute('x2', endX);
+      line.setAttribute('y2', endY);
+      line.style.strokeDasharray = `${totalLen}`;
+      line.style.strokeDashoffset = `${totalLen}`;
+    });
+
+    laserSvg.classList.add('active');
+
+    const startTime = performance.now();
+    const duration = 460;
+
+    if (laserHead) {
+      laserHead.style.opacity = '1';
+      laserHead.setAttribute('cx', startX);
+      laserHead.setAttribute('cy', startY);
+    }
+
+    function animateSlash(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Fast powerful ease-out cut slash
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const currentOffset = totalLen * (1 - ease);
+
+      laserCore.style.strokeDashoffset = `${currentOffset}`;
+      laserBack.style.strokeDashoffset = `${currentOffset}`;
+
+      if (laserHead) {
+        const curX = startX + (endX - startX) * ease;
+        const curY = startY + (endY - startY) * ease;
+        laserHead.setAttribute('cx', curX);
+        laserHead.setAttribute('cy', curY);
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animateSlash);
+      } else {
+        if (laserHead) laserHead.style.opacity = '0';
+        setTimeout(() => {
+          laserSvg.classList.remove('active');
+        }, 1900);
+      }
+    }
+
+    requestAnimationFrame(animateSlash);
+  }
+
   function onBingo(data) {
     gameState.status = 'completed';
     gameState.elapsedMs = data.elapsed_ms || (Date.now() - (gameState.startedAt || Date.now()));
@@ -560,12 +655,9 @@
     els.victoryRank.textContent = `#${gameState.rank || 1}`;
     els.victoryLine.textContent = BINGO_LINE_NAMES[gameState.bingoLine] || gameState.bingoLine;
 
-    // ─── 1. Laser Light Cut across 3 Winning Cells ───
+    // ─── 1. Precision Dynamic Laser Cut Slice (A to B) ───
     const lineKey = gameState.bingoLine || 'row-0';
-    const laser = $('#bingoLaserBeam');
-    if (laser) {
-      laser.className = `bingo-laser-beam laser-${lineKey}`;
-    }
+    triggerLaserCut(lineKey);
 
     // ─── 2. Spotlight Zoom on 3 cells & Dim rest of website ───
     document.body.classList.add('celebrating-bingo');
@@ -1038,6 +1130,12 @@
       closeModal(els.victoryModal);
       openLeaderboard();
     });
+
+    if (els.victoryBackGameBtn) {
+      els.victoryBackGameBtn.addEventListener('click', () => {
+        closeModal(els.victoryModal);
+      });
+    }
     
 
     els.leaderboardToggleBtn.addEventListener('click', openLeaderboard);

@@ -494,6 +494,10 @@
           gameState.completedCells.push(currentCellIndex);
         }
 
+        // Store photo in gameState.cellPhotos
+        if (!gameState.cellPhotos) gameState.cellPhotos = {};
+        gameState.cellPhotos[currentCellIndex] = dataUrl;
+
         if (data.is_bingo) {
           gameState.status = 'completed';
           gameState.elapsedMs = data.elapsed_ms;
@@ -503,10 +507,13 @@
 
         saveSession();
 
-        // Apply photo thumbnail to cell background
+        // Immediately apply to DOM cell
         const targetCell = $$('.bingo-cell')[currentCellIndex];
         if (targetCell) {
-          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.65), rgba(11, 19, 43, 0.85)), url('${dataUrl}')`;
+          targetCell.classList.add('completed');
+          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
+          targetCell.style.backgroundSize = 'cover';
+          targetCell.style.backgroundPosition = 'center';
         }
 
         setTimeout(() => {

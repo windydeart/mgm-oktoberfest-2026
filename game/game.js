@@ -94,6 +94,9 @@
     els.previewImage = $('#previewImage');
     els.retakeBtn = $('#retakeBtn');
     els.submitPhotoBtn = $('#submitPhotoBtn');
+    els.cameraConfirmOverlay = $('#cameraConfirmOverlay');
+    els.cancelSubmitPhotoBtn = $('#cancelSubmitPhotoBtn');
+    els.proceedSubmitPhotoBtn = $('#proceedSubmitPhotoBtn');
     els.cameraLoading = $('#cameraLoading');
     els.cameraResult = $('#cameraResult');
     els.resultIcon = $('#resultIcon');
@@ -541,6 +544,7 @@
      ═══════════════════════════════════════════════════════ */
   async function openCamera() {
     els.cameraPreview.style.display = 'none';
+    if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';
     els.cameraLoading.style.display = 'none';
     els.cameraResult.style.display = 'none';
     els.cameraControls.style.display = 'flex';
@@ -913,11 +917,32 @@
     els.cameraCancelBtn.addEventListener('click', closeCamera);
     els.cameraSwitchBtn.addEventListener('click', switchCamera);
     els.retakeBtn.addEventListener('click', () => {
+      if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';
       els.cameraPreview.style.display = 'none';
       els.cameraResult.style.display = 'none';
       els.cameraControls.style.display = 'flex';
     });
-    els.submitPhotoBtn.addEventListener('click', submitPhoto);
+    els.submitPhotoBtn.addEventListener('click', () => {
+      if (els.cameraConfirmOverlay) {
+        els.cameraConfirmOverlay.style.display = 'flex';
+        if (window.lucide) window.lucide.createIcons();
+      } else {
+        submitPhoto();
+      }
+    });
+
+    if (els.cancelSubmitPhotoBtn) {
+      els.cancelSubmitPhotoBtn.addEventListener('click', () => {
+        if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';
+      });
+    }
+
+    if (els.proceedSubmitPhotoBtn) {
+      els.proceedSubmitPhotoBtn.addEventListener('click', () => {
+        if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';
+        submitPhoto();
+      });
+    }
 
     els.victoryLeaderboardBtn.addEventListener('click', () => {
       closeModal(els.victoryModal);

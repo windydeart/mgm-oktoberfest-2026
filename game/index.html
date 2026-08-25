@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=55">
+  <link rel="stylesheet" href="/game/game.css?v=60">
 </head>
 <body class="dark-theme game-page">
 
@@ -396,6 +396,27 @@
       </div>
     </div>
 
+    <!-- Confirm Photo Submission Modal -->
+    <div class="camera-confirm-overlay" id="cameraConfirmOverlay" style="display:none;">
+      <div class="camera-confirm-card glass-card">
+        <div class="confirm-icon-badge">
+          <i data-lucide="help-circle" class="confirm-flat-icon"></i>
+        </div>
+        <h3 class="confirm-modal-title">Submit Photo?</h3>
+        <p class="confirm-modal-desc">
+          You will not be able to change or retake this photo after submitting. Confirm submission?
+        </p>
+        <div class="confirm-modal-actions">
+          <button type="button" class="btn-confirm-cancel" id="cancelSubmitPhotoBtn">
+            <i data-lucide="x"></i> Cancel
+          </button>
+          <button type="button" class="btn-confirm-proceed" id="proceedSubmitPhotoBtn">
+            <i data-lucide="check"></i> Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- AI Verification Loading Screen -->
     <div class="camera-ai-loading" id="cameraLoading" style="display:none;">
       <div class="ai-pulse-ring">
@@ -499,6 +520,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=50"></script>
+  <script src="/game/game.js?v=60"></script>
 </body>
 </html>

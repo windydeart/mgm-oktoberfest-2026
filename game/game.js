@@ -1,8 +1,8 @@
 /**
  * mgm Oktoberfest 2026 — Photo Bingo Mini-Game Engine
  * ══════════════════════════════════════════════════════
- * Flat icons, 3-element cell layout, frozen completion reload state,
- * waving line highlights, camera capture, and anti-cheat timer.
+ * Flat icons, 4x camera watermark, frozen completion reload state,
+ * waving line highlights, Grand Winner prize highlights, and anti-cheat timer.
  */
 
 (function () {
@@ -233,7 +233,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     BINGO BOARD RENDERING (Flat Icons + 3-element Layout)
+     BINGO BOARD RENDERING (Flat Icons + 4x Camera Watermark)
      ═══════════════════════════════════════════════════════ */
   function renderBoard() {
     const cells = $$('.bingo-cell');
@@ -372,7 +372,10 @@
       saveSession();
 
       closeModal(els.playerModal);
-      els.gameWelcome.classList.add('hidden');
+      
+      // Smooth frame switch from Welcome to 3x3 Grid
+      els.gameWelcome.style.display = 'none';
+      els.bingoBoard.style.display = 'grid';
 
       await runRevealAnimation();
       renderBoard();
@@ -589,7 +592,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     LEADERBOARD (100% English)
+     LEADERBOARD WITH TOP 1 WINNER PRIZE HIGHLIGHT
      ═══════════════════════════════════════════════════════ */
   let currentLbLocation = 'all';
 
@@ -619,24 +622,35 @@
 
     entries.forEach((entry, i) => {
       const rank = i + 1;
-      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      const isTop1 = rank === 1;
+      const medal = isTop1 ? '👑 #1' : rank === 2 ? '🥈 #2' : rank === 3 ? '🥉 #3' : `#${rank}`;
       const isMe = entry.player_name === gameState.playerName &&
                     entry.location === gameState.location &&
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
 
       const tr = document.createElement('tr');
+      if (isTop1) tr.classList.add('lb-winner-row');
       if (isMe) tr.classList.add('current-player-row');
 
       tr.innerHTML = `
-        <td class="lb-rank" style="font-weight:700; color:${rank<=3?'var(--text-gold)':'inherit'}">${medal}</td>
-        <td class="lb-name" style="font-weight:600;">${escapeHtml(entry.player_name)}</td>
-        <td class="lb-time" style="font-family:monospace; font-weight:700; color:var(--text-gold);">${formatTime(entry.elapsed_ms || 0)}</td>
+        <td class="lb-rank">
+          ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700; color:${rank<=3?'var(--text-gold)':'inherit'}">${medal}</span>`}
+        </td>
+        <td class="lb-name">
+          <div class="lb-player-with-prize">
+            <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
+            ${isTop1 ? `<span class="lb-prize-pill"><i data-lucide="gift"></i> Grand Winner</span>` : ''}
+          </div>
+        </td>
+        <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
         <td class="lb-location">
           <span class="status-loc-badge">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span>
         </td>
       `;
       tbody.appendChild(tr);
     });
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   async function loadSidebarLeaderboard() {
@@ -650,15 +664,21 @@
 
     const top5 = entries.slice(0, 5);
     els.sidebarLbList.innerHTML = top5.map((entry, idx) => {
-      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
+      const isWinner = idx === 0;
+      const medal = isWinner ? '👑 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx+1}`;
       return `
-        <div class="sidebar-lb-item">
-          <span class="sidebar-lb-rank">${medal}</span>
-          <span class="sidebar-lb-name">${escapeHtml(entry.player_name)}</span>
+        <div class="sidebar-lb-item ${isWinner ? 'sidebar-lb-winner' : ''}">
+          <span class="sidebar-lb-rank" style="color:${isWinner?'#fbbf24':'inherit'};">${medal}</span>
+          <div class="sidebar-lb-name-group">
+            <span class="sidebar-lb-name">${escapeHtml(entry.player_name)}</span>
+            ${isWinner ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
+          </div>
           <span class="sidebar-lb-time">${formatTime(entry.elapsed_ms || 0)}</span>
         </div>
       `;
     }).join('');
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   function openLeaderboard() {
@@ -695,7 +715,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     SESSION PERSISTENCE & RELOAD RECOVERY (Request 4)
+     SESSION PERSISTENCE & RELOAD RECOVERY
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
     try {
@@ -738,7 +758,8 @@
       // 1. FAST LOCAL HYDRATION: If local state exists, immediately hydrate into memory
       if (localState && localState.sessionId) {
         gameState = Object.assign({}, gameState, localState);
-        els.gameWelcome.classList.add('hidden');
+        els.gameWelcome.style.display = 'none';
+        els.bingoBoard.style.display = 'grid';
         renderBoard();
 
         const isLocalCompleted = gameState.status === 'completed' || checkBingo(gameState.completedCells || []) !== null;
@@ -789,7 +810,8 @@
 
       saveSession();
 
-      els.gameWelcome.classList.add('hidden');
+      els.gameWelcome.style.display = 'none';
+      els.bingoBoard.style.display = 'grid';
       renderBoard();
 
       // ABSOLUTE GUARANTEE: If completed, STOP AND FREEZE THE TIMER!
@@ -851,7 +873,8 @@
       if (textP) textP.textContent = 'Ready to play...';
     });
 
-    els.gameWelcome.classList.remove('hidden');
+    els.gameWelcome.style.display = '';
+    els.bingoBoard.style.display = 'none';
     els.gameStatusBar.style.display = 'none';
   }
 

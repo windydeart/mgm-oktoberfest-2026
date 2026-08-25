@@ -933,6 +933,18 @@
       if (e.target === els.leaderboardModal) closeModal(els.leaderboardModal);
     });
 
+    // Collapsible Sidebar Leaderboard Accordion
+    const sidebarLbToggleBtn = $('#sidebarLbToggleBtn');
+    const sidebarLbContent = $('#sidebarLbContent');
+    if (sidebarLbToggleBtn && sidebarLbContent) {
+      sidebarLbToggleBtn.addEventListener('click', () => {
+        const isCollapsed = sidebarLbContent.classList.toggle('collapsed');
+        sidebarLbToggleBtn.classList.toggle('active', !isCollapsed);
+        sidebarLbToggleBtn.setAttribute('aria-expanded', String(!isCollapsed));
+      });
+    }
+
+    // Collapsible Sidebar Pro Tips Accordion
     const proTipsToggleBtn = $('#proTipsToggleBtn');
     const proTipsContent = $('#proTipsContent');
     if (proTipsToggleBtn && proTipsContent) {

@@ -1869,3 +1869,9 @@ body.game-page::before {
   margin-top: 0;
   pointer-events: none;
 }
+
+.sidebar-lb-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.6rem;
+}

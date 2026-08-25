@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=40">
+  <link rel="stylesheet" href="/game/game.css?v=45">
 </head>
 <body class="dark-theme game-page">
 
@@ -268,16 +268,21 @@
         </div>
       </div>
 
-      <!-- Right Sidebar (Live Leaderboard & Collapsible Pro Tips) -->
+      <!-- Right Sidebar (Collapsible Leaderboard & Collapsible Pro Tips) -->
       <aside class="game-sidebar">
-        <!-- Live Quick Leaderboard Card with Winner Highlight -->
+        <!-- Collapsible Quick Leaderboard Card -->
         <div class="sidebar-card glass-card">
-          <div class="sidebar-card-header">
+          <button type="button" class="sidebar-accordion-header" id="sidebarLbToggleBtn" aria-expanded="false">
             <h3 class="sidebar-card-title"><i data-lucide="trophy" class="gold-icon"></i> Leaderboard</h3>
-            <button type="button" class="sidebar-view-all-btn" id="sidebarViewAllBtn">View All →</button>
-          </div>
-          <div class="sidebar-lb-list" id="sidebarLbList">
-            <div class="sidebar-lb-empty">Loading top scores...</div>
+            <i data-lucide="chevron-down" class="accordion-chevron" id="sidebarLbChevron"></i>
+          </button>
+          <div class="sidebar-accordion-content collapsed" id="sidebarLbContent">
+            <div class="sidebar-lb-action-row">
+              <button type="button" class="sidebar-view-all-btn" id="sidebarViewAllBtn">View Full Table →</button>
+            </div>
+            <div class="sidebar-lb-list" id="sidebarLbList">
+              <div class="sidebar-lb-empty">Loading top scores...</div>
+            </div>
           </div>
         </div>
 
@@ -499,6 +504,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=40"></script>
+  <script src="/game/game.js?v=45"></script>
 </body>
 </html>

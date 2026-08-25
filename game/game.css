@@ -1889,7 +1889,6 @@ body.game-page::before {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: fadeIn 0.25s ease;
 }
 
 .camera-confirm-card {
@@ -1899,7 +1898,19 @@ body.game-page::before {
   text-align: center;
   border-radius: var(--radius-xl);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(245, 158, 11, 0.2);
-  animation: resultPop 0.3s var(--transition-bounce);
+  animation: confirmCardEntrance 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes confirmCardEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .confirm-icon-badge {

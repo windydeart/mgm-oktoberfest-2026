@@ -620,19 +620,20 @@ body.game-page::before {
   justify-content: center;
 }
 
-/* 4x Larger Camera Icon (Matching Lucide SVG) */
+/* Refined Camera Watermark Icon (Reduced 1/4 size, halved ultra-thin 0.7px stroke) */
 .cell-cam-watermark svg,
 .cell-cam-watermark i {
-  width: 90px !important;
-  height: 90px !important;
-  stroke-width: 1.2px !important;
+  width: 68px !important;
+  height: 68px !important;
+  stroke-width: 0.7px !important;
 }
 
 @media (min-width: 480px) {
   .cell-cam-watermark svg,
   .cell-cam-watermark i {
-    width: 105px !important;
-    height: 105px !important;
+    width: 76px !important;
+    height: 76px !important;
+    stroke-width: 0.7px !important;
   }
 }
 
@@ -1744,8 +1745,9 @@ body.game-page::before {
 
   .cell-cam-watermark svg,
   .cell-cam-watermark i {
-    width: 78px !important;
-    height: 78px !important;
+    width: 56px !important;
+    height: 56px !important;
+    stroke-width: 0.7px !important;
   }
 
   .cell-tap-hint {

@@ -517,12 +517,22 @@
           gameState.completedCells.push(targetIdx);
         }
 
+        if (data.pending_review) {
+          if (!gameState.pendingReviewCells) gameState.pendingReviewCells = [];
+          if (!gameState.pendingReviewCells.includes(targetIdx)) {
+            gameState.pendingReviewCells.push(targetIdx);
+          }
+        }
+
         if (!gameState.cellPhotos) gameState.cellPhotos = {};
         gameState.cellPhotos[targetIdx] = dataUrl;
 
         if (targetCell) {
           targetCell.classList.remove('verifying');
           targetCell.classList.add('completed');
+          if (data.pending_review) {
+            targetCell.classList.add('pending-review');
+          }
           targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
           const hint = targetCell.querySelector('.cell-tap-hint');
           if (hint) hint.textContent = '';
@@ -538,7 +548,11 @@
           onBingo(data);
         } else {
           saveSession();
-          showToast(`🎯 Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
+          if (data.pending_review) {
+            showToast(`⏳ Photo submitted! Marked as PENDING REVIEW for organizers.`, 'info', 4000);
+          } else {
+            showToast(`🎯 Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
+          }
         }
 
       } else {

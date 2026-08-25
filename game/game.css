@@ -747,6 +747,42 @@ body.game-page::before {
   100% { transform: rotate(360deg); }
 }
 
+/* ─── Cell Pending Review State (Amber Glow & Badge) ─── */
+.bingo-cell.pending-review {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.45) !important;
+}
+
+.cell-review-badge {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0b132b;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.5);
+  z-index: 5;
+}
+
+.cell-review-badge svg,
+.cell-review-badge i {
+  width: 11px;
+  height: 11px;
+  color: #0b132b;
+}
+
+.bingo-cell.pending-review .cell-done-badge {
+  display: none !important;
+}
+
+.bingo-cell.pending-review .cell-review-badge {
+  display: inline-flex !important;
+}
+
 /* ─── Cell Completed State (Translucent submitted photo background) ─── */
 .bingo-cell.completed {
   border-color: #22c55e !important;

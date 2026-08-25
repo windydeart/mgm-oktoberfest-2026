@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Challenge not found.' });
   }
 
-  // ─── AI Verification via Gemini 3.7 Flash Vision ───
+  // ─── AI Verification with 4.5s Timeout -> Fallback to Pending Manual Review ───
   const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
   const fallbackKey = Buffer.from('QVEuQWI4Uk42Skl5NldlWHZyMmJGSk9PUnE2UUR0c1VPN2hDaXpmRHRMa3VWSF9fQ1QzV2c=', 'base64').toString('utf-8');
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
@@ -90,15 +90,21 @@ module.exports = async (req, res) => {
     'gemini-flash-latest'
   ];
 
+  let ai_decision_made = false;
   let ai_verified = false;
+  let is_pending_review = false;
   let ai_reason = "Photo does not match the challenge requirement.";
 
-    for (const model of candidateModels) {
+  for (const model of candidateModels) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+
       const geminiRes = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           system_instruction: {
             parts: [{
@@ -123,15 +129,18 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
         })
       });
 
+      clearTimeout(timeoutId);
+
       if (geminiRes.ok) {
         const geminiData = await geminiRes.json();
         const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
           try {
             const result = JSON.parse(text);
+            ai_decision_made = true;
             ai_verified = result.approved === true;
             ai_reason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge.');
-            break; // Successfully evaluated by AI model!
+            break; // Clear AI verdict obtained!
           } catch (e) {
             console.error('Failed to parse AI JSON response:', e);
           }
@@ -141,8 +150,15 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
         console.warn(`Model ${model} returned status ${geminiRes.status}:`, errText);
       }
     } catch (err) {
-      console.error(`Model ${model} network error:`, err.message);
+      console.error(`Model ${model} evaluation error:`, err.message);
     }
+  }
+
+  // ─── If AI was unavailable or timed out (> 4.5s), fail-open to PENDING REVIEW ───
+  if (!ai_decision_made) {
+    ai_verified = true;
+    is_pending_review = true;
+    ai_reason = "Photo submitted. Under manual review by organizers.";
   }
 
   if (!ai_verified) {
@@ -196,18 +212,22 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
         rank = ranks.length || 1;
       }
       session.rank = rank;
-    } catch (dbErr) {
-      console.error('Database score record error:', dbErr);
+    } catch (e) {
+      console.error('Failed to record game score:', e);
     }
   }
 
-  const updatedToken = createToken(session);
+  const new_token = createToken(session);
 
   return res.status(200).json({
     verified: true,
+    pending_review: is_pending_review,
+    reason: ai_reason,
     cell_index,
-    session_token: updatedToken,
+    session_token: new_token,
     is_bingo,
-    ...(is_bingo && { bingo_line: bingoLine, elapsed_ms, rank })
+    bingo_line: bingoLine,
+    elapsed_ms,
+    rank
   });
 };

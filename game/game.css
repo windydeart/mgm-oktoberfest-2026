@@ -567,6 +567,7 @@ body.game-page::before {
   color: var(--text-gold);
 }
 
+.cell-cat-icon svg,
 .cell-cat-icon i {
   width: 13px;
   height: 13px;
@@ -587,6 +588,7 @@ body.game-page::before {
   z-index: 5;
 }
 
+.cell-done-badge svg,
 .cell-done-badge i {
   width: 11px;
   height: 11px;
@@ -618,16 +620,19 @@ body.game-page::before {
   justify-content: center;
 }
 
-/* 4x Larger Camera Icon */
+/* 4x Larger Camera Icon (Matching Lucide SVG) */
+.cell-cam-watermark svg,
 .cell-cam-watermark i {
-  width: 88px;
-  height: 88px;
+  width: 90px !important;
+  height: 90px !important;
+  stroke-width: 1.2px !important;
 }
 
 @media (min-width: 480px) {
+  .cell-cam-watermark svg,
   .cell-cam-watermark i {
-    width: 96px;
-    height: 96px;
+    width: 105px !important;
+    height: 105px !important;
   }
 }
 
@@ -1721,7 +1726,8 @@ body.game-page::before {
     height: 18px;
   }
 
-  .cell-cat-icon i {
+  .cell-cat-icon svg,
+.cell-cat-icon i {
     width: 11px;
     height: 11px;
   }
@@ -1736,9 +1742,10 @@ body.game-page::before {
     line-height: 1.22;
   }
 
+  .cell-cam-watermark svg,
   .cell-cam-watermark i {
-    width: 72px;
-    height: 72px;
+    width: 78px !important;
+    height: 78px !important;
   }
 
   .cell-tap-hint {

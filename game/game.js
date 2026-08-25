@@ -463,7 +463,51 @@
     els.cameraPreview.style.display = 'flex';
   }
 
-  async function submitPhoto() {
+    /* ═══════════════════════════════════════════════════════
+     PROMOTE CELL TO PENDING REVIEW (Organizers manual verify)
+     ═══════════════════════════════════════════════════════ */
+  function promoteToPendingReview(targetIdx, dataUrl, challenge) {
+    const targetCell = $$('.bingo-cell')[targetIdx];
+    if (!targetCell) return;
+
+    targetCell.classList.remove('verifying');
+    targetCell.classList.add('completed', 'pending-review');
+    targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
+    const hint = targetCell.querySelector('.cell-tap-hint');
+    if (hint) hint.textContent = '';
+
+    if (!gameState.completedCells.includes(targetIdx)) {
+      gameState.completedCells.push(targetIdx);
+    }
+    if (!gameState.pendingReviewCells) gameState.pendingReviewCells = [];
+    if (!gameState.pendingReviewCells.includes(targetIdx)) {
+      gameState.pendingReviewCells.push(targetIdx);
+    }
+    if (!gameState.cellPhotos) gameState.cellPhotos = {};
+    gameState.cellPhotos[targetIdx] = dataUrl;
+
+    if (window.lucide) window.lucide.createIcons();
+
+    // Check if this pending review cell achieves BINGO!
+    const bingoLine = checkBingo(gameState.completedCells);
+    if (bingoLine && gameState.status !== 'completed') {
+      const elapsedMs = Date.now() - (gameState.startedAt || Date.now());
+      const data = {
+        is_bingo: true,
+        bingo_line: bingoLine,
+        elapsed_ms: elapsedMs,
+        rank: gameState.rank || 1,
+        pending_review: true
+      };
+      saveSession();
+      onBingo(data);
+    } else {
+      saveSession();
+      showToast(`⏳ Photo submitted! Marked as PENDING REVIEW for organizers.`, 'info', 4000);
+    }
+  }
+
+    async function submitPhoto() {
     const dataUrl = els.previewImage.src;
     const base64 = dataUrl.split(',')[1];
     const targetIdx = currentCellIndex;
@@ -484,7 +528,17 @@
 
     showToast('Photo submitted! AI is verifying in background...', 'info', 2200);
 
-    // ─── 3. Background Asynchronous Verification (Player can shoot other cells) ───
+    let hasResolved = false;
+
+    // ─── 3. Automatic 5-Second Timer -> Fail-open to PENDING REVIEW ───
+    const fiveSecTimer = setTimeout(() => {
+      if (!hasResolved) {
+        hasResolved = true;
+        promoteToPendingReview(targetIdx, dataUrl, challenge);
+      }
+    }, 5000);
+
+    // ─── 4. Background Asynchronous Verification ───
     try {
       const res = await fetch(`${API_BASE}/submit-photo`, {
         method: 'POST',
@@ -501,81 +555,70 @@
       try {
         data = JSON.parse(rawText);
       } catch (parseErr) {
-        throw new Error('Server is currently processing. Please try again.');
+        data = { verified: true, pending_review: true };
       }
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Photo submission failed.');
-      }
+      if (!hasResolved) {
+        clearTimeout(fiveSecTimer);
+        hasResolved = true;
 
-      if (data.verified) {
-        if (data.session_token) {
-          gameState.sessionToken = data.session_token;
-        }
-
-        if (!gameState.completedCells.includes(targetIdx)) {
-          gameState.completedCells.push(targetIdx);
-        }
-
-        if (data.pending_review) {
-          if (!gameState.pendingReviewCells) gameState.pendingReviewCells = [];
-          if (!gameState.pendingReviewCells.includes(targetIdx)) {
-            gameState.pendingReviewCells.push(targetIdx);
+        if (data.verified) {
+          if (data.session_token) {
+            gameState.sessionToken = data.session_token;
           }
-        }
 
-        if (!gameState.cellPhotos) gameState.cellPhotos = {};
-        gameState.cellPhotos[targetIdx] = dataUrl;
-
-        if (targetCell) {
-          targetCell.classList.remove('verifying');
-          targetCell.classList.add('completed');
           if (data.pending_review) {
-            targetCell.classList.add('pending-review');
-          }
-          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
-          const hint = targetCell.querySelector('.cell-tap-hint');
-          if (hint) hint.textContent = '';
-          if (window.lucide) window.lucide.createIcons();
-        }
-
-        if (data.is_bingo) {
-          gameState.status = 'completed';
-          gameState.elapsedMs = data.elapsed_ms;
-          gameState.bingoLine = data.bingo_line;
-          gameState.rank = data.rank || 1;
-          saveSession();
-          onBingo(data);
-        } else {
-          saveSession();
-          if (data.pending_review) {
-            showToast(`⏳ Photo submitted! Marked as PENDING REVIEW for organizers.`, 'info', 4000);
+            promoteToPendingReview(targetIdx, dataUrl, challenge);
           } else {
-            showToast(`🎯 Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
-          }
-        }
+            // AI Approved directly
+            if (!gameState.completedCells.includes(targetIdx)) {
+              gameState.completedCells.push(targetIdx);
+            }
+            if (!gameState.cellPhotos) gameState.cellPhotos = {};
+            gameState.cellPhotos[targetIdx] = dataUrl;
 
-      } else {
-        // AI Rejected
-        if (targetCell) {
-          targetCell.classList.remove('verifying');
-          targetCell.style.backgroundImage = '';
-          const hint = targetCell.querySelector('.cell-tap-hint');
-          if (hint) hint.textContent = 'Tap to Snap';
-          if (window.lucide) window.lucide.createIcons();
+            if (targetCell) {
+              targetCell.classList.remove('verifying', 'pending-review');
+              targetCell.classList.add('completed');
+              targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
+              const hint = targetCell.querySelector('.cell-tap-hint');
+              if (hint) hint.textContent = '';
+              if (window.lucide) window.lucide.createIcons();
+            }
+
+            if (data.is_bingo) {
+              gameState.status = 'completed';
+              gameState.elapsedMs = data.elapsed_ms;
+              gameState.bingoLine = data.bingo_line;
+              gameState.rank = data.rank || 1;
+              saveSession();
+              onBingo(data);
+            } else {
+              saveSession();
+              showToast(`🎯 Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
+            }
+          }
+
+        } else {
+          // AI explicitly Rejected within 5s
+          if (targetCell) {
+            targetCell.classList.remove('verifying', 'pending-review');
+            targetCell.style.backgroundImage = '';
+            const hint = targetCell.querySelector('.cell-tap-hint');
+            if (hint) hint.textContent = 'Tap to Snap';
+            if (window.lucide) window.lucide.createIcons();
+          }
+          showToast(`❌ Photo not approved: ${data.reason || "Doesn't match challenge"}. Please try again!`, 'error', 5500);
         }
-        showToast(`❌ Photo not approved: ${data.reason || "Doesn't match challenge"}. Please try again!`, 'error', 5500);
       }
 
     } catch (err) {
-      if (targetCell) {
-        targetCell.classList.remove('verifying');
-        targetCell.style.backgroundImage = '';
-        const hint = targetCell.querySelector('.cell-tap-hint');
-        if (hint) hint.textContent = 'Tap to Snap';
-        if (window.lucide) window.lucide.createIcons();
+      if (!hasResolved) {
+        clearTimeout(fiveSecTimer);
+        hasResolved = true;
+        // Network error -> Promote to pending review instead of breaking game
+        promoteToPendingReview(targetIdx, dataUrl, challenge);
       }
-      showToast(err.message || 'Error verifying photo. Please try again.', 'error', 4000);
     }
   }
 

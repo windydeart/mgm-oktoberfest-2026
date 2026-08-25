@@ -751,6 +751,9 @@ body.game-page::before {
 .bingo-cell.pending-review {
   border-color: #f59e0b !important;
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.45) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  cursor: default !important;
 }
 
 .cell-review-badge {
@@ -779,8 +782,22 @@ body.game-page::before {
   display: none !important;
 }
 
+.bingo-cell.pending-review .cell-verifying-badge {
+  display: none !important;
+}
+
 .bingo-cell.pending-review .cell-review-badge {
   display: inline-flex !important;
+}
+
+.bingo-cell.pending-review .cell-cam-watermark {
+  opacity: 0 !important;
+}
+
+.bingo-cell.pending-review .cell-challenge-text {
+  color: #ffffff !important;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.98), 0 0 10px rgba(0, 0, 0, 0.95);
 }
 
 /* ─── Cell Completed State (Translucent submitted photo background) ─── */

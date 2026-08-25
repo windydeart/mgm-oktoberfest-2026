@@ -560,11 +560,35 @@
     els.victoryRank.textContent = `#${gameState.rank || 1}`;
     els.victoryLine.textContent = BINGO_LINE_NAMES[gameState.bingoLine] || gameState.bingoLine;
 
+    // ─── 1. Laser Light Cut across 3 Winning Cells ───
+    const lineKey = gameState.bingoLine || 'row-0';
+    const laser = $('#bingoLaserBeam');
+    if (laser) {
+      laser.className = `bingo-laser-beam laser-${lineKey}`;
+    }
+
+    // ─── 2. Spotlight Zoom on 3 cells & Dim rest of website ───
+    document.body.classList.add('celebrating-bingo');
+    const backdrop = $('#bingoCelebrationBackdrop');
+    if (backdrop) {
+      backdrop.classList.add('active');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // ─── 3. Continuous Fireworks Spectacle ───
+    fireFireworks(2600);
+
+    // ─── 4. Seamless transition back to gentle waving pulse & Victory Modal ───
     setTimeout(() => {
-      openModal(els.victoryModal);
-      fireConfetti();
-      loadSidebarLeaderboard();
-    }, 600);
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.classList.remove('celebrating-bingo');
+      if (laser) laser.className = 'bingo-laser-beam';
+
+      setTimeout(() => {
+        openModal(els.victoryModal);
+        loadSidebarLeaderboard();
+      }, 350);
+    }, 2800);
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -875,6 +899,42 @@
   /* ═══════════════════════════════════════════════════════
      CONFETTI CELEBRATION
      ═══════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════
+     CONTINUOUS FIREWORKS CELEBRATION
+     ═══════════════════════════════════════════════════════ */
+  function fireFireworks(duration = 2400) {
+    if (!window.confetti) return;
+    const end = Date.now() + duration;
+    const colors = ['#f59e0b', '#fbbf24', '#ffffff', '#0284c7', '#ec4899', '#10b981'];
+
+    (function frame() {
+      confetti({
+        particleCount: 7,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors: colors
+      });
+      confetti({
+        particleCount: 7,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors: colors
+      });
+      confetti({
+        particleCount: 10,
+        spread: 90,
+        origin: { x: 0.5, y: 0.3 },
+        colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+  }
+
   function fireConfetti() {
     if (!window.confetti) return;
     confetti({

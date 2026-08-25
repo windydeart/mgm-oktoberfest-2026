@@ -2010,3 +2010,209 @@ body.game-page::before {
   transform: translateY(-2px);
   box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
 }
+
+/* ═══════════════════════════════════════════════════════
+   CINEMATIC BINGO CELEBRATION & LASER SLICE
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── Laser Beam Slice across 3 cells ─── */
+.bingo-laser-beam {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2800;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
+  box-shadow: 0 0 25px #fbbf24, 0 0 50px #f59e0b, 0 0 80px rgba(251, 191, 36, 0.9);
+  border-radius: var(--radius-full);
+}
+
+/* Horizontal rows */
+.bingo-laser-beam.laser-row-0 {
+  top: calc(16.66% + 1.25rem);
+  left: 4%;
+  width: 92%;
+  height: 7px;
+  animation: laserSweepH 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.bingo-laser-beam.laser-row-1 {
+  top: 50%;
+  left: 4%;
+  width: 92%;
+  height: 7px;
+  animation: laserSweepH 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.bingo-laser-beam.laser-row-2 {
+  top: calc(83.33% - 1.25rem);
+  left: 4%;
+  width: 92%;
+  height: 7px;
+  animation: laserSweepH 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Vertical columns */
+.bingo-laser-beam.laser-col-0 {
+  left: calc(16.66% + 1.25rem);
+  top: 4%;
+  height: 92%;
+  width: 7px;
+  background: linear-gradient(180deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
+  animation: laserSweepV 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.bingo-laser-beam.laser-col-1 {
+  left: 50%;
+  top: 4%;
+  height: 92%;
+  width: 7px;
+  background: linear-gradient(180deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
+  animation: laserSweepV 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.bingo-laser-beam.laser-col-2 {
+  left: calc(83.33% - 1.25rem);
+  top: 4%;
+  height: 92%;
+  width: 7px;
+  background: linear-gradient(180deg, transparent, #ffffff 30%, #fbbf24 60%, #f59e0b 90%, transparent);
+  animation: laserSweepV 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Diagonals */
+.bingo-laser-beam.laser-diag-main {
+  top: 50%;
+  left: -8%;
+  width: 116%;
+  height: 7px;
+  transform: rotate(45deg);
+  animation: laserSweepDiagMain 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.bingo-laser-beam.laser-diag-anti {
+  top: 50%;
+  left: -8%;
+  width: 116%;
+  height: 7px;
+  transform: rotate(-45deg);
+  animation: laserSweepDiagAnti 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes laserSweepH {
+  0% { transform: scaleX(0); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes laserSweepV {
+  0% { transform: scaleY(0); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes laserSweepDiagMain {
+  0% { transform: rotate(45deg) scaleX(0); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: rotate(45deg) scaleX(1); opacity: 1; }
+}
+
+@keyframes laserSweepDiagAnti {
+  0% { transform: rotate(-45deg) scaleX(0); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: rotate(-45deg) scaleX(1); opacity: 1; }
+}
+
+/* ─── Spotlight Zoom & Whole Website Dimming ─── */
+body.celebrating-bingo .bingo-board-wrapper {
+  position: relative;
+  z-index: 2600;
+}
+
+body.celebrating-bingo .bingo-cell.bingo-line-cell {
+  transform: scale(1.14) !important;
+  box-shadow: 0 0 50px #fbbf24, 0 0 90px rgba(245, 158, 11, 0.9), inset 0 0 25px #fbbf24 !important;
+  border-color: #ffffff !important;
+  z-index: 2700 !important;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease !important;
+}
+
+body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
+  opacity: 0.3;
+  filter: grayscale(50%) blur(1.5px);
+  transform: scale(0.94);
+  transition: all 0.4s ease;
+}
+
+/* ─── Fullscreen Backdrop & BINGO! Splash ─── */
+.bingo-celebration-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 9, 20, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 5vh;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.bingo-celebration-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bingo-splash-content {
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+}
+
+.bingo-splash-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-gold);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 5px 18px;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.6rem;
+}
+
+.bingo-splash-text {
+  font-family: var(--font-heading);
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  line-height: 1;
+  text-shadow: 0 0 35px rgba(251, 191, 36, 0.85), 0 0 70px rgba(245, 158, 11, 0.65);
+  animation: bingoGrandEntrance 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.bingo-splash-sub {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  margin-top: 0.5rem;
+}
+
+@keyframes bingoGrandEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(40px) rotate(-8deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) translateY(-10px) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}

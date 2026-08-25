@@ -232,65 +232,7 @@ body.game-page::before {
   font-size: 0.95rem;
 }
 
-/* ─── DIGITAL STOPWATCH ─── */
-.game-timer {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 18px;
-  border-radius: var(--radius-full);
-  background: rgba(11, 19, 43, 0.85);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-  transition: all var(--transition-fast);
-}
 
-.timer-pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  transition: background var(--transition-fast);
-}
-
-.timer-icon {
-  width: 16px;
-  height: 16px;
-  color: var(--accent-amber);
-}
-
-.timer-display {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-gold);
-  letter-spacing: 1px;
-  min-width: 86px;
-  text-align: center;
-}
-
-.game-timer.timer-running {
-  border-color: var(--accent-amber);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
-  animation: timerPulse 2s ease-in-out infinite;
-}
-
-.game-timer.timer-running .timer-pulse-dot {
-  background: #22c55e;
-  box-shadow: 0 0 8px #22c55e;
-}
-
-.game-timer.timer-stopped {
-  border-color: #22c55e;
-  box-shadow: 0 0 18px rgba(34, 197, 94, 0.4);
-}
-
-.game-timer.timer-stopped .timer-display {
-  color: #4ade80;
-}
-
-@keyframes timerPulse {
-  0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.25); }
   50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
 }
 
@@ -1821,4 +1763,122 @@ body.game-page::before {
   0% { left: -120%; }
   35% { left: 140%; }
   100% { left: 140%; }
+}
+
+/* ─── DIGITAL STOPWATCH BELOW NAVBAR ─── */
+.game-timer-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0.6rem auto 1.2rem;
+}
+
+.timer-note-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  opacity: 0.85;
+}
+
+.game-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 24px;
+  border-radius: var(--radius-full);
+  background: rgba(11, 19, 43, 0.92);
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 158, 11, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.timer-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background var(--transition-fast);
+}
+
+.timer-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-amber);
+}
+
+.timer-display {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-gold);
+  letter-spacing: 1.5px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.game-timer.timer-running {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+  animation: timerPulse 2s ease-in-out infinite;
+}
+
+.game-timer.timer-running .timer-pulse-dot {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.game-timer.timer-stopped {
+  border-color: #22c55e;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.45);
+}
+
+.game-timer.timer-stopped .timer-display {
+  color: #4ade80;
+}
+
+/* ─── COLLAPSIBLE PRO TIPS ACCORDION ─── */
+.sidebar-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.accordion-chevron {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.sidebar-accordion-header:hover .accordion-chevron {
+  color: var(--text-gold);
+}
+
+.sidebar-accordion-header.active .accordion-chevron {
+  transform: rotate(180deg);
+  color: var(--text-gold);
+}
+
+.sidebar-accordion-content {
+  max-height: 250px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease;
+  opacity: 1;
+  margin-top: 0.75rem;
+}
+
+.sidebar-accordion-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  pointer-events: none;
 }

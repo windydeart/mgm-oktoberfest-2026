@@ -933,6 +933,16 @@
       if (e.target === els.leaderboardModal) closeModal(els.leaderboardModal);
     });
 
+    const proTipsToggleBtn = $('#proTipsToggleBtn');
+    const proTipsContent = $('#proTipsContent');
+    if (proTipsToggleBtn && proTipsContent) {
+      proTipsToggleBtn.addEventListener('click', () => {
+        const isCollapsed = proTipsContent.classList.toggle('collapsed');
+        proTipsToggleBtn.classList.toggle('active', !isCollapsed);
+        proTipsToggleBtn.setAttribute('aria-expanded', String(!isCollapsed));
+      });
+    }
+
     els.leaderboardTabs.addEventListener('click', (e) => {
       const tab = e.target.closest('.lb-filter-tab');
       if (!tab) return;

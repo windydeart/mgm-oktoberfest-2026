@@ -24,12 +24,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=35">
+  <link rel="stylesheet" href="/game/game.css?v=40">
 </head>
 <body class="dark-theme game-page">
 
   <!-- ═══════════════════════════════════════════════════════
-       GAME TOP NAVIGATION BAR
+       GAME TOP NAVIGATION BAR (Clean with Brand & Leaderboard)
        ═══════════════════════════════════════════════════════ -->
   <header class="game-header" id="gameHeader">
     <div class="game-header-container">
@@ -39,13 +39,6 @@
         <span class="brand-divider">|</span>
         <span class="game-brand-text"><span class="font-oktoberfest">Oktoberfest</span> <span class="year-highlight">2026</span></span>
       </a>
-
-      <!-- Digital Floating Stopwatch -->
-      <div class="game-timer" id="gameTimer" title="Game Stopwatch">
-        <div class="timer-pulse-dot"></div>
-        <i data-lucide="timer" class="timer-icon"></i>
-        <span class="timer-display" id="timerDisplay">00:00.00</span>
-      </div>
 
       <!-- Leaderboard Action Button -->
       <div class="game-nav-actions">
@@ -70,6 +63,16 @@
       <p class="game-arena-subtitle">
         Complete 3 challenges in any row, column, or diagonal to score <strong>BINGO!</strong>
       </p>
+
+      <!-- Timing Section (Moved below navbar with 'Your time' note) -->
+      <div class="game-timer-wrapper">
+        <span class="timer-note-label">Your time</span>
+        <div class="game-timer" id="gameTimer" title="Game Stopwatch">
+          <div class="timer-pulse-dot"></div>
+          <i data-lucide="timer" class="timer-icon"></i>
+          <span class="timer-display" id="timerDisplay">00:00.00</span>
+        </div>
+      </div>
 
       <!-- Live Player & Game Status Bar -->
       <div class="game-status-bar" id="gameStatusBar" style="display:none;">
@@ -266,12 +269,12 @@
         </div>
       </div>
 
-      <!-- Right Sidebar (Live Leaderboard Snippet & Tips) -->
+      <!-- Right Sidebar (Live Leaderboard & Collapsible Pro Tips) -->
       <aside class="game-sidebar">
         <!-- Live Quick Leaderboard Card with Winner Highlight -->
         <div class="sidebar-card glass-card">
           <div class="sidebar-card-header">
-            <h3 class="sidebar-card-title"><i data-lucide="trophy" class="gold-icon"></i> Top Champions</h3>
+            <h3 class="sidebar-card-title"><i data-lucide="trophy" class="gold-icon"></i> Leaderboard</h3>
             <button type="button" class="sidebar-view-all-btn" id="sidebarViewAllBtn">View All →</button>
           </div>
           <div class="sidebar-lb-list" id="sidebarLbList">
@@ -279,14 +282,19 @@
           </div>
         </div>
 
-        <!-- How to Play Quick Card -->
+        <!-- Collapsible Pro Tips Card -->
         <div class="sidebar-card glass-card rules-mini-card">
-          <h3 class="sidebar-card-title"><i data-lucide="info" class="blue-icon"></i> Pro Tips</h3>
-          <ul class="mini-tips-list">
-            <li><strong>Be Quick:</strong> Total time is recorded from start until you connect 3 in a row.</li>
-            <li><strong>Clear Photos:</strong> AI judges each photo — ensure good lighting and clear subject.</li>
-            <li><strong>Any Line Counts:</strong> Horizontal rows, vertical columns, or diagonals all score BINGO!</li>
-          </ul>
+          <button type="button" class="sidebar-accordion-header" id="proTipsToggleBtn" aria-expanded="false">
+            <h3 class="sidebar-card-title"><i data-lucide="info" class="blue-icon"></i> Pro Tips</h3>
+            <i data-lucide="chevron-down" class="accordion-chevron" id="proTipsChevron"></i>
+          </button>
+          <div class="sidebar-accordion-content collapsed" id="proTipsContent">
+            <ul class="mini-tips-list">
+              <li><strong>Be Quick:</strong> Total time is recorded from start until you connect 3 in a row.</li>
+              <li><strong>Clear Photos:</strong> AI judges each photo — ensure good lighting and clear subject.</li>
+              <li><strong>Any Line Counts:</strong> Horizontal rows, vertical columns, or diagonals all score BINGO!</li>
+            </ul>
+          </div>
         </div>
       </aside>
 
@@ -445,7 +453,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════
-       FULL LEADERBOARD MODAL (Clean & Consistent WINNER badge)
+       FULL LEADERBOARD MODAL
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="leaderboardModal">
     <div class="modal-content glass-card leaderboard-dialog">
@@ -492,6 +500,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=35"></script>
+  <script src="/game/game.js?v=40"></script>
 </body>
 </html>

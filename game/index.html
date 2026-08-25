@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=10">
+  <link rel="stylesheet" href="/game/game.css?v=20">
 </head>
 <body class="dark-theme game-page">
 
@@ -68,7 +68,7 @@
         <i data-lucide="sparkles"></i> PHOTO BINGO ARENA
       </div>
       <h1 class="game-arena-title">
-        Snap, Match & <span class="font-oktoberfest gold-gradient-text">Win!</span>
+        Snap, Match & <span class="gold-gradient-text">Win!</span>
       </h1>
       <p class="game-arena-subtitle">
         Complete 3 challenges in any row, column, or diagonal to score <strong>BINGO!</strong>
@@ -109,13 +109,13 @@
           <div class="game-welcome-overlay" id="gameWelcome">
             <div class="welcome-card glass-card">
               <div class="welcome-icon-glow">
-                <span class="welcome-icon">📸</span>
+                <i data-lucide="camera" class="welcome-lucide-camera"></i>
               </div>
               <h2 class="welcome-headline">
-                <span class="font-oktoberfest gold-gradient-text">Photo Bingo</span>
+                <span class="gold-gradient-text">Photo Bingo</span>
               </h2>
               <p class="welcome-description">
-                Grab your camera, find festive moments, and race the clock to dominate the Leaderboard!
+                Grab your camera, capture festive moments, and race the clock to dominate the Leaderboard!
               </p>
 
               <div class="welcome-rules-box">
@@ -147,59 +147,123 @@
 
           <!-- 3x3 Grid of 9 Bingo Cells -->
           <div class="bingo-board" id="bingoBoard">
+            <!-- 9 Cells dynamically generated / structured -->
             <div class="bingo-cell" data-cell="0">
-              <div class="cell-top-bar"><span class="cell-cat-pill">🍺 BEER</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="beer"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="1">
-              <div class="cell-top-bar"><span class="cell-cat-pill">🥨 FOOD</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="utensils"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="2">
-              <div class="cell-top-bar"><span class="cell-cat-pill">👗 OUTFIT</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="shirt"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="3">
-              <div class="cell-top-bar"><span class="cell-cat-pill">👤 PEOPLE</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="user"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="4">
-              <div class="cell-top-bar"><span class="cell-cat-pill">🎉 PARTY</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="party-popper"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="5">
-              <div class="cell-top-bar"><span class="cell-cat-pill">😂 FUNNY</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="smile"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="6">
-              <div class="cell-top-bar"><span class="cell-cat-pill">📍 VENUE</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="map-pin"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="7">
-              <div class="cell-top-bar"><span class="cell-cat-pill">🤝 TEAM</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="users"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
             <div class="bingo-cell" data-cell="8">
-              <div class="cell-top-bar"><span class="cell-cat-pill">🍺 BEER</span></div>
-              <span class="cell-icon">❓</span>
-              <p class="cell-text">Ready to play...</p>
-              <div class="cell-tap-hint"><i data-lucide="camera"></i> TAP TO SNAP</div>
+              <div class="cell-header">
+                <span class="cell-cat-icon"><i data-lucide="beer"></i></span>
+                <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
+              </div>
+              <div class="cell-body">
+                <div class="cell-cam-watermark"><i data-lucide="camera"></i></div>
+                <p class="cell-challenge-text">Ready to play...</p>
+              </div>
+              <div class="cell-footer">
+                <span class="cell-tap-hint">Tap to Snap</span>
+              </div>
             </div>
           </div>
 
@@ -223,8 +287,8 @@
         <div class="sidebar-card glass-card rules-mini-card">
           <h3 class="sidebar-card-title"><i data-lucide="info" class="blue-icon"></i> Pro Tips</h3>
           <ul class="mini-tips-list">
-            <li><strong>Be Quick:</strong> Your total time starts as soon as you enter the game arena.</li>
-            <li><strong>Clear Photos:</strong> AI judges every photo — make sure the subject is well lit and visible.</li>
+            <li><strong>Be Quick:</strong> Total time is recorded from start until you connect 3 in a row.</li>
+            <li><strong>Clear Photos:</strong> AI judges every photo — ensure good lighting and clear subject.</li>
             <li><strong>Any Line Counts:</strong> Horizontal rows, vertical columns, or diagonals all score BINGO!</li>
           </ul>
         </div>
@@ -243,8 +307,10 @@
         <i data-lucide="x"></i>
       </button>
 
-      <div class="modal-badge-icon">🎮</div>
-      <h2 class="modal-title font-oktoberfest gold-gradient-text">Ready to Play?</h2>
+      <div class="modal-badge-icon">
+        <i data-lucide="gamepad-2" class="modal-flat-icon"></i>
+      </div>
+      <h2 class="modal-title gold-gradient-text">Ready to Play?</h2>
       <p class="modal-subtitle">Enter your player name and select your event office</p>
 
       <form id="playerForm" class="player-form" autocomplete="off">
@@ -287,7 +353,7 @@
     <!-- Top Challenge Prompt Bar -->
     <div class="camera-top-bar">
       <div class="camera-challenge-badge">
-        <span class="camera-challenge-icon" id="cameraIcon">🍺</span>
+        <span class="camera-challenge-icon" id="cameraIcon"><i data-lucide="camera"></i></span>
         <div class="camera-challenge-details">
           <span class="camera-challenge-label">ACTIVE CHALLENGE:</span>
           <p class="camera-challenge-text" id="cameraChallenge">Loading challenge...</p>
@@ -338,7 +404,7 @@
 
     <!-- AI Result Banner Flash -->
     <div class="camera-result-flash" id="cameraResult" style="display:none;">
-      <div class="result-badge-icon" id="resultIcon">✅</div>
+      <div class="result-badge-icon" id="resultIcon"><i data-lucide="check-circle-2"></i></div>
       <h3 class="result-badge-title" id="resultText">Approved!</h3>
     </div>
 
@@ -350,8 +416,10 @@
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="victoryModal">
     <div class="modal-content glass-card victory-dialog">
-      <div class="victory-crown-glow">🏆</div>
-      <h2 class="victory-huge-title font-oktoberfest gold-gradient-text">BINGO!</h2>
+      <div class="victory-crown-glow">
+        <i data-lucide="trophy" class="victory-flat-trophy"></i>
+      </div>
+      <h2 class="victory-huge-title gold-gradient-text">BINGO!</h2>
       <p class="victory-cheer">Outstanding! You completed a winning line!</p>
 
       <div class="victory-metric-grid">
@@ -396,8 +464,8 @@
         <!-- Office Filter Tabs -->
         <div class="lb-tabs-container" id="leaderboardTabs">
           <button type="button" class="lb-filter-tab active" data-lb-location="all">All Offices</button>
-          <button type="button" class="lb-filter-tab" data-lb-location="danang">📍 Da Nang</button>
-          <button type="button" class="lb-filter-tab" data-lb-location="hcmc">📍 HCMC</button>
+          <button type="button" class="lb-filter-tab" data-lb-location="danang">Da Nang</button>
+          <button type="button" class="lb-filter-tab" data-lb-location="hcmc">HCMC</button>
         </div>
       </div>
 
@@ -417,7 +485,7 @@
         </table>
 
         <div class="lb-no-records" id="leaderboardEmpty" style="display:none;">
-          <div class="empty-trophy">🏆</div>
+          <div class="empty-trophy"><i data-lucide="trophy"></i></div>
           <p>No completions yet. Be the first Bavarian Champion!</p>
         </div>
       </div>
@@ -428,6 +496,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=10"></script>
+  <script src="/game/game.js?v=20"></script>
 </body>
 </html>

@@ -1,19 +1,30 @@
 /**
  * mgm Oktoberfest 2026 — Photo Bingo Mini-Game Engine
  * ══════════════════════════════════════════════════════
- * 100% English localization, luxury UI state management, camera capture,
- * AI challenge verification, live timer, and leaderboard synchronization.
+ * Flat icons, 3-element cell layout, frozen completion reload state,
+ * waving line highlights, camera capture, and anti-cheat timer.
  */
 
 (function () {
   'use strict';
 
-  /* ─── CONSTANTS ─── */
+  /* ─── CONSTANTS & FLAT ICON MAPPINGS ─── */
   const API_BASE = '/api/game';
   const BINGO_LINE_NAMES = {
     'row-0': 'Row 1 (Top)', 'row-1': 'Row 2 (Middle)', 'row-2': 'Row 3 (Bottom)',
     'col-0': 'Column 1 (Left)', 'col-1': 'Column 2 (Center)', 'col-2': 'Column 3 (Right)',
     'diag-main': 'Main Diagonal ↘', 'diag-anti': 'Anti-Diagonal ↙'
+  };
+
+  const CATEGORY_ICONS = {
+    'Beer': 'beer',
+    'Food': 'utensils',
+    'Outfit': 'shirt',
+    'People': 'user',
+    'Party': 'party-popper',
+    'Funny': 'smile',
+    'Around the Venue': 'map-pin',
+    'Team Building': 'users'
   };
 
   /* ─── GAME STATE ─── */
@@ -24,7 +35,7 @@
     location: 'danang',
     challenges: [],
     completedCells: [],
-    status: 'idle',
+    status: 'idle', // 'idle' | 'playing' | 'completed'
     startedAt: null,
     elapsedMs: null,
     bingoLine: null,
@@ -190,47 +201,63 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     BINGO BOARD RENDERING
+     BINGO BOARD RENDERING (Flat Icons + 3-element Layout)
      ═══════════════════════════════════════════════════════ */
   function renderBoard() {
     const cells = $$('.bingo-cell');
+    const winningIndices = gameState.bingoLine ? getBingoLineIndices(gameState.bingoLine) : [];
+
     cells.forEach((cell, i) => {
       const challenge = gameState.challenges[i];
-      if (!challenge) {
-        cell.querySelector('.cell-cat-pill').textContent = '🎯 BINGO';
-        cell.querySelector('.cell-icon').textContent = '❓';
-        cell.querySelector('.cell-text').textContent = 'Ready to play...';
-        cell.className = 'bingo-cell';
-        return;
+      if (!challenge) return;
+
+      const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
+      
+      // 1. Top row: Icon (left) and Done (right)
+      const iconSpan = cell.querySelector('.cell-cat-icon');
+      if (iconSpan) {
+        iconSpan.innerHTML = `<i data-lucide="${catIcon}"></i>`;
       }
 
-      cell.querySelector('.cell-cat-pill').textContent = `${challenge.icon || '🎯'} ${(challenge.category || 'CHALLENGE').toUpperCase()}`;
-      cell.querySelector('.cell-icon').textContent = challenge.icon || '🎯';
-      cell.querySelector('.cell-text').textContent = challenge.challenge;
+      // 2. Center: Challenge text
+      const textP = cell.querySelector('.cell-challenge-text');
+      if (textP) {
+        textP.textContent = challenge.challenge;
+      }
 
+      // 3. Completed State
       if (gameState.completedCells.includes(i)) {
         cell.classList.add('completed');
       } else {
         cell.classList.remove('completed');
       }
 
-      if (gameState.bingoLine) {
-        const lineIdx = getBingoLineIndices(gameState.bingoLine);
-        if (lineIdx && lineIdx.includes(i)) {
-          cell.classList.add('bingo-line-cell');
-        }
+      // 4. Winning Line Highlight (waving pulse)
+      if (winningIndices && winningIndices.includes(i)) {
+        cell.classList.add('bingo-line-cell');
+      } else {
+        cell.classList.remove('bingo-line-cell');
       }
     });
 
     // Update Status Bar
-    if (gameState.status === 'playing') {
+    if (gameState.status === 'playing' || gameState.status === 'completed') {
       els.gameStatusBar.style.display = 'inline-flex';
       els.statusPlayerName.textContent = gameState.playerName || 'Player';
       els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
       els.statusProgress.textContent = `${gameState.completedCells.length} / 9 Completed`;
+
+      if (gameState.status === 'completed') {
+        els.statusGoalPill.innerHTML = '<i data-lucide="trophy"></i> <span>BINGO Achieved!</span>';
+        els.statusGoalPill.style.color = 'var(--text-gold)';
+      } else {
+        els.statusGoalPill.innerHTML = '<i data-lucide="zap"></i> <span>Complete 3 in a line!</span>';
+      }
     } else {
       els.gameStatusBar.style.display = 'none';
     }
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   function getBingoLineIndices(lineKey) {
@@ -252,13 +279,18 @@
           cell.classList.add('revealed');
           const challenge = gameState.challenges[i];
           if (challenge) {
-            cell.querySelector('.cell-cat-pill').textContent = `${challenge.icon || '🎯'} ${(challenge.category || 'CHALLENGE').toUpperCase()}`;
-            cell.querySelector('.cell-icon').textContent = challenge.icon || '🎯';
-            cell.querySelector('.cell-text').textContent = challenge.challenge;
+            const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
+            const iconSpan = cell.querySelector('.cell-cat-icon');
+            if (iconSpan) iconSpan.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+            const textP = cell.querySelector('.cell-challenge-text');
+            if (textP) textP.textContent = challenge.challenge;
           }
         }, 150 + i * 120);
       });
-      setTimeout(resolve, 150 + 9 * 120 + 200);
+      setTimeout(() => {
+        if (window.lucide) window.lucide.createIcons();
+        resolve();
+      }, 150 + 9 * 120 + 200);
     });
   }
 
@@ -321,7 +353,7 @@
       await runRevealAnimation();
       renderBoard();
       startTimer();
-      showToast('Game started! Tap any challenge cell to photograph 📸', 'success');
+      showToast('Game started! Tap any cell to take a photo 📸', 'success');
 
     } catch (err) {
       showToast(err.message || 'Server connection error. Please try again.', 'error');
@@ -333,6 +365,10 @@
   }
 
   function onCellTap(cellIndex) {
+    if (gameState.status === 'completed') {
+      showToast('Game completed! Check out the Leaderboard 🏆', 'info');
+      return;
+    }
     if (gameState.status !== 'playing') {
       onStartGame();
       return;
@@ -345,8 +381,10 @@
     currentCellIndex = cellIndex;
     const challenge = gameState.challenges[cellIndex];
     if (challenge) {
-      els.cameraIcon.textContent = challenge.icon || '📸';
+      const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
+      els.cameraIcon.innerHTML = `<i data-lucide="${catIcon}"></i>`;
       els.cameraChallenge.textContent = challenge.challenge;
+      if (window.lucide) window.lucide.createIcons();
     }
 
     openCamera();
@@ -397,7 +435,6 @@
           gameState.sessionToken = data.session_token;
         }
 
-        els.resultIcon.textContent = '✅';
         els.resultText.textContent = 'Challenge Approved!';
         els.cameraResult.style.display = 'block';
         els.cameraResult.className = 'camera-result-flash result-success';
@@ -423,7 +460,6 @@
         }, 1100);
 
       } else {
-        els.resultIcon.textContent = '❌';
         els.resultText.textContent = data.reason || "Photo doesn't match the challenge. Please try again!";
         els.cameraResult.style.display = 'block';
         els.cameraResult.className = 'camera-result-flash result-fail';
@@ -448,6 +484,7 @@
     gameState.rank = data.rank || 1;
     saveSession();
 
+    // Freeze timer at final completion time
     stopTimer(data.elapsed_ms);
     renderBoard();
 
@@ -624,7 +661,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     SESSION PERSISTENCE & RECOVERY
+     SESSION PERSISTENCE & RELOAD RECOVERY (Request 4)
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
     try {
@@ -660,13 +697,23 @@
       gameState.challenges = data.challenges;
       gameState.startedAt = data.started_at;
       gameState.completedCells = data.completed_cells || [];
-      gameState.status = 'playing';
+      gameState.status = data.status || 'playing';
+      gameState.elapsedMs = data.elapsed_ms || null;
+      gameState.bingoLine = data.bingo_line || null;
+      gameState.rank = data.rank || null;
 
       els.gameWelcome.classList.add('hidden');
       renderBoard();
-      startTimer();
 
-      showToast('Previous active session restored! 🎮', 'success');
+      // IF COMPLETED: FREEZE THE TIMER AT FINAL TIME! DO NOT COUNT UP!
+      if (gameState.status === 'completed' && gameState.elapsedMs != null) {
+        stopTimer(gameState.elapsedMs);
+        showToast('Completed game state restored! 🏆', 'success');
+      } else {
+        startTimer();
+        showToast('Active game session restored! 🎮', 'success');
+      }
+
       return true;
 
     } catch (e) {
@@ -709,9 +756,8 @@
     $$('.bingo-cell').forEach(cell => {
       cell.className = 'bingo-cell';
       cell.style.backgroundImage = '';
-      cell.querySelector('.cell-cat-pill').textContent = '🎯 BINGO';
-      cell.querySelector('.cell-icon').textContent = '❓';
-      cell.querySelector('.cell-text').textContent = 'Ready to play...';
+      const textP = cell.querySelector('.cell-challenge-text');
+      if (textP) textP.textContent = 'Ready to play...';
     });
 
     els.gameWelcome.classList.remove('hidden');

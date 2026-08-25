@@ -17,6 +17,25 @@ function verifyToken(token) {
   }
 }
 
+function checkBingo(cells) {
+  const lines = [
+    { indices: [0, 1, 2], name: 'row-0' },
+    { indices: [3, 4, 5], name: 'row-1' },
+    { indices: [6, 7, 8], name: 'row-2' },
+    { indices: [0, 3, 6], name: 'col-0' },
+    { indices: [1, 4, 7], name: 'col-1' },
+    { indices: [2, 5, 8], name: 'col-2' },
+    { indices: [0, 4, 8], name: 'diag-main' },
+    { indices: [2, 4, 6], name: 'diag-anti' }
+  ];
+  for (const line of lines) {
+    if (line.indices.every(i => cells.includes(i))) {
+      return line.name;
+    }
+  }
+  return null;
+}
+
 function handleCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -37,6 +56,10 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Session not found or expired' });
   }
 
+  const completedCells = session.completed_cells || [];
+  const calculatedBingoLine = checkBingo(completedCells);
+  const isCompleted = session.status === 'completed' || calculatedBingoLine !== null;
+
   return res.status(200).json({
     success: true,
     session_id: session.session_id,
@@ -44,6 +67,10 @@ module.exports = async (req, res) => {
     location: session.location,
     challenges: session.challenges,
     started_at: session.started_at,
-    completed_cells: session.completed_cells || []
+    completed_cells: completedCells,
+    status: isCompleted ? 'completed' : 'playing',
+    elapsed_ms: session.elapsed_ms || null,
+    bingo_line: session.bingo_line || calculatedBingoLine,
+    rank: session.rank || null
   });
 };

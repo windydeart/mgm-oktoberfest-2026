@@ -135,6 +135,10 @@ module.exports = async (req, res) => {
     elapsed_ms = Date.now() - session.started_at;
     const duration_seconds = Math.max(1, Math.round(elapsed_ms / 10) / 100);
 
+    session.status = 'completed';
+    session.elapsed_ms = elapsed_ms;
+    session.bingo_line = bingoLine;
+
     // Record score to Supabase
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
@@ -161,6 +165,7 @@ module.exports = async (req, res) => {
         const ranks = await rankRes.json();
         rank = ranks.length || 1;
       }
+      session.rank = rank;
     } catch (dbErr) {
       console.error('Database score record error:', dbErr);
     }

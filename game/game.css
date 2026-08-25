@@ -43,7 +43,7 @@
   --bg-secondary: #16203d;
   --bg-tertiary: #1c2951;
   --card-bg: rgba(22, 32, 61, 0.85);
-  --card-border: rgba(245, 158, 11, 0.28);
+  --card-border: rgba(245, 158, 11, 0.35);
   --glass-bg: rgba(11, 19, 43, 0.88);
   --glass-border: rgba(255, 255, 255, 0.12);
 
@@ -57,14 +57,14 @@
   --mgm-red: #e11d48;
   --bavarian-blue: #0284c7;
 
-  --font-heading: 'Roboto', sans-serif;
-  --font-body: 'Roboto', sans-serif;
+  --font-heading: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-hero: 'Rengkoxpersonal', cursive, sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-xl: 26px;
   --radius-full: 9999px;
 
   --shadow-glow: 0 0 25px rgba(245, 158, 11, 0.35);
@@ -98,13 +98,12 @@ body.game-page {
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  /* Ambient atmospheric glow */
   background-image: 
     radial-gradient(ellipse 70% 40% at 50% 0%, rgba(245, 158, 11, 0.16), transparent 70%),
     radial-gradient(ellipse 50% 35% at 50% 100%, rgba(2, 132, 199, 0.12), transparent 70%);
 }
 
-/* Faint, elegant watermark texture (NOT aggressive checkerboard) */
+/* Faint, elegant watermark texture */
 body.game-page::before {
   content: '';
   position: fixed;
@@ -119,7 +118,7 @@ body.game-page::before {
   mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.1) 85%, transparent 100%);
 }
 
-/* ─── UTILITIES & TYPOGRAPHY ─── */
+/* ─── TYPOGRAPHY: RENGKOX IS STRICTLY ONLY FOR OKTOBERFEST ─── */
 .font-oktoberfest {
   font-family: var(--font-hero);
   font-weight: normal;
@@ -153,12 +152,12 @@ body.game-page::before {
 }
 
 .glass-card {
-  background: linear-gradient(145deg, rgba(22, 32, 61, 0.9), rgba(12, 20, 44, 0.95));
-  border: 1px solid var(--card-border);
+  background: linear-gradient(145deg, rgba(22, 32, 61, 0.92), rgba(12, 20, 44, 0.96));
+  border: 1.5px solid var(--card-border);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-xl);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.08);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.65), 0 0 25px rgba(245, 158, 11, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -170,10 +169,10 @@ body.game-page::before {
   left: 0;
   width: 100%;
   height: 68px;
-  background: rgba(11, 19, 43, 0.92);
+  background: rgba(11, 19, 43, 0.94);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.22);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
   z-index: 100;
 }
 
@@ -335,15 +334,15 @@ body.game-page::before {
   z-index: 1;
 }
 
-/* ─── ARENA HEADER ─── */
 .game-arena-header {
   text-align: center;
   margin-bottom: 1.8rem;
 }
 
 .game-arena-title {
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 2.3rem;
+  font-weight: 800;
   color: var(--text-main);
   margin-bottom: 0.4rem;
   line-height: 1.2;
@@ -363,10 +362,10 @@ body.game-page::before {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(11, 19, 43, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(11, 19, 43, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
-  padding: 6px 14px;
+  padding: 6px 16px;
 }
 
 .status-pill {
@@ -382,9 +381,7 @@ body.game-page::before {
   height: 14px;
 }
 
-.player-pill {
-  color: var(--text-main);
-}
+.player-pill { color: var(--text-main); }
 
 .status-loc-badge {
   font-size: 0.7rem;
@@ -395,13 +392,8 @@ body.game-page::before {
   border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
-.progress-pill {
-  color: #38bdf8;
-}
-
-.goal-pill {
-  color: var(--text-gold);
-}
+.progress-pill { color: #38bdf8; }
+.goal-pill { color: var(--text-gold); font-weight: 700; }
 
 /* ─── ARENA GRID & SIDEBAR ─── */
 .game-arena-layout {
@@ -420,7 +412,7 @@ body.game-page::before {
 }
 
 /* ═══════════════════════════════════════════════════════
-   BINGO BOARD FRAME & CELLS
+   BINGO BOARD & 9 DISTINCT CELLS
    ═══════════════════════════════════════════════════════ */
 .bingo-board-wrapper {
   width: 100%;
@@ -433,40 +425,43 @@ body.game-page::before {
   padding: 1.25rem;
   border-radius: var(--radius-xl);
   overflow: hidden;
+  background: rgba(11, 19, 43, 0.92);
+  border: 2px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(245, 158, 11, 0.1);
 }
 
-/* Decorative Corner Rivets */
+/* Corner Rivets */
 .frame-corner {
   position: absolute;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: linear-gradient(135deg, #fbbf24, #d97706);
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.7);
 }
 .corner-tl { top: 12px; left: 12px; }
 .corner-tr { top: 12px; right: 12px; }
 .corner-bl { bottom: 12px; left: 12px; }
 .corner-br { bottom: 12px; right: 12px; }
 
-/* ─── 3x3 BINGO GRID ─── */
+/* ─── 3x3 Grid ─── */
 .bingo-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   aspect-ratio: 1 / 1;
 }
 
+/* ─── 9 DISTINCT BINGO CELLS ─── */
 .bingo-cell {
-  background: linear-gradient(145deg, rgba(22, 32, 61, 0.92), rgba(12, 20, 44, 0.96));
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-md);
-  padding: 0.5rem;
+  background: linear-gradient(150deg, #192750 0%, #101b3b 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.38);
+  border-radius: 16px;
+  padding: 10px 10px 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: space-between;
   text-align: center;
   cursor: pointer;
@@ -475,88 +470,133 @@ body.game-page::before {
   transition: all var(--transition-normal);
   background-size: cover;
   background-position: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-}
-
-.bingo-cell::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-amber), var(--bavarian-blue));
-  opacity: 0.7;
-  transition: opacity var(--transition-fast);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .bingo-cell:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: #fbbf24;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.bingo-cell:hover::before {
-  opacity: 1;
-}
-
-.cell-top-bar {
+/* Top Row: Category Icon (Left) & Done Badge (Right) */
+.cell-header {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  min-height: 22px;
 }
 
-.cell-cat-pill {
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
+.cell-cat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.32);
   color: var(--text-gold);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  letter-spacing: 0.3px;
 }
 
-.cell-icon {
-  font-size: 1.6rem;
-  line-height: 1;
-  margin: 0.2rem 0;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+.cell-cat-icon i {
+  width: 13px;
+  height: 13px;
 }
 
-.cell-text {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-main);
-  line-height: 1.25;
+.cell-done-badge {
+  display: none; /* hidden until cell is completed */
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: #22c55e;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.5);
+  z-index: 5;
+}
+
+.cell-done-badge i {
+  width: 11px;
+  height: 11px;
+}
+
+/* Center Body: Camera Watermark + Challenge Text */
+.cell-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 6px 2px;
+  text-align: center;
+}
+
+.cell-cam-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.12;
+  color: var(--accent-amber);
+  pointer-events: none;
+  z-index: 0;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell-cam-watermark i {
+  width: 52px;
+  height: 52px;
+}
+
+.bingo-cell:hover .cell-cam-watermark {
+  opacity: 0.28;
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.cell-challenge-text {
+  position: relative;
+  z-index: 1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.3;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 @media (min-width: 480px) {
-  .cell-text {
-    font-size: 0.85rem;
+  .cell-challenge-text {
+    font-size: 0.9rem;
   }
 }
 
-.cell-tap-hint {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  opacity: 0.7;
-  letter-spacing: 0.3px;
+/* Bottom Footer: Muted Italic 'Tap to Snap' */
+.cell-footer {
+  width: 100%;
+  text-align: center;
+  margin-top: 2px;
 }
 
-.cell-tap-hint i {
-  width: 10px;
-  height: 10px;
+.cell-tap-hint {
+  font-size: 0.72rem;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.65;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
 }
 
 .bingo-cell:hover .cell-tap-hint {
@@ -571,30 +611,39 @@ body.game-page::before {
   background-color: rgba(20, 83, 45, 0.7);
 }
 
-.bingo-cell.completed::after {
-  content: '✓ DONE';
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-  background: #22c55e;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 800;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-  z-index: 5;
+.bingo-cell.completed .cell-done-badge {
+  display: inline-flex;
 }
 
-/* ─── Winning BINGO Line Cells ─── */
+.bingo-cell.completed .cell-tap-hint {
+  display: none;
+}
+
+/* ─── Winning BINGO Line Cells (Waving Synchronized Glow) ─── */
 .bingo-cell.bingo-line-cell {
   border-color: #fbbf24 !important;
-  animation: bingoGlow 1.5s ease-in-out infinite alternate !important;
+  background: linear-gradient(150deg, #25396e 0%, #15254f 100%) !important;
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.7), inset 0 0 15px rgba(251, 191, 36, 0.3) !important;
+  animation: bingoWaveGlow 1.8s ease-in-out infinite alternate !important;
+  z-index: 10;
 }
 
-@keyframes bingoGlow {
-  0% { transform: scale(1); box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
-  100% { transform: scale(1.04); box-shadow: 0 0 35px rgba(251, 191, 36, 0.95); }
+@keyframes bingoWaveGlow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.5), inset 0 0 8px rgba(251, 191, 36, 0.2);
+    border-color: #f59e0b;
+  }
+  50% {
+    transform: scale(1.04) translateY(-3px);
+    box-shadow: 0 0 35px rgba(251, 191, 36, 0.95), inset 0 0 18px rgba(251, 191, 36, 0.4);
+    border-color: #fbbf24;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.5), inset 0 0 8px rgba(251, 191, 36, 0.2);
+    border-color: #f59e0b;
+  }
 }
 
 /* ─── Card Reveal Animation ─── */
@@ -625,7 +674,7 @@ body.game-page::before {
   z-index: 50;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  background: rgba(11, 19, 43, 0.8);
+  background: rgba(11, 19, 43, 0.82);
   transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
@@ -643,13 +692,23 @@ body.game-page::before {
 }
 
 .welcome-icon-glow {
-  font-size: 3rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-lucide-camera {
+  width: 48px;
+  height: 48px;
+  color: var(--text-gold);
   filter: drop-shadow(0 4px 15px rgba(245, 158, 11, 0.5));
 }
 
 .welcome-headline {
-  font-size: 2.4rem;
+  font-family: var(--font-heading);
+  font-size: 2.3rem;
+  font-weight: 800;
   margin-bottom: 0.3rem;
   line-height: 1.1;
 }
@@ -934,13 +993,20 @@ body.game-page::before {
 }
 
 .modal-badge-icon {
-  font-size: 2.6rem;
   text-align: center;
   margin-bottom: 0.4rem;
 }
 
+.modal-flat-icon {
+  width: 44px;
+  height: 44px;
+  color: var(--text-gold);
+}
+
 .modal-title {
+  font-family: var(--font-heading);
   font-size: 2rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 0.3rem;
 }
@@ -1094,8 +1160,15 @@ body.game-page::before {
 }
 
 .camera-challenge-icon {
-  font-size: 1.6rem;
-  flex-shrink: 0;
+  color: var(--text-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-challenge-icon i {
+  width: 24px;
+  height: 24px;
 }
 
 .camera-challenge-label {
@@ -1287,8 +1360,15 @@ body.game-page::before {
 }
 
 .result-badge-icon {
-  font-size: 3rem;
   margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-badge-icon i {
+  width: 44px;
+  height: 44px;
 }
 
 .result-badge-title {
@@ -1297,8 +1377,8 @@ body.game-page::before {
   color: #fff;
 }
 
-.camera-result-flash.result-success { border-color: #22c55e; }
-.camera-result-flash.result-fail { border-color: #e11d48; }
+.camera-result-flash.result-success { border-color: #22c55e; color: #4ade80; }
+.camera-result-flash.result-fail { border-color: #e11d48; color: #fb7185; }
 
 @keyframes resultPop {
   from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
@@ -1313,9 +1393,18 @@ body.game-page::before {
 }
 
 .victory-crown-glow {
-  font-size: 3.8rem;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: crownBounce 1s ease infinite alternate;
+}
+
+.victory-flat-trophy {
+  width: 60px;
+  height: 60px;
+  color: var(--text-gold);
+  filter: drop-shadow(0 4px 18px rgba(245, 158, 11, 0.6));
 }
 
 @keyframes crownBounce {
@@ -1324,8 +1413,11 @@ body.game-page::before {
 }
 
 .victory-huge-title {
-  font-size: 4rem;
+  font-family: var(--font-heading);
+  font-size: 3.8rem;
+  font-weight: 900;
   line-height: 1;
+  letter-spacing: 1px;
   margin-bottom: 0.3rem;
 }
 
@@ -1468,9 +1560,17 @@ body.game-page::before {
 }
 
 .empty-trophy {
-  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 0.5rem;
   opacity: 0.5;
+}
+
+.empty-trophy i {
+  width: 40px;
+  height: 40px;
+  color: var(--text-gold);
 }
 
 /* ═══════════════════════════════════════════════════════

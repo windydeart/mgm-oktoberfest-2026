@@ -10,6 +10,8 @@
 
   /* ─── CONSTANTS & FLAT ICON MAPPINGS ─── */
   const API_BASE = '/api/game';
+  const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
   const BINGO_LINE_NAMES = {
     'row-0': 'Row 1 (Top)', 'row-1': 'Row 2 (Middle)', 'row-2': 'Row 3 (Bottom)',
     'col-0': 'Column 1 (Left)', 'col-1': 'Column 2 (Center)', 'col-2': 'Column 3 (Right)',
@@ -807,12 +809,55 @@
 
     requestAnimationFrame(animateSlash);
   }
+    async function recordBingoScore() {
+    if (!gameState.playerName || !gameState.elapsedMs) return;
+    const duration_seconds = Math.max(1, Math.round(gameState.elapsedMs / 10) / 100);
+    try {
+      // Check if this score is already recorded
+      const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(gameState.playerName)}&office=eq.${gameState.location}&duration_seconds=eq.${duration_seconds}&select=id`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      if (checkRes.ok) {
+        const existing = await checkRes.json();
+        if (existing && existing.length > 0) {
+          loadSidebarLeaderboard();
+          return;
+        }
+      }
+
+      // Record score to Supabase
+      await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          player_name: gameState.playerName,
+          office: gameState.location,
+          game_name: 'photo_bingo',
+          score: 1,
+          duration_seconds: duration_seconds
+        })
+      });
+
+      loadSidebarLeaderboard();
+      if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+        renderLeaderboard(currentLbLocation);
+      }
+    } catch (e) {
+      console.warn('Score recording fallback error:', e);
+    }
+  }
+
   function onBingo(data) {
     gameState.status = 'completed';
     gameState.elapsedMs = data.elapsed_ms || (Date.now() - (gameState.startedAt || Date.now()));
     gameState.bingoLine = data.bingo_line || checkBingo(gameState.completedCells);
     gameState.rank = data.rank || 1;
     saveSession();
+    recordBingoScore();
 
     // Freeze timer immediately at final completion time
     stopTimer(gameState.elapsedMs);

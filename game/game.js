@@ -264,6 +264,7 @@
 
       // 3. Completed State & Translucent Photo Background
       if (gameState.completedCells.includes(i)) {
+        cell.classList.remove('cell-locked');
         cell.classList.add('completed');
         if (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(i)) {
           cell.classList.add('pending-review');
@@ -279,6 +280,15 @@
       } else {
         cell.classList.remove('completed', 'pending-review');
         cell.style.backgroundImage = '';
+        if (gameState.status === 'completed') {
+          cell.classList.add('cell-locked');
+          const hint = cell.querySelector('.cell-tap-hint');
+          if (hint) hint.textContent = '🔒 Locked';
+        } else {
+          cell.classList.remove('cell-locked');
+          const hint = cell.querySelector('.cell-tap-hint');
+          if (hint) hint.textContent = 'Tap to Snap';
+        }
       }
 
       // 4. Winning Line Highlight (waving pulse)
@@ -413,9 +423,15 @@
       return;
     }
 
-    // If cell is already completed or pending review -> Open Photo Detail & Review Modal!
+    // If cell is already completed or in-review -> Open Photo Detail & Review Modal!
     if (gameState.completedCells.includes(cellIndex)) {
       openPhotoReview(cellIndex);
+      return;
+    }
+
+    // If game is completed (Bingo achieved), lock non-completed cells from taking new photos!
+    if (gameState.status === 'completed') {
+      showToast('Game finished! You already achieved BINGO! 🏆', 'info', 3000);
       return;
     }
 

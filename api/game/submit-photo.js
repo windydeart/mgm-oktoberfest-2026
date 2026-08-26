@@ -99,6 +99,10 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Session expired or invalid. Please refresh and play again.' });
   }
 
+  if (session.status === 'completed' || checkBingo(session.completed_cells || []) !== null) {
+    return res.status(400).json({ error: 'Game is already completed! BINGO achieved.' });
+  }
+
   if (typeof cell_index !== 'number' || cell_index < 0 || cell_index > 8 || !photo_base64) {
     return res.status(400).json({ error: 'Invalid parameters.' });
   }

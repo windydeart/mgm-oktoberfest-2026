@@ -124,6 +124,11 @@
     els.sidebarLbList = $('#sidebarLbList');
     els.sidebarViewAllBtn = $('#sidebarViewAllBtn');
 
+    // Photo Detail & Review Modal
+    els.photoReviewModal = $('#photoReviewModal');
+    els.closePhotoReviewBtn = $('#closePhotoReviewBtn');
+    els.photoReviewCloseBtn = $('#photoReviewCloseBtn');
+
     // Toast Container
     els.toastContainer = $('#gameToastContainer');
   }
@@ -1330,6 +1335,49 @@
     els.closeLeaderboardBtn.addEventListener('click', () => closeModal(els.leaderboardModal));
     els.leaderboardModal.addEventListener('click', (e) => {
       if (e.target === els.leaderboardModal) closeModal(els.leaderboardModal);
+    });
+
+    // Photo Review Modal Close Bindings
+    if (els.closePhotoReviewBtn) {
+      els.closePhotoReviewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal(els.photoReviewModal);
+      });
+    }
+
+    if (els.photoReviewCloseBtn) {
+      els.photoReviewCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal(els.photoReviewModal);
+      });
+    }
+
+    if (els.photoReviewModal) {
+      els.photoReviewModal.addEventListener('click', (e) => {
+        if (e.target === els.photoReviewModal) {
+          closeModal(els.photoReviewModal);
+        }
+      });
+    }
+
+    // Global Delegated Click & Escape Key Handler for modal closing
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#closePhotoReviewBtn') || e.target.closest('#photoReviewCloseBtn')) {
+        closeModal(els.photoReviewModal);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        if (els.photoReviewModal && els.photoReviewModal.classList.contains('active')) {
+          closeModal(els.photoReviewModal);
+        }
+        if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+          closeModal(els.leaderboardModal);
+        }
+      }
     });
 
     // Collapsible Sidebar Leaderboard Accordion

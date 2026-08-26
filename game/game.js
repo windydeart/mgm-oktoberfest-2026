@@ -456,7 +456,7 @@
     if (isPending) {
       if (pill) {
         pill.className = 'photo-review-status-pill status-pending';
-        pill.innerHTML = '<i data-lucide="clock"></i> <span>PENDING REVIEW</span>';
+        pill.innerHTML = '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
       }
       if (statusText) {
         statusText.textContent = 'This submission is queued for manual verification by the Organizing Committee.';
@@ -514,7 +514,7 @@
   }
 
     /* ═══════════════════════════════════════════════════════
-     PROMOTE CELL TO PENDING REVIEW (Organizers manual verify)
+     PROMOTE CELL TO IN REVIEW (Organizers manual verify)
      ═══════════════════════════════════════════════════════ */
   function promoteToPendingReview(targetIdx, dataUrl, challenge) {
     const targetCell = $$('.bingo-cell')[targetIdx];
@@ -553,7 +553,7 @@
       onBingo(data);
     } else {
       saveSession();
-      showToast(`⏳ Photo submitted! Marked as PENDING REVIEW for organizers.`, 'info', 4000);
+      showToast(`⏳ Photo submitted! Marked as IN REVIEW for organizers.`, 'info', 4000);
     }
   }
 
@@ -580,7 +580,7 @@
 
     let hasResolved = false;
 
-    // ─── 3. Automatic 4-Second Timer -> Fail-open to PENDING REVIEW ───
+    // ─── 3. Automatic 4-Second Timer -> Fail-open to IN REVIEW ───
     const fallbackTimer = setTimeout(() => {
       if (!hasResolved) {
         hasResolved = true;
@@ -627,7 +627,7 @@
             gameState.pendingReviewCells = gameState.pendingReviewCells.filter(id => id !== targetIdx);
           }
           if (!gameState.cellPhotos) gameState.cellPhotos = {};
-          gameState.cellPhotos[targetIdx] = dataUrl;
+          gameState.cellPhotos[targetIdx] = data.photo_url || dataUrl;
 
           if (targetCell) {
             targetCell.classList.remove('verifying', 'pending-review');
@@ -1001,6 +1001,7 @@
         location: gameState.location,
         challenges: gameState.challenges,
         completedCells: gameState.completedCells,
+        pendingReviewCells: gameState.pendingReviewCells || [],
         cellPhotos: gameState.cellPhotos || {},
         status: gameState.status,
         startedAt: gameState.startedAt,
@@ -1097,7 +1098,13 @@
         ...(gameState.pendingReviewCells || [])
       ]));
 
-      const cellPhotos = Object.assign({}, localState && localState.cellPhotos ? localState.cellPhotos : {}, gameState.cellPhotos || {});
+      // Server photo URLs take priority, then local photos as fallback
+      const serverPhotos = data.cell_photo_urls || {};
+      const localPhotos = Object.assign({}, localState && localState.cellPhotos ? localState.cellPhotos : {}, gameState.cellPhotos || {});
+      const cellPhotos = {};
+      for (const idx of completedCells) {
+        cellPhotos[idx] = serverPhotos[idx] || localPhotos[idx] || null;
+      }
 
       gameState.sessionId = data.session_id;
       gameState.playerName = data.player_name;

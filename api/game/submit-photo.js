@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || Buffer.from('c2Jfc2VjcmV0Xzd3NkZHN2xGTm5tQW5IZVQyTkRKX1FfMm9uTG1iamo=', 'base64').toString('utf-8');
+const STORAGE_BUCKET = 'game-photos';
 
 function verifyToken(token) {
   if (!token || typeof token !== 'string') return null;
@@ -51,6 +53,40 @@ function handleCors(req, res) {
   return true;
 }
 
+async function uploadPhotoToStorage(base64Data, sessionId, cellIndex) {
+  const storageKey = SUPABASE_SECRET_KEY || SUPABASE_KEY;
+  const fileName = `${sessionId}/cell_${cellIndex}_${Date.now()}.jpg`;
+  const binaryData = Buffer.from(base64Data, 'base64');
+
+  try {
+    const uploadRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${fileName}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': storageKey,
+          'Authorization': `Bearer ${storageKey}`,
+          'Content-Type': 'image/jpeg',
+          'x-upsert': 'true'
+        },
+        body: binaryData
+      }
+    );
+
+    if (uploadRes.ok) {
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${fileName}`;
+      return publicUrl;
+    } else {
+      const errText = await uploadRes.text();
+      console.error('Storage upload failed:', uploadRes.status, errText);
+      return null;
+    }
+  } catch (err) {
+    console.error('Storage upload error:', err.message);
+    return null;
+  }
+}
+
 module.exports = async (req, res) => {
   handleCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -77,7 +113,7 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Challenge not found.' });
   }
 
-  // ─── AI Verification with 4.5s Timeout -> Fallback to Pending Manual Review ───
+  // ─── AI Verification with 4.5s Timeout -> Fallback to IN REVIEW ───
   const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
   const fallbackKey = Buffer.from('QVEuQWI4Uk42Skl5NldlWHZyMmJGSk9PUnE2UUR0c1VPN2hDaXpmRHRMa3VWSF9fQ1QzV2c=', 'base64').toString('utf-8');
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
@@ -94,6 +130,9 @@ module.exports = async (req, res) => {
   let ai_verified = false;
   let is_pending_review = false;
   let ai_reason = "Photo does not match the challenge requirement.";
+
+  // Run AI check and photo upload concurrently for speed
+  const photoUploadPromise = uploadPhotoToStorage(base64Data, session.session_id, cell_index);
 
   for (const model of candidateModels) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -140,7 +179,7 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
             ai_decision_made = true;
             ai_verified = result.approved === true;
             ai_reason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge.');
-            break; // Clear AI verdict obtained!
+            break;
           } catch (e) {
             console.error('Failed to parse AI JSON response:', e);
           }
@@ -154,18 +193,20 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     }
   }
 
-  // ─── If AI approved with confidence -> DONE (verified). Otherwise -> PENDING REVIEW ───
+  // Wait for photo upload to complete
+  const photoUrl = await photoUploadPromise;
+
+  // ─── If AI approved with confidence -> DONE. Otherwise -> IN REVIEW ───
   if (ai_decision_made && ai_verified) {
     is_pending_review = false;
     ai_reason = ai_reason || "Challenge Approved!";
   } else {
-    // Non-approved, unconfident, or timed out photos automatically enter PENDING REVIEW for organizers
     ai_verified = true;
     is_pending_review = true;
-    ai_reason = ai_reason || "Photo submitted. Under manual review by organizers.";
+    ai_reason = ai_reason || "Photo submitted. Under review by organizers.";
   }
 
-  // Update completed cells & pending review cells
+  // Update completed cells & in-review cells
   if (!completedCells.includes(cell_index)) {
     completedCells.push(cell_index);
   }
@@ -176,6 +217,12 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     if (!session.pending_review_cells.includes(cell_index)) {
       session.pending_review_cells.push(cell_index);
     }
+  }
+
+  // Save photo URL in session token for persistence
+  session.cell_photo_urls = session.cell_photo_urls || {};
+  if (photoUrl) {
+    session.cell_photo_urls[cell_index] = photoUrl;
   }
 
   const bingoLine = checkBingo(completedCells);
@@ -191,7 +238,6 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     session.elapsed_ms = elapsed_ms;
     session.bingo_line = bingoLine;
 
-    // Record score to Supabase
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
         method: 'POST',
@@ -209,7 +255,6 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
         })
       });
 
-      // Calculate rank
       const rankRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&office=eq.${session.location}&duration_seconds=lte.${duration_seconds}&select=id`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
@@ -229,6 +274,7 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     verified: true,
     pending_review: is_pending_review,
     reason: ai_reason,
+    photo_url: photoUrl || null,
     cell_index,
     session_token: new_token,
     is_bingo,

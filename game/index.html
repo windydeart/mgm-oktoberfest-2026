@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=255">
+  <link rel="stylesheet" href="/game/game.css?v=260">
 </head>
 <body class="dark-theme game-page">
 
@@ -63,30 +63,34 @@
         Complete 3 challenges in any row, column, or diagonal to score <strong>BINGO!</strong>
       </p>
 
-      <!-- Timing Section (Moved below navbar with 'Your time' note) -->
+      <!-- Timing & User Section -->
       <div class="game-timer-wrapper">
-        <span class="timer-note-label">Your time</span>
+        <!-- User Info Line (Above Timer) -->
+        <div class="header-user-line" id="headerUserLine" style="display:none;">
+          <div class="timer-pulse-dot" id="headerPulseDot"></div>
+          <span class="header-player-name" id="statusPlayerName">Player</span>
+          <span class="status-loc-badge" id="statusLocation">Da Nang</span>
+        </div>
+
+        <!-- Clean Timer Display -->
         <div class="game-timer" id="gameTimer" title="Game Stopwatch">
-          <div class="timer-pulse-dot"></div>
-          <i data-lucide="timer" class="timer-icon"></i>
           <span class="timer-display" id="timerDisplay">00:00.00</span>
         </div>
       </div>
 
-      <!-- Live Player & Game Status Bar -->
+      <!-- Live Game Status Bar (3 Elements: Rank, Completed, Bingo) -->
       <div class="game-status-bar" id="gameStatusBar" style="display:none;">
-        <div class="status-pill player-pill">
-          <i data-lucide="user"></i>
-          <span id="statusPlayerName">Player</span>
-          <span class="status-loc-badge" id="statusLocation">Da Nang</span>
+        <div class="status-pill rank-pill" id="statusRankPill">
+          <i data-lucide="trophy"></i>
+          <span id="statusRankText">Rank #--</span>
         </div>
-        <div class="status-pill progress-pill">
+        <div class="status-pill progress-pill" id="statusProgressPill">
           <i data-lucide="target"></i>
           <span id="statusProgress">0 / 9 Completed</span>
         </div>
-        <div class="status-pill goal-pill" id="statusGoalPill">
-          <i data-lucide="zap"></i>
-          <span>Complete 3 in a line!</span>
+        <div class="status-pill goal-pill" id="statusGoalPill" style="display:none;">
+          <i data-lucide="award"></i>
+          <span id="statusGoalText">BINGO Achieved!</span>
         </div>
       </div>
     </div>
@@ -632,6 +636,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=255"></script>
+  <script src="/game/game.js?v=260"></script>
 </body>
 </html>

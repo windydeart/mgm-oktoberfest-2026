@@ -65,12 +65,18 @@
     els.startGameBtn = $('#startGameBtn');
     els.welcomeLeaderboardBtn = $('#welcomeLeaderboardBtn');
 
-    // Status bar
+    // Status bar & User header
+    els.headerUserLine = $('#headerUserLine');
+    els.headerPulseDot = $('#headerPulseDot');
     els.gameStatusBar = $('#gameStatusBar');
     els.statusPlayerName = $('#statusPlayerName');
     els.statusLocation = $('#statusLocation');
+    els.statusRankPill = $('#statusRankPill');
+    els.statusRankText = $('#statusRankText');
+    els.statusProgressPill = $('#statusProgressPill');
     els.statusProgress = $('#statusProgress');
     els.statusGoalPill = $('#statusGoalPill');
+    els.statusGoalText = $('#statusGoalText');
 
     // Player Registration Modal
     els.playerModal = $('#playerModal');
@@ -308,21 +314,28 @@
       }
     });
 
-    // Update Status Bar
+    // Update Status Bar & User Header Line
     if (gameState.status === 'playing' || gameState.status === 'completed') {
-      els.gameStatusBar.style.display = 'inline-flex';
-      els.statusPlayerName.textContent = gameState.playerName || 'Player';
-      els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
-      els.statusProgress.textContent = `${gameState.completedCells.length} / 9 Completed`;
+      if (els.headerUserLine) els.headerUserLine.style.display = 'inline-flex';
+      if (els.gameStatusBar) els.gameStatusBar.style.display = 'inline-flex';
+      if (els.statusPlayerName) els.statusPlayerName.textContent = gameState.playerName || 'Player';
+      if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
+      if (els.statusProgress) els.statusProgress.textContent = `${gameState.completedCells.length} / 9 Completed`;
 
-      if (gameState.status === 'completed') {
-        els.statusGoalPill.innerHTML = '<i data-lucide="trophy"></i> <span>BINGO Achieved!</span>';
-        els.statusGoalPill.style.color = 'var(--text-gold)';
-      } else {
-        els.statusGoalPill.innerHTML = '<i data-lucide="zap"></i> <span>Complete 3 in a line!</span>';
+      const rankStr = gameState.rank ? `#${gameState.rank}` : (gameState.status === 'completed' ? '#1' : '#--');
+      if (els.statusRankText) els.statusRankText.textContent = `Rank ${rankStr}`;
+
+      if (els.statusGoalPill) {
+        if (gameState.status === 'completed') {
+          els.statusGoalPill.style.display = 'inline-flex';
+          if (els.statusGoalText) els.statusGoalText.textContent = 'BINGO Achieved!';
+        } else {
+          els.statusGoalPill.style.display = 'none';
+        }
       }
     } else {
-      els.gameStatusBar.style.display = 'none';
+      if (els.headerUserLine) els.headerUserLine.style.display = 'none';
+      if (els.gameStatusBar) els.gameStatusBar.style.display = 'none';
     }
 
     if (window.lucide) window.lucide.createIcons();
@@ -984,7 +997,7 @@
     top10.forEach((entry, i) => {
       const rank = i + 1;
       const isTop1 = rank === 1;
-      const medal = isTop1 ? '👑 #1' : rank === 2 ? '🥈 #2' : rank === 3 ? '🥉 #3' : `#${rank}`;
+      const medal = isTop1 ? '👑 #1' : `#${rank}`;
       const isMe = entry.player_name === gameState.playerName &&
                     entry.location === gameState.location &&
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
@@ -995,7 +1008,7 @@
 
       tr.innerHTML = `
         <td class="lb-rank">
-          ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700; color:${rank<=3?'var(--text-gold)':'inherit'}">${medal}</span>`}
+          ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
         </td>
         <td class="lb-name">
           <div class="lb-player-with-prize">
@@ -1023,10 +1036,20 @@
       return;
     }
 
+    // Update live rank for current user if found in leaderboard
+    if (gameState.playerName) {
+      const myIdx = entries.findIndex(e => e.player_name === gameState.playerName && e.location === gameState.location);
+      if (myIdx !== -1) {
+        gameState.rank = myIdx + 1;
+        if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
+      }
+    }
+
     const top10 = entries.slice(0, 10);
     els.sidebarLbList.innerHTML = top10.map((entry, idx) => {
-      const isWinner = idx === 0;
-      const medal = isWinner ? '👑 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx+1}`;
+      const rank = idx + 1;
+      const isWinner = rank === 1;
+      const medal = isWinner ? '👑 #1' : `#${rank}`;
       const isMe = entry.player_name === gameState.playerName &&
                     entry.location === gameState.location &&
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;

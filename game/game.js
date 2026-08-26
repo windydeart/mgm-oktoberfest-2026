@@ -387,9 +387,90 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     LIVE REAL-TIME NAME AVAILABILITY CHECKER
+     ═══════════════════════════════════════════════════════ */
+  let nameCheckDebounceTimer = null;
+  let isCurrentNameTaken = false;
+
+  async function checkNameAvailability(name) {
+    const trimmed = (name || '').trim();
+    if (trimmed.length < 2) {
+      isCurrentNameTaken = false;
+      if (els.playerNameStatusHint) {
+        els.playerNameStatusHint.style.display = 'none';
+        els.playerNameStatusHint.className = 'name-status-hint';
+        els.playerNameStatusHint.textContent = '';
+      }
+      if (els.playerName) {
+        els.playerName.classList.remove('input-status-taken', 'input-status-available');
+      }
+      return;
+    }
+
+    if (els.playerNameStatusHint) {
+      els.playerNameStatusHint.style.display = 'flex';
+      els.playerNameStatusHint.className = 'name-status-hint status-checking';
+      els.playerNameStatusHint.innerHTML = '<span class="spinner-small" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span> Checking availability...';
+    }
+
+    try {
+      const sbUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=ilike.${encodeURIComponent(trimmed)}&select=id,player_name&limit=1`;
+      const res = await fetch(sbUrl, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
+
+      if (els.playerName && els.playerName.value.trim() !== trimmed) return;
+
+      if (res.ok) {
+        const records = await res.json();
+        const isTaken = records && records.length > 0;
+
+        if (isTaken) {
+          isCurrentNameTaken = true;
+          if (els.playerNameStatusHint) {
+            els.playerNameStatusHint.style.display = 'flex';
+            els.playerNameStatusHint.className = 'name-status-hint status-taken';
+            els.playerNameStatusHint.innerHTML = '<i data-lucide="x-circle"></i> <span>Name already taken. Please choose another name.</span>';
+          }
+          if (els.playerName) {
+            els.playerName.classList.add('input-status-taken');
+            els.playerName.classList.remove('input-status-available');
+          }
+        } else {
+          isCurrentNameTaken = false;
+          if (els.playerNameStatusHint) {
+            els.playerNameStatusHint.style.display = 'flex';
+            els.playerNameStatusHint.className = 'name-status-hint status-available';
+            els.playerNameStatusHint.innerHTML = '<i data-lucide="check-circle-2"></i> <span>Name is available</span>';
+          }
+          if (els.playerName) {
+            els.playerName.classList.add('input-status-available');
+            els.playerName.classList.remove('input-status-taken');
+          }
+        }
+        if (window.lucide) window.lucide.createIcons();
+      }
+    } catch (e) {
+      console.warn('Name availability check error:', e);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
      GAME FLOW
      ═══════════════════════════════════════════════════════ */
   function onStartGame() {
+    isCurrentNameTaken = false;
+    if (els.playerNameStatusHint) {
+      els.playerNameStatusHint.style.display = 'none';
+      els.playerNameStatusHint.className = 'name-status-hint';
+      els.playerNameStatusHint.textContent = '';
+    }
+    if (els.playerName) {
+      els.playerName.classList.remove('input-status-taken', 'input-status-available');
+    }
     openModal(els.playerModal);
     setTimeout(() => els.playerName?.focus(), 200);
     detectLocation();
@@ -403,6 +484,14 @@
       showToast('Please enter a player name between 2 and 30 characters.', 'error');
       els.playerName.classList.add('shake');
       setTimeout(() => els.playerName.classList.remove('shake'), 500);
+      return;
+    }
+
+    if (isCurrentNameTaken) {
+      showToast(`The name "${name}" is already registered. Please choose another name.`, 'error');
+      els.playerName.classList.add('shake');
+      setTimeout(() => els.playerName.classList.remove('shake'), 500);
+      els.playerName.focus();
       return;
     }
 
@@ -1609,6 +1698,14 @@
      ═══════════════════════════════════════════════════════ */
   function bindEvents() {
     els.startGameBtn.addEventListener('click', onStartGame);
+    if (els.playerName) {
+      els.playerName.addEventListener('input', (e) => {
+        if (nameCheckDebounceTimer) clearTimeout(nameCheckDebounceTimer);
+        nameCheckDebounceTimer = setTimeout(() => {
+          checkNameAvailability(e.target.value);
+        }, 200);
+      });
+    }
     els.playerForm.addEventListener('submit', onPlayerSubmit);
     els.closePlayerModal.addEventListener('click', () => closeModal(els.playerModal));
     els.playerModal.addEventListener('click', (e) => {

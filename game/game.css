@@ -224,30 +224,35 @@ body.game-page::before {
 .btn-nav-leaderboard {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: var(--radius-full);
-  background: rgba(22, 32, 61, 0.7);
-  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  gap: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
   color: var(--text-gold);
   font-size: 0.92rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: none;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .btn-nav-leaderboard:hover {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: #fbbf24;
-  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+  background: transparent;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
   transform: translateY(-1px);
 }
 
 .btn-nav-leaderboard i {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   color: var(--text-gold);
+  transition: color var(--transition-fast);
+}
+
+.btn-nav-leaderboard:hover i {
+  color: #fff;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1925,6 +1930,44 @@ body.game-page::before {
 
 /* ─── RESPONSIVE BREAKPOINTS (Mobile Perfection) ─── */
 @media (max-width: 480px) {
+  .game-header {
+    height: 56px;
+  }
+
+  .game-header-container {
+    padding: 0 0.75rem;
+  }
+
+  .nav-brand {
+    gap: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .nav-logo-img {
+    height: 24px;
+  }
+
+  .brand-text {
+    font-size: 0.92rem;
+    letter-spacing: 0.1px;
+  }
+
+  .brand-divider {
+    font-size: 0.85rem;
+    margin: 0 1px;
+  }
+
+  .btn-nav-leaderboard {
+    padding: 4px 4px;
+    font-size: 0.82rem;
+    gap: 4px;
+  }
+
+  .btn-nav-leaderboard i {
+    width: 14px;
+    height: 14px;
+  }
+
   .game-main-content {
     padding: 1rem 0.8rem 2.5rem;
   }

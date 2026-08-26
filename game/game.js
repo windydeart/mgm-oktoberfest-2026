@@ -264,7 +264,7 @@
 
       // 3. Completed State & Translucent Photo Background
       if (gameState.completedCells.includes(i)) {
-        cell.classList.remove('cell-locked');
+        cell.classList.remove('cell-inactive', 'cell-locked');
         cell.classList.add('completed');
         if (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(i)) {
           cell.classList.add('pending-review');
@@ -278,16 +278,14 @@
           cell.style.backgroundPosition = 'center';
         }
       } else {
-        cell.classList.remove('completed', 'pending-review');
+        cell.classList.remove('completed', 'pending-review', 'cell-locked');
         cell.style.backgroundImage = '';
+        const hint = cell.querySelector('.cell-tap-hint');
+        if (hint) hint.textContent = 'Tap to Snap';
         if (gameState.status === 'completed') {
-          cell.classList.add('cell-locked');
-          const hint = cell.querySelector('.cell-tap-hint');
-          if (hint) hint.textContent = '🔒 Locked';
+          cell.classList.add('cell-inactive');
         } else {
-          cell.classList.remove('cell-locked');
-          const hint = cell.querySelector('.cell-tap-hint');
-          if (hint) hint.textContent = 'Tap to Snap';
+          cell.classList.remove('cell-inactive');
         }
       }
 

@@ -455,7 +455,7 @@
 
     const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
     const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
-    const aiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isPending ? 'Photo is under manual review by the Organizing Committee.' : 'Challenge approved by AI photo engine.');
+    const aiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isPending ? 'AI could not automatically verify your photo. Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.');
 
     const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
     const iconSpan = $('#photoReviewCatIcon');
@@ -484,7 +484,7 @@
       if (aiBox) aiBox.className = 'photo-review-ai-box';
       if (aiTitle) aiTitle.textContent = 'AI Reason for IN REVIEW';
       if (aiReasonEl) aiReasonEl.textContent = aiReason;
-      if (aiTip) aiTip.innerHTML = '<i data-lucide="info"></i> <span>Ban tổ chức sẽ đối chiếu và duyệt ảnh này khi tổng kết giải thưởng.</span>';
+      if (aiTip) aiTip.innerHTML = '<i data-lucide="info"></i> <span>The Organizing Committee will review and verify this photo during prize evaluation.</span>';
     } else {
       if (pill) {
         pill.className = 'photo-review-status-pill status-done';
@@ -493,7 +493,7 @@
       if (aiBox) aiBox.className = 'photo-review-ai-box is-approved';
       if (aiTitle) aiTitle.textContent = 'AI Assessment';
       if (aiReasonEl) aiReasonEl.textContent = aiReason;
-      if (aiTip) aiTip.innerHTML = '<i data-lucide="check"></i> <span>Ảnh hợp lệ và khớp với yêu cầu thử thách!</span>';
+      if (aiTip) aiTip.innerHTML = '<i data-lucide="check"></i> <span>Photo verified and matched challenge requirements!</span>';
     }
 
     openModal($('#photoReviewModal'));
@@ -562,7 +562,7 @@
     gameState.cellPhotos[targetIdx] = dataUrl;
     if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
     if (!gameState.cellAiReasons[targetIdx]) {
-      gameState.cellAiReasons[targetIdx] = 'AI evaluation timeout (4s). Photo submitted for manual review by organizers.';
+      gameState.cellAiReasons[targetIdx] = 'AI could not automatically verify your photo. Submitted for manual review by organizers.';
     }
 
     if (window.lucide) window.lucide.createIcons();

@@ -207,7 +207,7 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
   } else {
     ai_verified = true;
     is_pending_review = true;
-    ai_reason = ai_reason || "Photo submitted. Under review by organizers.";
+    ai_reason = ai_reason || "AI could not automatically verify your photo. Submitted for manual review by organizers.";
   }
 
   // Update completed cells & in-review cells

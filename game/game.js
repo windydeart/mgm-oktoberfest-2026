@@ -52,6 +52,15 @@
   let cameraStream = null;
   let currentCellIndex = null;
   let facingMode = 'environment';
+  /* ─── ACTIVE STORAGE RESET (BUMP TO V3) ─── */
+  const STORAGE_KEY_TOKEN = 'bingo_session_token_v4';
+  const STORAGE_KEY_STATE = 'bingo_game_state_v4';
+
+  try {
+    ['bingo_session_token', 'bingo_game_state', 'bingo_session_token_v2', 'bingo_game_state_v2', 'bingo_session_token_v3', 'bingo_game_state_v3'].forEach(k => {
+      localStorage.removeItem(k);
+    });
+  } catch (e) {}
 
   /* ─── DOM SELECTORS ─── */
   const $ = (sel) => document.querySelector(sel);
@@ -1265,15 +1274,15 @@
         bingoLine: gameState.bingoLine,
         rank: gameState.rank
       };
-      localStorage.setItem('bingo_session_token', gameState.sessionToken || '');
-      localStorage.setItem('bingo_game_state', JSON.stringify(dataToSave));
+      localStorage.setItem(STORAGE_KEY_TOKEN, gameState.sessionToken || '');
+      localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(dataToSave));
     } catch (e) { /* ignore */ }
   }
 
   function clearSession() {
     try {
-      localStorage.removeItem('bingo_session_token');
-      localStorage.removeItem('bingo_game_state');
+      localStorage.removeItem(STORAGE_KEY_TOKEN);
+      localStorage.removeItem(STORAGE_KEY_STATE);
     } catch (e) { /* ignore */ }
   }
 
@@ -1298,8 +1307,8 @@
 
     async function tryRecoverSession() {
     try {
-      const savedToken = localStorage.getItem('bingo_session_token');
-      const savedLocalStateStr = localStorage.getItem('bingo_game_state');
+      const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+      const savedLocalStateStr = localStorage.getItem(STORAGE_KEY_STATE);
       let localState = null;
       if (savedLocalStateStr) {
         try { localState = JSON.parse(savedLocalStateStr); } catch (e) {}

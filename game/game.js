@@ -852,18 +852,21 @@
       if (checkRes.ok) {
         const existing = await checkRes.json();
         if (existing && existing.length > 0) {
+          // Score already recorded, but still save snapshot data
+          saveWinnerSnapshot(existing[0].id);
           startLeaderboardPolling();
           return;
         }
       }
 
       // Record score to Supabase
-      await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
+      const postRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
         },
         body: JSON.stringify({
           player_name: gameState.playerName,
@@ -874,12 +877,44 @@
         })
       });
 
+      if (postRes.ok) {
+        const inserted = await postRes.json();
+        if (inserted && inserted.length > 0) {
+          saveWinnerSnapshot(inserted[0].id);
+        }
+      }
+
       startLeaderboardPolling();
       if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
         renderLeaderboard(currentLbLocation);
       }
     } catch (e) {
       console.warn('Score recording fallback error:', e);
+    }
+  }
+
+  async function saveWinnerSnapshot(scoreId) {
+    if (!scoreId) return;
+    try {
+      const snapshot = JSON.stringify({
+        bingo_line: gameState.bingoLine,
+        completed_cells: gameState.completedCells || [],
+        challenges: gameState.challenges || [],
+        cell_photos: gameState.cellPhotos || {},
+        cell_ai_reasons: gameState.cellAiReasons || {}
+      });
+
+      await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?id=eq.${scoreId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ player_email: snapshot })
+      });
+    } catch (e) {
+      console.warn('Winner snapshot save error:', e);
     }
   }
 
@@ -1578,6 +1613,31 @@
       if (e.target === els.leaderboardModal) closeModal(els.leaderboardModal);
     });
 
+    // Winner Showcase Modal Close Bindings
+    if (els.closeWinnerShowcaseBtn) {
+      els.closeWinnerShowcaseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeWinnerShowcase();
+      });
+    }
+
+    if (els.winnerCloseBtn) {
+      els.winnerCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeWinnerShowcase();
+      });
+    }
+
+    if (els.winnerShowcaseModal) {
+      els.winnerShowcaseModal.addEventListener('click', (e) => {
+        if (e.target === els.winnerShowcaseModal) {
+          closeWinnerShowcase();
+        }
+      });
+    }
+
     // Photo Review Modal Close Bindings
     if (els.closePhotoReviewBtn) {
       els.closePhotoReviewBtn.addEventListener('click', (e) => {
@@ -1602,24 +1662,6 @@
         }
       });
     }
-
-    // Global Delegated Click & Escape Key Handler for modal closing
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('#closePhotoReviewBtn') || e.target.closest('#photoReviewCloseBtn')) {
-        closeModal(els.photoReviewModal);
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' || e.key === 'Esc') {
-        if (els.photoReviewModal && els.photoReviewModal.classList.contains('active')) {
-          closeModal(els.photoReviewModal);
-        }
-        if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
-          closeModal(els.leaderboardModal);
-        }
-      }
-    });
 
     // Collapsible Sidebar Leaderboard Accordion
     const sidebarLbToggleBtn = $('#sidebarLbToggleBtn');
@@ -1653,10 +1695,12 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        if (els.cameraOverlay.classList.contains('active')) closeCamera();
-        else if (els.victoryModal.classList.contains('active')) closeModal(els.victoryModal);
-        else if (els.leaderboardModal.classList.contains('active')) closeModal(els.leaderboardModal);
-        else if (els.playerModal.classList.contains('active')) closeModal(els.playerModal);
+        if (els.photoReviewModal && els.photoReviewModal.classList.contains('active')) closeModal(els.photoReviewModal);
+        else if (els.winnerShowcaseModal && els.winnerShowcaseModal.classList.contains('active')) closeWinnerShowcase();
+        else if (els.cameraOverlay && els.cameraOverlay.classList.contains('active')) closeCamera();
+        else if (els.victoryModal && els.victoryModal.classList.contains('active')) closeModal(els.victoryModal);
+        else if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) closeModal(els.leaderboardModal);
+        else if (els.playerModal && els.playerModal.classList.contains('active')) closeModal(els.playerModal);
       }
     });
   }

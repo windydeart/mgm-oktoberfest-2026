@@ -859,6 +859,14 @@
         }
       }
 
+      const snapshot = JSON.stringify({
+        bingo_line: gameState.bingoLine || checkBingo(gameState.completedCells),
+        completed_cells: gameState.completedCells || [],
+        challenges: gameState.challenges || [],
+        cell_photos: gameState.cellPhotos || {},
+        cell_ai_reasons: gameState.cellAiReasons || {}
+      });
+
       // Record score to Supabase
       const postRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
         method: 'POST',
@@ -873,7 +881,8 @@
           office: gameState.location,
           game_name: 'photo_bingo',
           score: 1,
-          duration_seconds: duration_seconds
+          duration_seconds: duration_seconds,
+          player_email: snapshot
         })
       });
 
@@ -1211,12 +1220,39 @@
       }
 
       const winner = data.winner;
-      els.winnerPlayerName.textContent = winner.player_name || 'Champion';
-      els.winnerLocationBadge.textContent = winner.location === 'danang' ? 'Da Nang' : (winner.location === 'hcmc' ? 'HCMC' : 'All Offices');
-      els.winnerTimeBadge.innerHTML = `<i data-lucide="timer"></i> ${formatTime(winner.elapsed_ms || 0)}`;
-      els.winnerLineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winner.bingo_line] || winner.bingo_line || 'BINGO Line'}`;
+      const isCurrentPlayer = (winner.player_name === gameState.playerName && winner.location === gameState.location);
+      const winnerHasSnapshot = (winner.challenges && winner.challenges.length === 9);
 
-      const winningLineKey = winner.bingo_line || 'row-0';
+      let rawChallenges = [];
+      let completedCells = [];
+      let cellPhotos = {};
+      let cellAiReasons = {};
+      let winningLineKey = null;
+
+      if (isCurrentPlayer && gameState.challenges && gameState.challenges.length === 9) {
+        rawChallenges = gameState.challenges;
+        completedCells = gameState.completedCells || [];
+        cellPhotos = gameState.cellPhotos || {};
+        cellAiReasons = gameState.cellAiReasons || {};
+        winningLineKey = gameState.bingoLine || winner.bingo_line || checkBingo(completedCells);
+      } else if (winnerHasSnapshot) {
+        rawChallenges = winner.challenges;
+        completedCells = winner.completed_cells || [];
+        cellPhotos = winner.cell_photos || {};
+        cellAiReasons = winner.cell_ai_reasons || {};
+        winningLineKey = winner.bingo_line || checkBingo(completedCells);
+      } else {
+        rawChallenges = Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` }));
+        completedCells = winner.completed_cells || [];
+        cellPhotos = {};
+        cellAiReasons = {};
+        winningLineKey = winner.bingo_line || checkBingo(completedCells);
+      }
+
+      if (!winningLineKey) {
+        winningLineKey = checkBingo(completedCells) || 'row-0';
+      }
+
       const lines = [
         { indices: [0, 1, 2], name: 'row-0' },
         { indices: [3, 4, 5], name: 'row-1' },
@@ -1230,52 +1266,33 @@
       const winningLineObj = lines.find(l => l.name === winningLineKey);
       const winningIndices = winningLineObj ? winningLineObj.indices : [0, 1, 2];
 
-      // If the winner is the current player, prefer live gameState data (most complete)
-      const isCurrentPlayer = winner.player_name === gameState.playerName && winner.location === gameState.location;
-      const winnerHasSnapshot = winner.challenges && winner.challenges.length === 9;
-
-      let challenges, completedCells, cellPhotos, cellAiReasons;
-
-      if (winnerHasSnapshot) {
-        // Best case: full snapshot from database
-        challenges = winner.challenges;
-        completedCells = winner.completed_cells || winningIndices;
-        cellPhotos = winner.cell_photos || {};
-        cellAiReasons = winner.cell_ai_reasons || {};
-      } else if (isCurrentPlayer && gameState.challenges && gameState.challenges.length === 9) {
-        // Winner is current player with live data — use gameState and also save snapshot
-        challenges = gameState.challenges;
-        completedCells = gameState.completedCells || winningIndices;
-        cellPhotos = gameState.cellPhotos || {};
-        cellAiReasons = gameState.cellAiReasons || {};
-        // Auto-save snapshot for future viewers
-        saveWinnerSnapshotByName(winner.player_name, winner.location);
-      } else {
-        // No snapshot data available — show bingo line challenges only
-        challenges = Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` }));
-        completedCells = winner.completed_cells || winningIndices;
-        cellPhotos = {};
-        cellAiReasons = {};
-      }
+      els.winnerPlayerName.textContent = winner.player_name || 'Champion';
+      els.winnerLocationBadge.textContent = winner.location === 'danang' ? 'Da Nang' : (winner.location === 'hcmc' ? 'HCMC' : 'All Offices');
+      els.winnerTimeBadge.innerHTML = `<i data-lucide="timer"></i> ${formatTime(winner.elapsed_ms || 0)}`;
+      els.winnerLineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winningLineKey] || winningLineKey || 'BINGO Line'}`;
 
       els.winnerMiniBoard.innerHTML = '';
-      challenges.forEach((ch, idx) => {
+      for (let idx = 0; idx < 9; idx++) {
         const isWinningCell = winningIndices.includes(idx);
-        const isCompleted = completedCells.includes(idx);
-        const photoUrl = cellPhotos[idx] || (isCompleted && gameState.cellPhotos ? gameState.cellPhotos[idx] : null);
+        const ch = rawChallenges[idx] || { id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` };
+        const photoUrl = cellPhotos[idx] || null;
         const catIcon = CATEGORY_ICONS[ch.category] || 'camera';
+
+        // For other viewers: show actual challenge text on the 3 winning BINGO cells. Non-winning cells show "Challenge #N".
+        // For the champion viewing their own board: show actual challenge text for all cells.
+        const challengeTitle = isCurrentPlayer ? ch.challenge : (isWinningCell ? ch.challenge : `Challenge #${idx+1}`);
 
         const cellEl = document.createElement('div');
         cellEl.className = `winner-mini-cell ${isWinningCell ? 'winner-winning-cell' : ''}`;
         if (photoUrl) {
-          cellEl.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.4), rgba(11, 19, 43, 0.65)), url('${photoUrl}')`;
+          cellEl.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.35), rgba(11, 19, 43, 0.7)), url('${photoUrl}')`;
         }
 
         cellEl.innerHTML = `
           <div class="winner-cell-overlay"></div>
           <div class="winner-cell-cat-icon"><i data-lucide="${catIcon}"></i></div>
-          ${isCompleted ? '<div class="winner-cell-check"><i data-lucide="check"></i></div>' : ''}
-          <p class="winner-cell-text">${escapeHtml(ch.challenge)}</p>
+          ${(isWinningCell || (isCurrentPlayer && completedCells.includes(idx))) ? '<div class="winner-cell-check"><i data-lucide="check"></i></div>' : ''}
+          <p class="winner-cell-text">${escapeHtml(challengeTitle)}</p>
         `;
 
         cellEl.addEventListener('click', (ev) => {
@@ -1291,11 +1308,11 @@
             imgEl.src = photoUrl || '';
             imgEl.style.display = photoUrl ? 'block' : 'none';
           }
-          if (txtEl) txtEl.textContent = ch.challenge;
-          if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || (isCompleted ? 'Verified challenge submission by Champion.' : 'Challenge was not part of the winning line.');
+          if (txtEl) txtEl.textContent = isWinningCell ? ch.challenge : (isCurrentPlayer ? ch.challenge : `Challenge #${idx+1}`);
+          if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || (isWinningCell ? 'Verified winning challenge submission by Champion.' : 'Challenge was not part of the winning line.');
           if (pillEl) {
-            pillEl.className = isCompleted ? 'photo-review-status-pill status-done' : 'photo-review-status-pill status-pending';
-            pillEl.innerHTML = isCompleted ? '<i data-lucide="check"></i> <span>DONE</span>' : '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
+            pillEl.className = (isWinningCell || photoUrl) ? 'photo-review-status-pill status-done' : 'photo-review-status-pill status-pending';
+            pillEl.innerHTML = (isWinningCell || photoUrl) ? '<i data-lucide="check"></i> <span>DONE</span>' : '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
           }
           if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
 
@@ -1304,7 +1321,7 @@
         });
 
         els.winnerMiniBoard.appendChild(cellEl);
-      });
+      }
 
       if (window.lucide) window.lucide.createIcons();
 

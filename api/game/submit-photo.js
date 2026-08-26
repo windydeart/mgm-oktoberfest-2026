@@ -281,7 +281,14 @@ Reply with ONLY a JSON object:
           office: session.location,
           game_name: 'photo_bingo',
           score: 1,
-          duration_seconds: duration_seconds
+          duration_seconds: duration_seconds,
+          player_email: JSON.stringify({
+            bingo_line: bingoLine,
+            completed_cells: completedCells,
+            challenges: session.challenges || [],
+            cell_photos: session.cell_photo_urls || {},
+            cell_ai_reasons: session.cell_ai_reasons || {}
+          })
         })
       });
 

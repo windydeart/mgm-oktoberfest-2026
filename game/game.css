@@ -1701,14 +1701,17 @@ body.game-page::before {
 
 .lb-modal-header {
   text-align: center;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.35rem;
 }
 
 .lb-modal-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0.2rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 0.15rem;
+  margin-bottom: 1.15rem;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .lb-modal-subtitle {

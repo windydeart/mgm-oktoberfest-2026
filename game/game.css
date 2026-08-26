@@ -830,7 +830,6 @@ body.game-page::before {
 /* ─── Winning BINGO Line Cells (Waving Synchronized Glow) ─── */
 .bingo-cell.bingo-line-cell {
   border-color: #fbbf24 !important;
-  background: linear-gradient(150deg, #25396e 0%, #15254f 100%) !important;
   box-shadow: 0 0 25px rgba(251, 191, 36, 0.7), inset 0 0 15px rgba(251, 191, 36, 0.3) !important;
   animation: bingoWaveGlow 1.8s ease-in-out infinite alternate !important;
   z-index: 10;
@@ -2534,7 +2533,34 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   box-shadow: 0 0 25px rgba(245, 158, 11, 0.6) !important;
 }
 
-/* ─── Cell Inactive State (Subtle 50% opacity after BINGO) ─── */
-.bingo-cell.cell-inactive {
-  opacity: 0.5 !important;
+/* ─── Unfilled Cells After Game Completion (Grey Muted Style) ─── */
+.bingo-cell.cell-unfilled {
+  background: rgba(30, 41, 59, 0.35) !important;
+  border-color: rgba(148, 163, 184, 0.15) !important;
+  opacity: 0.45 !important;
+  box-shadow: none !important;
+  cursor: default !important;
+}
+
+.bingo-cell.cell-unfilled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.bingo-cell.cell-unfilled .cell-cat-icon {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.bingo-cell.cell-unfilled .cell-challenge-text {
+  color: #94a3b8 !important;
+}
+
+.bingo-cell.cell-unfilled .cell-tap-hint {
+  display: none !important;
+}
+
+.bingo-cell.cell-unfilled .cell-cam-watermark {
+  opacity: 0.04 !important;
+  filter: grayscale(1);
 }

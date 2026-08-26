@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
       completed_at: record.created_at
     }));
 
-    res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=5');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.status(200).json({ leaderboard });
   } catch (err) {
     console.error('Leaderboard error:', err);

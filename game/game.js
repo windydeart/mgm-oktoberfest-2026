@@ -852,7 +852,7 @@
       if (checkRes.ok) {
         const existing = await checkRes.json();
         if (existing && existing.length > 0) {
-          loadSidebarLeaderboard();
+          startLeaderboardPolling();
           return;
         }
       }
@@ -874,7 +874,7 @@
         })
       });
 
-      loadSidebarLeaderboard();
+      startLeaderboardPolling();
       if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
         renderLeaderboard(currentLbLocation);
       }
@@ -921,7 +921,7 @@
 
       setTimeout(() => {
         openModal(els.victoryModal);
-        loadSidebarLeaderboard();
+        startLeaderboardPolling();
         if (window.lucide) window.lucide.createIcons();
       }, 350);
     }, 2800);
@@ -987,10 +987,37 @@
      LEADERBOARD WITH TOP 1 WINNER PRIZE HIGHLIGHT
      ═══════════════════════════════════════════════════════ */
   let currentLbLocation = 'all';
+  /* ─── LIVE 10-SECOND AUTO POLLING ─── */
+  let leaderboardPollingTimer = null;
+
+  function startLeaderboardPolling() {
+    if (leaderboardPollingTimer) clearInterval(leaderboardPollingTimer);
+    
+    // Initial fetch
+    loadSidebarLeaderboard();
+
+    // Poll every 10 seconds automatically
+    leaderboardPollingTimer = setInterval(() => {
+      loadSidebarLeaderboard();
+      if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+        renderLeaderboard(currentLbLocation);
+      }
+    }, 10000);
+
+    // Refresh immediately when tab gains focus
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        loadSidebarLeaderboard();
+        if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+          renderLeaderboard(currentLbLocation);
+        }
+      }
+    });
+  }
 
   async function fetchLeaderboard(location = 'all') {
     try {
-      const res = await fetch(`${API_BASE}/leaderboard?location=${location}`);
+      const res = await fetch(`${API_BASE}/leaderboard?location=${location}&_t=${Date.now()}`);
       const data = await res.json();
       return data.leaderboard || [];
     } catch (err) {
@@ -1648,7 +1675,7 @@
     bindEvents();
     if (window.lucide) window.lucide.createIcons();
 
-    loadSidebarLeaderboard();
+    startLeaderboardPolling();
 
     const recovered = await tryRecoverSession();
     if (!recovered) {

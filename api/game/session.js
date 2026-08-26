@@ -72,16 +72,12 @@ module.exports = async (req, res) => {
       });
       if (scoreRes.ok) {
         const scores = await scoreRes.json();
-        if (!scores || scores.length === 0) {
-          // If database was reset or score was deleted, invalidate session so browser can start a fresh game!
-          return res.status(404).json({ error: 'Session was reset or expired' });
-        }
-        if (scores[0].duration_seconds) {
+        if (scores && scores.length > 0 && scores[0].duration_seconds) {
           elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
         }
       }
     } catch (e) {
-      console.error('Failed to lookup score in session recovery:', e);
+      console.error('Score lookup note:', e.message);
     }
   }
 

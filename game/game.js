@@ -1077,7 +1077,7 @@
     resetTimer();
   }
 
-  async function tryRecoverSession() {
+    async function tryRecoverSession() {
     try {
       const savedToken = localStorage.getItem('bingo_session_token');
       const savedLocalStateStr = localStorage.getItem('bingo_game_state');
@@ -1088,7 +1088,7 @@
 
       if (!savedToken && !localState) return false;
 
-      // 1. FAST LOCAL HYDRATION: Temporarily render UI while checking with server
+      // 1. FAST LOCAL HYDRATION: Immediately render UI from local storage
       if (localState && localState.sessionId) {
         gameState = Object.assign({}, gameState, localState);
         els.gameWelcome.style.display = 'none';
@@ -1105,76 +1105,62 @@
         }
       }
 
-      // 2. ALWAYS VALIDATE WITH SERVER AS TRUE SOURCE OF TRUTH
-      if (!savedToken) {
-        resetToWelcome();
-        return false;
-      }
+      // 2. Background Server Sync (Never wipes local data on error)
+      if (savedToken) {
+        try {
+          const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.session_id) {
+              const completedCells = data.completed_cells || gameState.completedCells || [];
+              const bingoLine = data.bingo_line || checkBingo(completedCells);
+              const isCompleted = data.status === 'completed' || bingoLine !== null;
 
-      const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
-      if (!res.ok) {
-        // If server says session is invalid (e.g. database was reset/purged), wipe local session and start fresh!
-        resetToWelcome();
-        return false;
-      }
+              const pendingReviewCells = Array.from(new Set([
+                ...(data.pending_review_cells || []),
+                ...(localState && localState.pendingReviewCells ? localState.pendingReviewCells : []),
+                ...(gameState.pendingReviewCells || [])
+              ]));
 
-      const data = await res.json();
-      if (!data.session_id) {
-        resetToWelcome();
-        return false;
-      }
+              const serverPhotos = data.cell_photo_urls || {};
+              const localPhotos = Object.assign({}, localState && localState.cellPhotos ? localState.cellPhotos : {}, gameState.cellPhotos || {});
+              const cellPhotos = {};
+              for (const idx of completedCells) {
+                cellPhotos[idx] = serverPhotos[idx] || localPhotos[idx] || null;
+              }
 
-      const completedCells = data.completed_cells || gameState.completedCells || [];
-      const bingoLine = data.bingo_line || checkBingo(completedCells);
-      const isCompleted = data.status === 'completed' || bingoLine !== null;
+              const cellAiReasons = Object.assign({}, localState && localState.cellAiReasons ? localState.cellAiReasons : {}, data.cell_ai_reasons || {});
 
-      // Merge pending review cells and photos across server data and local cache
-      const pendingReviewCells = Array.from(new Set([
-        ...(data.pending_review_cells || []),
-        ...(localState && localState.pendingReviewCells ? localState.pendingReviewCells : []),
-        ...(gameState.pendingReviewCells || [])
-      ]));
+              gameState.sessionId = data.session_id;
+              gameState.playerName = data.player_name;
+              gameState.location = data.location;
+              gameState.challenges = data.challenges || [];
+              gameState.completedCells = completedCells;
+              gameState.pendingReviewCells = pendingReviewCells;
+              gameState.cellPhotos = cellPhotos;
+              gameState.cellAiReasons = cellAiReasons;
+              gameState.startedAt = data.started_at;
+              gameState.status = isCompleted ? 'completed' : 'playing';
+              gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);
+              gameState.bingoLine = bingoLine;
+              gameState.rank = data.rank || gameState.rank || 1;
 
-      // Server photo URLs take priority, then local photos as fallback
-      const serverPhotos = data.cell_photo_urls || {};
-      const localPhotos = Object.assign({}, localState && localState.cellPhotos ? localState.cellPhotos : {}, gameState.cellPhotos || {});
-      const cellPhotos = {};
-      for (const idx of completedCells) {
-        cellPhotos[idx] = serverPhotos[idx] || localPhotos[idx] || null;
-      }
+              saveSession();
+              renderBoard();
 
-      const cellAiReasons = Object.assign({}, localState && localState.cellAiReasons ? localState.cellAiReasons : {}, data.cell_ai_reasons || {});
-
-      gameState.sessionId = data.session_id;
-      gameState.playerName = data.player_name;
-      gameState.location = data.location;
-      gameState.challenges = data.challenges || [];
-      gameState.completedCells = completedCells;
-      gameState.pendingReviewCells = pendingReviewCells;
-      gameState.cellPhotos = cellPhotos;
-      gameState.cellAiReasons = cellAiReasons;
-      gameState.startedAt = data.started_at;
-      gameState.status = isCompleted ? 'completed' : 'playing';
-      gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);
-      gameState.bingoLine = bingoLine;
-      gameState.rank = data.rank || gameState.rank || 1;
-
-      saveSession();
-
-      els.gameWelcome.style.display = 'none';
-      els.bingoBoard.style.display = 'grid';
-      renderBoard();
-
-      if (isCompleted) {
-        stopTimer(gameState.elapsedMs || 0);
-      } else {
-        startTimer();
+              if (isCompleted) {
+                stopTimer(gameState.elapsedMs || 0);
+              }
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Server session sync note:', fetchErr);
+        }
       }
 
       return true;
     } catch (e) {
       console.warn('Session recovery error:', e);
-      resetToWelcome();
       return false;
     }
   }

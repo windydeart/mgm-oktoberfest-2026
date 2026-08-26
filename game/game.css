@@ -2786,3 +2786,205 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
     font-size: 0.8rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   WINNER SHOWCASE MODAL (Top 1 Board Preview)
+   ═══════════════════════════════════════════════════════ */
+.winner-showcase-dialog {
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.8rem 1.4rem;
+  overflow-y: auto;
+}
+
+.winner-showcase-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.winner-player-name {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0.35rem 0 0.45rem;
+  letter-spacing: 0.3px;
+}
+
+.winner-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.winner-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--text-gold);
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.winner-time-badge i {
+  width: 13px;
+  height: 13px;
+}
+
+.winner-line-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.winner-line-badge i {
+  width: 13px;
+  height: 13px;
+}
+
+.winner-board-container {
+  margin: 0.6rem 0 1.2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.winner-mini-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1;
+}
+
+.winner-mini-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(11, 19, 43, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  text-align: center;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.winner-mini-cell:hover {
+  transform: scale(1.05);
+  z-index: 2;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.winner-mini-cell.winner-winning-cell {
+  border: 2px solid #fbbf24;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.5), inset 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.winner-cell-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 19, 43, 0.55);
+  pointer-events: none;
+}
+
+.winner-cell-cat-icon {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(11, 19, 43, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--text-gold);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  z-index: 1;
+}
+
+.winner-cell-cat-icon i,
+.winner-cell-cat-icon svg {
+  width: 10px;
+  height: 10px;
+}
+
+.winner-cell-check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 900;
+  z-index: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.winner-cell-check i,
+.winner-cell-check svg {
+  width: 10px;
+  height: 10px;
+}
+
+.winner-cell-text {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.winner-showcase-footer {
+  margin-top: 0.2rem;
+}
+
+.btn-close-winner {
+  width: 100%;
+}
+
+/* Clickable Top 1 Winner Row on Leaderboard */
+.sidebar-lb-item.sidebar-lb-winner,
+.lb-ranking-table tr.lb-winner-row {
+  cursor: pointer;
+}
+
+.sidebar-lb-item.sidebar-lb-winner:hover,
+.lb-ranking-table tr.lb-winner-row:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.32), rgba(217, 119, 6, 0.24)) !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}

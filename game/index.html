@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=270">
+  <link rel="stylesheet" href="/game/game.css?v=275">
 </head>
 <body class="dark-theme game-page">
 
@@ -597,6 +597,42 @@
     </div>
   </div>
 
+    <!-- ═══════════════════════════════════════════════════════
+       WINNER SHOWCASE MODAL (Top 1 Board Preview)
+       ═══════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" id="winnerShowcaseModal">
+    <div class="modal-content glass-card winner-showcase-dialog">
+      <button class="modal-close" id="closeWinnerShowcaseBtn" aria-label="Close Winner Showcase">
+        <i data-lucide="x"></i>
+      </button>
+
+      <!-- Winner Champion Header -->
+      <div class="winner-showcase-header">
+        <div class="section-tag gold"><i data-lucide="crown"></i> BAVARIAN CHAMPION</div>
+        <h2 class="winner-player-name" id="winnerPlayerName">Loading Champion...</h2>
+        <div class="winner-stats-row">
+          <span class="status-loc-badge" id="winnerLocationBadge">Da Nang</span>
+          <span class="winner-time-badge" id="winnerTimeBadge"><i data-lucide="timer"></i> 00:00.00</span>
+          <span class="winner-line-badge" id="winnerLineBadge"><i data-lucide="award"></i> BINGO Line</span>
+        </div>
+      </div>
+
+      <!-- Winner 3x3 Mini Bingo Board -->
+      <div class="winner-board-container">
+        <div class="winner-mini-board" id="winnerMiniBoard">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Winner Modal Footer -->
+      <div class="winner-showcase-footer">
+        <button type="button" class="btn-hero-play btn-close-winner" id="winnerCloseBtn">
+          <span>Back to Leaderboard</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════════════════════════════════════════════
        FULL LEADERBOARD MODAL
        ═══════════════════════════════════════════════════════ -->
@@ -645,6 +681,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=270"></script>
+  <script src="/game/game.js?v=275"></script>
 </body>
 </html>

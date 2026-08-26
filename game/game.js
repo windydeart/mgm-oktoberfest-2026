@@ -111,6 +111,16 @@
     els.resultText = $('#resultText');
     els.cameraCanvas = $('#cameraCanvas');
 
+    // Winner Showcase Modal
+    els.winnerShowcaseModal = $('#winnerShowcaseModal');
+    els.closeWinnerShowcaseBtn = $('#closeWinnerShowcaseBtn');
+    els.winnerCloseBtn = $('#winnerCloseBtn');
+    els.winnerPlayerName = $('#winnerPlayerName');
+    els.winnerLocationBadge = $('#winnerLocationBadge');
+    els.winnerTimeBadge = $('#winnerTimeBadge');
+    els.winnerLineBadge = $('#winnerLineBadge');
+    els.winnerMiniBoard = $('#winnerMiniBoard');
+
     // Victory Modal
     els.victoryModal = $('#victoryModal');
     els.victoryTime = $('#victoryTime');
@@ -1003,7 +1013,11 @@
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
 
       const tr = document.createElement('tr');
-      if (isTop1) tr.classList.add('lb-winner-row');
+      if (isTop1) {
+        tr.classList.add('lb-winner-row');
+        tr.title = 'Click to view Champion Winning Board';
+        tr.addEventListener('click', () => openWinnerShowcase(currentLbLocation));
+      }
       if (isMe && !isTop1) tr.classList.add('current-player-row');
 
       tr.innerHTML = `
@@ -1067,6 +1081,101 @@
 
     if (window.lucide) window.lucide.createIcons();
   }
+
+    /* ═══════════════════════════════════════════════════════
+     WINNER SHOWCASE MODAL (Top 1 Board Preview)
+     ═══════════════════════════════════════════════════════ */
+  async function openWinnerShowcase(location) {
+    if (!els.winnerShowcaseModal) return;
+    openModal(els.winnerShowcaseModal);
+
+    els.winnerPlayerName.textContent = 'Loading Champion...';
+    els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Loading winner board...</div>';
+
+    try {
+      const res = await fetch(`${API_BASE}/winner?location=${location || currentLbLocation || 'all'}`);
+      if (!res.ok) throw new Error('Failed to load winner');
+      const data = await res.json();
+      if (!data.success || !data.winner) throw new Error('No winner data');
+
+      const winner = data.winner;
+      els.winnerPlayerName.textContent = winner.player_name || 'Champion';
+      els.winnerLocationBadge.textContent = winner.location === 'danang' ? 'Da Nang' : (winner.location === 'hcmc' ? 'HCMC' : 'All Offices');
+      els.winnerTimeBadge.innerHTML = `<i data-lucide="timer"></i> ${formatTime(winner.elapsed_ms || 0)}`;
+      els.winnerLineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winner.bingo_line] || 'BINGO Line'}`;
+
+      const winningLineKey = winner.bingo_line || 'row-0';
+      const lines = [
+        { indices: [0, 1, 2], name: 'row-0' },
+        { indices: [3, 4, 5], name: 'row-1' },
+        { indices: [6, 7, 8], name: 'row-2' },
+        { indices: [0, 3, 6], name: 'col-0' },
+        { indices: [1, 4, 7], name: 'col-1' },
+        { indices: [2, 5, 8], name: 'col-2' },
+        { indices: [0, 4, 8], name: 'diag-main' },
+        { indices: [2, 4, 6], name: 'diag-anti' }
+      ];
+      const winningLineObj = lines.find(l => l.name === winningLineKey);
+      const winningIndices = winningLineObj ? winningLineObj.indices : [0, 1, 2];
+
+      const challenges = (winner.challenges && winner.challenges.length === 9) ? winner.challenges : (gameState.challenges && gameState.challenges.length === 9 ? gameState.challenges : Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` })));
+      const completedCells = winner.completed_cells || [0, 1, 2];
+      const cellPhotos = winner.cell_photos || {};
+      const cellAiReasons = winner.cell_ai_reasons || {};
+
+      els.winnerMiniBoard.innerHTML = '';
+      challenges.forEach((ch, idx) => {
+        const isWinningCell = winningIndices.includes(idx);
+        const isCompleted = completedCells.includes(idx);
+        const photoUrl = cellPhotos[idx] || (isCompleted && gameState.cellPhotos ? gameState.cellPhotos[idx] : null);
+        const catIcon = CATEGORY_ICONS[ch.category] || 'camera';
+
+        const cellEl = document.createElement('div');
+        cellEl.className = `winner-mini-cell ${isWinningCell ? 'winner-winning-cell' : ''}`;
+        if (photoUrl) {
+          cellEl.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.4), rgba(11, 19, 43, 0.65)), url('${photoUrl}')`;
+        }
+
+        cellEl.innerHTML = `
+          <div class="winner-cell-overlay"></div>
+          <div class="winner-cell-cat-icon"><i data-lucide="${catIcon}"></i></div>
+          ${isCompleted ? '<div class="winner-cell-check"><i data-lucide="check"></i></div>' : ''}
+          <p class="winner-cell-text">${escapeHtml(ch.challenge)}</p>
+        `;
+
+        if (photoUrl) {
+          cellEl.addEventListener('click', () => {
+            // Preview winner photo
+            const imgEl = $('#photoReviewImg');
+            const txtEl = $('#photoReviewChallengeText');
+            const reasonEl = $('#photoReviewAiReason');
+            const pillEl = $('#photoReviewStatusPill');
+            const catIconEl = $('#photoReviewCatIcon');
+
+            if (imgEl) imgEl.src = photoUrl;
+            if (txtEl) txtEl.textContent = ch.challenge;
+            if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || 'Verified challenge submission by Champion.';
+            if (pillEl) {
+              pillEl.className = 'photo-review-status-pill status-done';
+              pillEl.innerHTML = '<i data-lucide="check"></i> <span>DONE</span>';
+            }
+            if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+
+            openModal(els.photoReviewModal);
+            if (window.lucide) window.lucide.createIcons();
+          });
+        }
+
+        els.winnerMiniBoard.appendChild(cellEl);
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+
+    } catch (e) {
+      els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Could not load winner board.</div>';
+    }
+  }
+
 
   function openLeaderboard() {
     openModal(els.leaderboardModal);

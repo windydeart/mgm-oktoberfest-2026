@@ -46,6 +46,22 @@ function checkBingo(cells) {
   return null;
 }
 
+function extractJson(text) {
+  if (!text || typeof text !== 'string') return null;
+  const clean = text.replace(/```(?:json)?/gi, '').trim();
+  try {
+    return JSON.parse(clean);
+  } catch (e) {
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch (e2) {}
+    }
+  }
+  return null;
+}
+
 function handleCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -123,17 +139,15 @@ module.exports = async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
 
   const candidateModels = [
-    'gemini-3.5-flash',
-    'gemini-3.7-flash',
+    'gemini-3.5-flash-lite',
     'gemini-3.1-flash-lite',
-    'gemini-2.5-flash',
-    'gemini-flash-latest'
+    'gemini-3.5-flash'
   ];
 
   let ai_decision_made = false;
   let ai_verified = false;
   let is_pending_review = false;
-  let ai_reason = "Photo does not match the challenge requirement.";
+  let ai_reason = "AI could not automatically verify your photo. Submitted for manual review by organizers.";
 
   // Run AI check and photo upload concurrently for speed
   const photoUploadPromise = uploadPhotoToStorage(base64Data, session.session_id, cell_index);
@@ -142,7 +156,7 @@ module.exports = async (req, res) => {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       const geminiRes = await fetch(apiUrl, {
         method: 'POST',
@@ -151,10 +165,12 @@ module.exports = async (req, res) => {
         body: JSON.stringify({
           system_instruction: {
             parts: [{
-              text: `Judge if this Oktoberfest party photo matches: "${challenge.challenge}".
-APPROVE if genuine photo showing matching subject/beer/festive element/smile/food/people.
-REJECT if pitch black/blank, desktop code screenshot, or totally unrelated.
-Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false, "reason": "Brief reason"}`
+              text: `You are an AI photo judge for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
+Look at the submitted photo.
+- APPROVE if the photo reasonably matches or shows a genuine attempt at the challenge (people, beer, festive atmosphere, props, food).
+- REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
+Reply with a JSON object ONLY:
+{"approved": true/false, "reason": "1-2 sentence friendly English explanation explaining why it was approved or why it was sent for review"}`
             }]
           },
           contents: [{
@@ -165,8 +181,8 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
             ]
           }],
           generationConfig: {
-            temperature: 0.0,
-            maxOutputTokens: 60,
+            temperature: 0.1,
+            maxOutputTokens: 256,
             responseMimeType: "application/json"
           }
         })
@@ -176,16 +192,14 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
 
       if (geminiRes.ok) {
         const geminiData = await geminiRes.json();
-        const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          try {
-            const result = JSON.parse(text);
+        const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          const result = extractJson(rawText);
+          if (result && typeof result.approved === 'boolean') {
             ai_decision_made = true;
             ai_verified = result.approved === true;
-            ai_reason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge.');
-            break;
-          } catch (e) {
-            console.error('Failed to parse AI JSON response:', e);
+            ai_reason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+            break; // Clear AI verdict obtained!
           }
         }
       } else {

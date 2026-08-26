@@ -1278,47 +1278,53 @@
         const photoUrl = cellPhotos[idx] || null;
         const catIcon = CATEGORY_ICONS[ch.category] || 'camera';
 
-        // For other viewers: show actual challenge text on the 3 winning BINGO cells. Non-winning cells show "Challenge #N".
-        // For the champion viewing their own board: show actual challenge text for all cells.
-        const challengeTitle = isCurrentPlayer ? ch.challenge : (isWinningCell ? ch.challenge : `Challenge #${idx+1}`);
-
         const cellEl = document.createElement('div');
         cellEl.className = `winner-mini-cell ${isWinningCell ? 'winner-winning-cell' : ''}`;
-        if (photoUrl) {
-          cellEl.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.35), rgba(11, 19, 43, 0.7)), url('${photoUrl}')`;
+
+        if (isWinningCell) {
+          // ONLY the 3 Winning BINGO cells have background photo, category icon, checkmark, and click event
+          if (photoUrl) {
+            cellEl.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.25), rgba(11, 19, 43, 0.65)), url('${photoUrl}')`;
+          }
+
+          cellEl.innerHTML = `
+            <div class="winner-cell-overlay"></div>
+            <div class="winner-cell-cat-icon"><i data-lucide="${catIcon}"></i></div>
+            <div class="winner-cell-check"><i data-lucide="check"></i></div>
+            <p class="winner-cell-text">${escapeHtml(ch.challenge)}</p>
+          `;
+
+          cellEl.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const imgEl = $('#photoReviewImg');
+            const txtEl = $('#photoReviewChallengeText');
+            const reasonEl = $('#photoReviewAiReason');
+            const pillEl = $('#photoReviewStatusPill');
+            const catIconEl = $('#photoReviewCatIcon');
+
+            if (imgEl) {
+              imgEl.src = photoUrl || '';
+              imgEl.style.display = photoUrl ? 'block' : 'none';
+            }
+            if (txtEl) txtEl.textContent = ch.challenge;
+            if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || 'Verified winning challenge submission by Champion.';
+            if (pillEl) {
+              pillEl.className = 'photo-review-status-pill status-done';
+              pillEl.innerHTML = '<i data-lucide="check"></i> <span>DONE</span>';
+            }
+            if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+
+            openModal(els.photoReviewModal);
+            if (window.lucide) window.lucide.createIcons();
+          });
+
+        } else {
+          // Non-winning cells: pure placeholder, NO camera icon, NO checkmark, NO click handler
+          cellEl.innerHTML = `
+            <p class="winner-cell-text" style="color:var(--text-muted); opacity:0.8; font-size:0.7rem;">Challenge #${idx+1}</p>
+          `;
         }
-
-        cellEl.innerHTML = `
-          <div class="winner-cell-overlay"></div>
-          <div class="winner-cell-cat-icon"><i data-lucide="${catIcon}"></i></div>
-          ${(isWinningCell || (isCurrentPlayer && completedCells.includes(idx))) ? '<div class="winner-cell-check"><i data-lucide="check"></i></div>' : ''}
-          <p class="winner-cell-text">${escapeHtml(challengeTitle)}</p>
-        `;
-
-        cellEl.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          ev.stopPropagation();
-          const imgEl = $('#photoReviewImg');
-          const txtEl = $('#photoReviewChallengeText');
-          const reasonEl = $('#photoReviewAiReason');
-          const pillEl = $('#photoReviewStatusPill');
-          const catIconEl = $('#photoReviewCatIcon');
-
-          if (imgEl) {
-            imgEl.src = photoUrl || '';
-            imgEl.style.display = photoUrl ? 'block' : 'none';
-          }
-          if (txtEl) txtEl.textContent = isWinningCell ? ch.challenge : (isCurrentPlayer ? ch.challenge : `Challenge #${idx+1}`);
-          if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || (isWinningCell ? 'Verified winning challenge submission by Champion.' : 'Challenge was not part of the winning line.');
-          if (pillEl) {
-            pillEl.className = (isWinningCell || photoUrl) ? 'photo-review-status-pill status-done' : 'photo-review-status-pill status-pending';
-            pillEl.innerHTML = (isWinningCell || photoUrl) ? '<i data-lucide="check"></i> <span>DONE</span>' : '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
-          }
-          if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
-
-          openModal(els.photoReviewModal);
-          if (window.lucide) window.lucide.createIcons();
-        });
 
         els.winnerMiniBoard.appendChild(cellEl);
       }

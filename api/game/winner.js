@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
 
     const records = await sbRes.json();
     if (!records || records.length === 0) {
-      return res.status(404).json({ error: 'No winner records found.' });
+      return res.status(200).json({ success: false, message: 'No champions yet. Be the first to win!' });
     }
 
     const topScore = records[0];

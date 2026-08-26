@@ -1116,7 +1116,11 @@
       const res = await fetch(`${API_BASE}/winner?location=${targetLoc}`);
       if (!res.ok) throw new Error('Failed to load winner');
       const data = await res.json();
-      if (!data.success || !data.winner) throw new Error('No winner data');
+      if (!data.success || !data.winner) {
+        els.winnerPlayerName.textContent = 'No Champion Yet';
+        els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-gold); font-weight:700;">No champions yet.<br><span style="font-size:0.85rem; color:var(--text-muted); font-weight:normal;">Be the first to score BINGO and claim the crown!</span></div>';
+        return;
+      }
 
       const winner = data.winner;
       els.winnerPlayerName.textContent = winner.player_name || 'Champion';

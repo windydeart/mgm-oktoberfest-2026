@@ -928,7 +928,8 @@
 
     els.leaderboardEmpty.style.display = 'none';
 
-    entries.forEach((entry, i) => {
+    const top10 = entries.slice(0, 10);
+    top10.forEach((entry, i) => {
       const rank = i + 1;
       const isTop1 = rank === 1;
       const medal = isTop1 ? '👑 #1' : rank === 2 ? '🥈 #2' : rank === 3 ? '🥉 #3' : `#${rank}`;

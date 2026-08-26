@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
   const location = url.searchParams.get('location') || 'all';
 
   try {
-    let queryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&order=duration_seconds.asc&limit=50&select=player_name,office,duration_seconds,created_at`;
+    let queryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&order=duration_seconds.asc&limit=10&select=player_name,office,duration_seconds,created_at`;
     if (location === 'danang' || location === 'hcmc') {
       queryUrl += `&office=eq.${location}`;
     }

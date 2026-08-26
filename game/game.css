@@ -2988,3 +2988,16 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
   transform: translateY(-1px);
 }
+
+
+#leaderboardModal {
+  z-index: 3500;
+}
+
+#winnerShowcaseModal {
+  z-index: 3600;
+}
+
+#photoReviewModal {
+  z-index: 3700;
+}

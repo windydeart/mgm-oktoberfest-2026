@@ -1068,7 +1068,7 @@
                     entry.location === gameState.location &&
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
       return `
-        <div class="sidebar-lb-item ${isWinner ? 'sidebar-lb-winner' : (isMe ? 'current-player-item' : '')}">
+        <div class="sidebar-lb-item ${isWinner ? 'sidebar-lb-winner' : (isMe ? 'current-player-item' : '')}" ${isWinner ? 'title="Click to view Champion Winning Board"' : ''}>
           <span class="sidebar-lb-rank" style="color:${isWinner?'#fbbf24':(isMe?'#38bdf8':'inherit')};">${medal}</span>
           <div class="sidebar-lb-name-group">
             <span class="sidebar-lb-name">${escapeHtml(entry.player_name)}</span>
@@ -1079,21 +1079,41 @@
       `;
     }).join('');
 
+    const winnerItem = els.sidebarLbList.querySelector('.sidebar-lb-winner');
+    if (winnerItem) {
+      winnerItem.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openWinnerShowcase('all');
+      });
+    }
+
     if (window.lucide) window.lucide.createIcons();
   }
 
     /* ═══════════════════════════════════════════════════════
      WINNER SHOWCASE MODAL (Top 1 Board Preview)
      ═══════════════════════════════════════════════════════ */
+  let wasLeaderboardOpen = false;
+
   async function openWinnerShowcase(location) {
     if (!els.winnerShowcaseModal) return;
+
+    if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+      wasLeaderboardOpen = true;
+      closeModal(els.leaderboardModal);
+    } else {
+      wasLeaderboardOpen = false;
+    }
+
     openModal(els.winnerShowcaseModal);
 
     els.winnerPlayerName.textContent = 'Loading Champion...';
     els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Loading winner board...</div>';
 
     try {
-      const res = await fetch(`${API_BASE}/winner?location=${location || currentLbLocation || 'all'}`);
+      const targetLoc = location || currentLbLocation || 'all';
+      const res = await fetch(`${API_BASE}/winner?location=${targetLoc}`);
       if (!res.ok) throw new Error('Failed to load winner');
       const data = await res.json();
       if (!data.success || !data.winner) throw new Error('No winner data');
@@ -1102,7 +1122,7 @@
       els.winnerPlayerName.textContent = winner.player_name || 'Champion';
       els.winnerLocationBadge.textContent = winner.location === 'danang' ? 'Da Nang' : (winner.location === 'hcmc' ? 'HCMC' : 'All Offices');
       els.winnerTimeBadge.innerHTML = `<i data-lucide="timer"></i> ${formatTime(winner.elapsed_ms || 0)}`;
-      els.winnerLineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winner.bingo_line] || 'BINGO Line'}`;
+      els.winnerLineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winner.bingo_line] || winner.bingo_line || 'BINGO Line'}`;
 
       const winningLineKey = winner.bingo_line || 'row-0';
       const lines = [
@@ -1119,9 +1139,9 @@
       const winningIndices = winningLineObj ? winningLineObj.indices : [0, 1, 2];
 
       const challenges = (winner.challenges && winner.challenges.length === 9) ? winner.challenges : (gameState.challenges && gameState.challenges.length === 9 ? gameState.challenges : Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` })));
-      const completedCells = winner.completed_cells || [0, 1, 2];
-      const cellPhotos = winner.cell_photos || {};
-      const cellAiReasons = winner.cell_ai_reasons || {};
+      const completedCells = winner.completed_cells || winningIndices || [];
+      const cellPhotos = winner.cell_photos || (winner.player_name === gameState.playerName ? (gameState.cellPhotos || {}) : {});
+      const cellAiReasons = winner.cell_ai_reasons || (winner.player_name === gameState.playerName ? (gameState.cellAiReasons || {}) : {});
 
       els.winnerMiniBoard.innerHTML = '';
       challenges.forEach((ch, idx) => {
@@ -1143,28 +1163,30 @@
           <p class="winner-cell-text">${escapeHtml(ch.challenge)}</p>
         `;
 
-        if (photoUrl) {
-          cellEl.addEventListener('click', () => {
-            // Preview winner photo
-            const imgEl = $('#photoReviewImg');
-            const txtEl = $('#photoReviewChallengeText');
-            const reasonEl = $('#photoReviewAiReason');
-            const pillEl = $('#photoReviewStatusPill');
-            const catIconEl = $('#photoReviewCatIcon');
+        cellEl.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const imgEl = $('#photoReviewImg');
+          const txtEl = $('#photoReviewChallengeText');
+          const reasonEl = $('#photoReviewAiReason');
+          const pillEl = $('#photoReviewStatusPill');
+          const catIconEl = $('#photoReviewCatIcon');
 
-            if (imgEl) imgEl.src = photoUrl;
-            if (txtEl) txtEl.textContent = ch.challenge;
-            if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || 'Verified challenge submission by Champion.';
-            if (pillEl) {
-              pillEl.className = 'photo-review-status-pill status-done';
-              pillEl.innerHTML = '<i data-lucide="check"></i> <span>DONE</span>';
-            }
-            if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+          if (imgEl) {
+            imgEl.src = photoUrl || '';
+            imgEl.style.display = photoUrl ? 'block' : 'none';
+          }
+          if (txtEl) txtEl.textContent = ch.challenge;
+          if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || (isCompleted ? 'Verified challenge submission by Champion.' : 'Challenge was not part of the winning line.');
+          if (pillEl) {
+            pillEl.className = isCompleted ? 'photo-review-status-pill status-done' : 'photo-review-status-pill status-pending';
+            pillEl.innerHTML = isCompleted ? '<i data-lucide="check"></i> <span>DONE</span>' : '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
+          }
+          if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
 
-            openModal(els.photoReviewModal);
-            if (window.lucide) window.lucide.createIcons();
-          });
-        }
+          openModal(els.photoReviewModal);
+          if (window.lucide) window.lucide.createIcons();
+        });
 
         els.winnerMiniBoard.appendChild(cellEl);
       });
@@ -1173,6 +1195,14 @@
 
     } catch (e) {
       els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Could not load winner board.</div>';
+    }
+  }
+
+  function closeWinnerShowcase() {
+    closeModal(els.winnerShowcaseModal);
+    if (wasLeaderboardOpen && els.leaderboardModal) {
+      openModal(els.leaderboardModal);
+      renderLeaderboard(currentLbLocation);
     }
   }
 

@@ -1023,8 +1023,8 @@
       return;
     }
 
-    const top5 = entries.slice(0, 5);
-    els.sidebarLbList.innerHTML = top5.map((entry, idx) => {
+    const top10 = entries.slice(0, 10);
+    els.sidebarLbList.innerHTML = top10.map((entry, idx) => {
       const isWinner = idx === 0;
       const medal = isWinner ? '👑 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx+1}`;
       const isMe = entry.player_name === gameState.playerName &&

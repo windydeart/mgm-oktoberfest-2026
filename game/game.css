@@ -918,6 +918,30 @@ body.game-page::before {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 280px;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+
+.sidebar-lb-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-lb-list::-webkit-scrollbar-track {
+  background: rgba(11, 19, 43, 0.4);
+  border-radius: var(--radius-full);
+}
+
+.sidebar-lb-list::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.45);
+  border-radius: var(--radius-full);
+}
+
+.sidebar-lb-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.75);
 }
 
 .sidebar-lb-item {
@@ -1709,12 +1733,12 @@ body.game-page::before {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto !important;
-  max-height: 52vh;
-  max-height: 52dvh;
+  max-height: 48vh;
+  max-height: 48dvh;
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-y !important;
   overscroll-behavior: contain;
-  padding-right: 4px;
+  padding-right: 6px;
 }
 
 .lb-scrollable-body::-webkit-scrollbar {

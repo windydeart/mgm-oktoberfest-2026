@@ -918,6 +918,23 @@
     }
   }
 
+  async function saveWinnerSnapshotByName(playerName, office) {
+    try {
+      // Find the score record ID for this player
+      const findRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(playerName)}&office=eq.${office}&order=duration_seconds.asc&limit=1&select=id,player_email`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      if (!findRes.ok) return;
+      const records = await findRes.json();
+      if (!records || records.length === 0) return;
+      // Only save if snapshot is empty
+      if (records[0].player_email && records[0].player_email.trim().startsWith('{')) return;
+      saveWinnerSnapshot(records[0].id);
+    } catch (e) {
+      console.warn('saveWinnerSnapshotByName error:', e);
+    }
+  }
+
   function onBingo(data) {
     gameState.status = 'completed';
     gameState.elapsedMs = data.elapsed_ms || (Date.now() - (gameState.startedAt || Date.now()));
@@ -1213,10 +1230,33 @@
       const winningLineObj = lines.find(l => l.name === winningLineKey);
       const winningIndices = winningLineObj ? winningLineObj.indices : [0, 1, 2];
 
-      const challenges = (winner.challenges && winner.challenges.length === 9) ? winner.challenges : (gameState.challenges && gameState.challenges.length === 9 ? gameState.challenges : Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` })));
-      const completedCells = winner.completed_cells || winningIndices || [];
-      const cellPhotos = winner.cell_photos || (winner.player_name === gameState.playerName ? (gameState.cellPhotos || {}) : {});
-      const cellAiReasons = winner.cell_ai_reasons || (winner.player_name === gameState.playerName ? (gameState.cellAiReasons || {}) : {});
+      // If the winner is the current player, prefer live gameState data (most complete)
+      const isCurrentPlayer = winner.player_name === gameState.playerName && winner.location === gameState.location;
+      const winnerHasSnapshot = winner.challenges && winner.challenges.length === 9;
+
+      let challenges, completedCells, cellPhotos, cellAiReasons;
+
+      if (winnerHasSnapshot) {
+        // Best case: full snapshot from database
+        challenges = winner.challenges;
+        completedCells = winner.completed_cells || winningIndices;
+        cellPhotos = winner.cell_photos || {};
+        cellAiReasons = winner.cell_ai_reasons || {};
+      } else if (isCurrentPlayer && gameState.challenges && gameState.challenges.length === 9) {
+        // Winner is current player with live data — use gameState and also save snapshot
+        challenges = gameState.challenges;
+        completedCells = gameState.completedCells || winningIndices;
+        cellPhotos = gameState.cellPhotos || {};
+        cellAiReasons = gameState.cellAiReasons || {};
+        // Auto-save snapshot for future viewers
+        saveWinnerSnapshotByName(winner.player_name, winner.location);
+      } else {
+        // No snapshot data available — show bingo line challenges only
+        challenges = Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'social', icon: 'camera', challenge: `Challenge #${idx+1}` }));
+        completedCells = winner.completed_cells || winningIndices;
+        cellPhotos = {};
+        cellAiReasons = {};
+      }
 
       els.winnerMiniBoard.innerHTML = '';
       challenges.forEach((ch, idx) => {

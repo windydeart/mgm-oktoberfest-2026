@@ -923,12 +923,13 @@ body.game-page::before {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 280px;
+  max-height: 330px;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-y !important;
   overscroll-behavior: contain;
   padding-right: 4px;
+  padding-bottom: 8px;
 }
 
 .sidebar-lb-list::-webkit-scrollbar {
@@ -2183,15 +2184,16 @@ body.game-page::before {
 }
 
 .sidebar-accordion-content {
-  max-height: 250px;
-  overflow: hidden;
-  transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease;
+  max-height: 600px;
+  overflow: visible;
+  transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
   opacity: 1;
   margin-top: 0.75rem;
 }
 
 .sidebar-accordion-content.collapsed {
   max-height: 0;
+  overflow: hidden;
   opacity: 0;
   margin-top: 0;
   pointer-events: none;

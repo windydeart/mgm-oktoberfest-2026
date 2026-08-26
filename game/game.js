@@ -92,6 +92,7 @@
     els.closePlayerModal = $('#closePlayerModal');
     els.playerForm = $('#playerForm');
     els.playerName = $('#playerName');
+    els.playerNameStatusHint = $('#playerNameStatusHint');
     els.submitPlayerBtn = $('#submitPlayerBtn');
 
     // Stopwatch

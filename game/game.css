@@ -3029,3 +3029,45 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 #photoReviewModal {
   z-index: 3700;
 }
+
+
+/* ─── LIVE NAME AVAILABILITY HINT ─── */
+.name-status-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 7px;
+  padding: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.name-status-hint i,
+.name-status-hint svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.name-status-hint.status-available {
+  color: #4ade80;
+}
+
+.name-status-hint.status-taken {
+  color: #f87171;
+}
+
+.name-status-hint.status-checking {
+  color: var(--text-muted);
+}
+
+.form-input.input-status-taken {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25) !important;
+}
+
+.form-input.input-status-available {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.25) !important;
+}

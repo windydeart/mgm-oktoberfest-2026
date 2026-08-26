@@ -2,6 +2,8 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 const crypto = require('crypto');
 
+const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 
 function createToken(data) {
@@ -49,6 +51,25 @@ module.exports = async (req, res) => {
   }
   if (location !== 'danang' && location !== 'hcmc') {
     return res.status(400).json({ error: 'Please select either Da Nang or HCMC.' });
+  }
+
+  // Check if player name is already registered in scores database
+  try {
+    const checkNameUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=ilike.${encodeURIComponent(player_name.trim())}&select=id&limit=1`;
+    const nameRes = await fetch(checkNameUrl, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (nameRes.ok) {
+      const existing = await nameRes.json();
+      if (existing && existing.length > 0) {
+        return res.status(400).json({ error: `The name "${player_name.trim()}" is already registered. Please choose another name.` });
+      }
+    }
+  } catch (e) {
+    console.warn('Name check error in start API:', e);
   }
 
   let allChallenges = [];

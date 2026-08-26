@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=185">
+  <link rel="stylesheet" href="/game/game.css?v=190">
 </head>
 <body class="dark-theme game-page">
 
@@ -534,6 +534,56 @@
     </div>
   </div>
 
+    <!-- ═══════════════════════════════════════════════════════
+       PHOTO DETAIL & REVIEW MODAL (Inspect & Review Photos)
+       ═══════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" id="photoReviewModal">
+    <div class="modal-content glass-card photo-review-dialog">
+      <button class="modal-close" id="closePhotoReviewBtn" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="photo-review-header">
+        <div class="photo-review-icon-badge" id="photoReviewCatIcon">
+          <i data-lucide="camera"></i>
+        </div>
+        <div class="photo-review-title-group">
+          <span class="photo-review-label">CHALLENGE SUBMISSION</span>
+          <h3 class="photo-review-challenge-text" id="photoReviewChallengeText">Challenge Title</h3>
+        </div>
+      </div>
+
+      <!-- Photo Display Frame -->
+      <div class="photo-review-frame">
+        <img id="photoReviewImg" class="photo-review-img" src="" alt="Captured Challenge Photo">
+        <div class="photo-review-status-pill" id="photoReviewStatusPill">
+          <i data-lucide="clock"></i>
+          <span>IN REVIEW</span>
+        </div>
+      </div>
+
+      <!-- AI Feedback & Assessment Box -->
+      <div class="photo-review-ai-box" id="photoReviewAiBox">
+        <div class="ai-box-header">
+          <i data-lucide="sparkles" class="ai-sparkle-icon"></i>
+          <span class="ai-box-title" id="photoReviewAiTitle">AI Assessment & Feedback</span>
+        </div>
+        <p class="ai-box-reason" id="photoReviewAiReason">Photo is under review by the Organizing Committee.</p>
+        <div class="ai-box-tip" id="photoReviewAiTip">
+          <i data-lucide="info"></i>
+          <span>Ban tổ chức sẽ đối chiếu ảnh này khi tổng kết giải thưởng.</span>
+        </div>
+      </div>
+
+      <!-- Close Button -->
+      <div class="photo-review-footer">
+        <button type="button" class="btn-hero-play btn-close-review" id="photoReviewCloseBtn">
+          <span>Back to Game</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════════════════════════════════════════════
        FULL LEADERBOARD MODAL
        ═══════════════════════════════════════════════════════ -->
@@ -582,6 +632,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=185"></script>
+  <script src="/game/game.js?v=190"></script>
 </body>
 </html>

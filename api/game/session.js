@@ -87,6 +87,7 @@ module.exports = async (req, res) => {
 
   const pendingReviewCells = session.pending_review_cells || [];
   const cellPhotoUrls = session.cell_photo_urls || {};
+  const cellAiReasons = session.cell_ai_reasons || {};
 
   return res.status(200).json({
     success: true,
@@ -98,6 +99,7 @@ module.exports = async (req, res) => {
     completed_cells: completedCells,
     pending_review_cells: pendingReviewCells,
     cell_photo_urls: cellPhotoUrls,
+    cell_ai_reasons: cellAiReasons,
     status: isCompleted ? 'completed' : 'playing',
     elapsed_ms: elapsed_ms,
     bingo_line: session.bingo_line || calculatedBingoLine,

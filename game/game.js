@@ -449,12 +449,13 @@
     openCamera();
   }
 
-  function openPhotoReview(cellIndex) {
+    function openPhotoReview(cellIndex) {
     const challenge = gameState.challenges[cellIndex];
     if (!challenge) return;
 
     const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
     const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
+    const aiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isPending ? 'Photo is under manual review by the Organizing Committee.' : 'Challenge approved by AI photo engine.');
 
     const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
     const iconSpan = $('#photoReviewCatIcon');
@@ -470,23 +471,29 @@
     }
 
     const pill = $('#photoReviewStatusPill');
-    const statusText = $('#photoReviewStatusText');
+    const aiBox = $('#photoReviewAiBox');
+    const aiTitle = $('#photoReviewAiTitle');
+    const aiReasonEl = $('#photoReviewAiReason');
+    const aiTip = $('#photoReviewAiTip');
+
     if (isPending) {
       if (pill) {
         pill.className = 'photo-review-status-pill status-pending';
         pill.innerHTML = '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
       }
-      if (statusText) {
-        statusText.textContent = 'This submission is queued for manual verification by the Organizing Committee.';
-      }
+      if (aiBox) aiBox.className = 'photo-review-ai-box';
+      if (aiTitle) aiTitle.textContent = 'AI Reason for IN REVIEW';
+      if (aiReasonEl) aiReasonEl.textContent = aiReason;
+      if (aiTip) aiTip.innerHTML = '<i data-lucide="info"></i> <span>Ban tổ chức sẽ đối chiếu và duyệt ảnh này khi tổng kết giải thưởng.</span>';
     } else {
       if (pill) {
         pill.className = 'photo-review-status-pill status-done';
-        pill.innerHTML = '<i data-lucide="check"></i> <span>APPROVED</span>';
+        pill.innerHTML = '<i data-lucide="check-circle-2"></i> <span>DONE</span>';
       }
-      if (statusText) {
-        statusText.textContent = 'Verified and approved by AI photo challenge engine.';
-      }
+      if (aiBox) aiBox.className = 'photo-review-ai-box is-approved';
+      if (aiTitle) aiTitle.textContent = 'AI Assessment';
+      if (aiReasonEl) aiReasonEl.textContent = aiReason;
+      if (aiTip) aiTip.innerHTML = '<i data-lucide="check"></i> <span>Ảnh hợp lệ và khớp với yêu cầu thử thách!</span>';
     }
 
     openModal($('#photoReviewModal'));
@@ -553,6 +560,10 @@
     }
     if (!gameState.cellPhotos) gameState.cellPhotos = {};
     gameState.cellPhotos[targetIdx] = dataUrl;
+    if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
+    if (!gameState.cellAiReasons[targetIdx]) {
+      gameState.cellAiReasons[targetIdx] = 'AI evaluation timeout (4s). Photo submitted for manual review by organizers.';
+    }
 
     if (window.lucide) window.lucide.createIcons();
 
@@ -633,6 +644,8 @@
         if (data.session_token) {
           gameState.sessionToken = data.session_token;
         }
+        if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
+        gameState.cellAiReasons[targetIdx] = data.ai_reason || data.reason || (data.pending_review ? 'Photo queued for manual review.' : 'Challenge approved!');
 
         if (data.pending_review) {
           promoteToPendingReview(targetIdx, dataUrl, challenge);
@@ -1021,6 +1034,7 @@
         completedCells: gameState.completedCells,
         pendingReviewCells: gameState.pendingReviewCells || [],
         cellPhotos: gameState.cellPhotos || {},
+        cellAiReasons: gameState.cellAiReasons || {},
         status: gameState.status,
         startedAt: gameState.startedAt,
         elapsedMs: gameState.elapsedMs,
@@ -1124,6 +1138,8 @@
         cellPhotos[idx] = serverPhotos[idx] || localPhotos[idx] || null;
       }
 
+      const cellAiReasons = Object.assign({}, localState && localState.cellAiReasons ? localState.cellAiReasons : {}, data.cell_ai_reasons || {});
+
       gameState.sessionId = data.session_id;
       gameState.playerName = data.player_name;
       gameState.location = data.location;
@@ -1131,6 +1147,7 @@
       gameState.completedCells = completedCells;
       gameState.pendingReviewCells = pendingReviewCells;
       gameState.cellPhotos = cellPhotos;
+      gameState.cellAiReasons = cellAiReasons;
       gameState.startedAt = data.started_at;
       gameState.status = isCompleted ? 'completed' : 'playing';
       gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);

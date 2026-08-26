@@ -223,11 +223,14 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     }
   }
 
-  // Save photo URL in session token for persistence
+  // Save photo URL and AI reason in session token for persistence
   session.cell_photo_urls = session.cell_photo_urls || {};
   if (photoUrl) {
     session.cell_photo_urls[cell_index] = photoUrl;
   }
+
+  session.cell_ai_reasons = session.cell_ai_reasons || {};
+  session.cell_ai_reasons[cell_index] = ai_reason;
 
   const bingoLine = checkBingo(completedCells);
   const is_bingo = bingoLine !== null;
@@ -278,6 +281,7 @@ Reply ONLY JSON: {"approved": true, "reason": "Approved"} or {"approved": false,
     verified: true,
     pending_review: is_pending_review,
     reason: ai_reason,
+    ai_reason: ai_reason,
     photo_url: photoUrl || null,
     cell_index,
     session_token: new_token,

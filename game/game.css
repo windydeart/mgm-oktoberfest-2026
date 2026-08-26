@@ -2381,22 +2381,28 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 
 
 
-/* ─── Photo Detail & Review Modal ─── */
-.photo-review-content {
+/* ═══════════════════════════════════════════════════════
+   PHOTO DETAIL & REVIEW MODAL
+   ═══════════════════════════════════════════════════════ */
+.photo-review-dialog {
   max-width: 440px;
-  padding: 1.6rem;
-  text-align: center;
+  width: 92vw;
+  padding: 1.5rem;
+  text-align: left;
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(245, 158, 11, 0.2);
+  position: relative;
 }
 
 .photo-review-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  text-align: left;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.1rem;
+  padding-right: 2.2rem;
 }
 
-.photo-review-cat-icon {
+.photo-review-icon-badge {
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -2409,38 +2415,42 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   flex-shrink: 0;
 }
 
-.photo-review-cat-icon svg,
-.photo-review-cat-icon i {
-  width: 22px;
-  height: 22px;
+.photo-review-icon-badge svg,
+.photo-review-icon-badge i {
+  width: 20px;
+  height: 20px;
 }
 
 .photo-review-label {
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: var(--text-gold);
   display: block;
 }
 
 .photo-review-challenge-text {
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #ffffff;
   margin: 2px 0 0;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .photo-review-frame {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
+  max-height: 280px;
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 2px solid rgba(245, 158, 11, 0.35);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-  background: #000;
-  margin-bottom: 1.2rem;
+  background: #090f20;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .photo-review-img {
@@ -2452,85 +2462,123 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 
 .photo-review-status-pill {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
+  top: 10px;
+  right: 10px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.4px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  z-index: 5;
 }
 
 .photo-review-status-pill.status-done {
-  background: rgba(34, 197, 94, 0.92);
+  background: rgba(34, 197, 94, 0.95);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .photo-review-status-pill.status-pending {
-  background: rgba(245, 158, 11, 0.95);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #0b132b;
-  border: 1px solid rgba(251, 191, 36, 0.5);
+  border: 1px solid rgba(251, 191, 36, 0.6);
+}
+
+.photo-review-status-pill svg,
+.photo-review-status-pill i {
+  width: 13px;
+  height: 13px;
+}
+
+/* AI Assessment Box */
+.photo-review-ai-box {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 1.2rem;
+}
+
+.photo-review-ai-box.is-approved {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(15, 35, 25, 0.6);
+}
+
+.ai-box-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ai-sparkle-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--accent-amber);
+}
+
+.photo-review-ai-box.is-approved .ai-sparkle-icon {
+  color: #22c55e;
+}
+
+.ai-box-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: var(--text-gold);
+  text-transform: uppercase;
+}
+
+.photo-review-ai-box.is-approved .ai-box-title {
+  color: #86efac;
+}
+
+.ai-box-reason {
+  font-size: 0.85rem;
+  color: #f1f5f9;
+  line-height: 1.45;
+  margin: 0 0 8px 0;
+}
+
+.ai-box-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.35;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 6px;
+}
+
+.ai-box-tip svg,
+.ai-box-tip i {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-gold);
 }
 
 .photo-review-footer {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.photo-review-meta {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  text-align: left;
-  background: rgba(11, 19, 43, 0.55);
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.photo-review-meta .meta-value {
-  color: #ffffff;
-  font-weight: 600;
-  display: block;
-  margin-top: 2px;
+  justify-content: stretch;
 }
 
 .btn-close-review {
   width: 100%;
-  height: 46px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-  color: #0b132b;
-  border: none;
-  cursor: pointer;
-}
-
-.bingo-cell.completed,
-.bingo-cell.pending-review {
-  cursor: pointer !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
-}
-
-.bingo-cell.completed:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 0 25px rgba(34, 197, 94, 0.6) !important;
-}
-
-.bingo-cell.pending-review:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6) !important;
 }
 
 /* ─── Unfilled Cells After Game Completion (Grey Muted Style) ─── */

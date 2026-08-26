@@ -46,6 +46,13 @@ function checkBingo(cells) {
   return null;
 }
 
+function sanitizeAiReason(reason) {
+  if (!reason || typeof reason !== 'string') return reason;
+  return reason
+    .replace(/\s*(?:please\s+)?(?:try\s+again|retake(?:\s+the\s+photo)?|re-take|resubmit)[^.!?]*(?:[.!?]|$)/gi, '')
+    .trim();
+}
+
 function extractJson(text) {
   if (!text || typeof text !== 'string') return null;
   const clean = text.replace(/```(?:json)?/gi, '').trim();
@@ -165,12 +172,13 @@ module.exports = async (req, res) => {
         body: JSON.stringify({
           system_instruction: {
             parts: [{
-              text: `You are an AI photo judge for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
-Look at the submitted photo.
-- APPROVE if the photo reasonably matches or shows a genuine attempt at the challenge (people, beer, festive atmosphere, props, food).
+              text: `You are an AI photo challenge evaluator for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
+Evaluate the submitted photo objectively.
+- APPROVE if the photo reasonably matches or demonstrates a genuine attempt at the challenge (subject, people, beer, festive atmosphere, props, food).
 - REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
-Reply with a JSON object ONLY:
-{"approved": true/false, "reason": "1-2 sentence friendly English explanation explaining why it was approved or why it was sent for review"}`
+CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
+Reply with ONLY a JSON object:
+{"approved": true/false, "reason": "1-2 concise objective sentences explaining the visual assessment without asking to retry"}`
             }]
           },
           contents: [{
@@ -198,7 +206,8 @@ Reply with a JSON object ONLY:
           if (result && typeof result.approved === 'boolean') {
             ai_decision_made = true;
             ai_verified = result.approved === true;
-            ai_reason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+            const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+            ai_reason = sanitizeAiReason(rawReason);
             break; // Clear AI verdict obtained!
           }
         }

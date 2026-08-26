@@ -454,13 +454,21 @@
     openCamera();
   }
 
-    function openPhotoReview(cellIndex) {
+      function sanitizeAiReason(reason) {
+    if (!reason || typeof reason !== 'string') return reason;
+    return reason
+      .replace(/\s*(?:please\s+)?(?:try\s+again|retake(?:\s+the\s+photo)?|re-take|resubmit)[^.!?]*(?:[.!?]|$)/gi, '')
+      .trim();
+  }
+
+  function openPhotoReview(cellIndex) {
     const challenge = gameState.challenges[cellIndex];
     if (!challenge) return;
 
     const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
     const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
-    const aiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isPending ? 'AI could not automatically verify your photo. Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.');
+    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isPending ? 'AI could not automatically verify your photo. Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.');
+    const aiReason = sanitizeAiReason(rawAiReason);
 
     const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
     const iconSpan = $('#photoReviewCatIcon');

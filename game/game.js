@@ -408,7 +408,7 @@
       await runRevealAnimation();
       renderBoard();
       startTimer();
-      showToast('Game started! Tap any cell to take a photo 📸', 'success');
+      showToast('Game started! Tap any cell to take a photo.', 'success');
 
     } catch (err) {
       showToast(err.message || 'Server connection error. Please try again.', 'error');
@@ -433,7 +433,7 @@
 
     // If game is completed (Bingo achieved), lock non-completed cells from taking new photos!
     if (gameState.status === 'completed') {
-      showToast('Game finished! You already achieved BINGO! 🏆', 'info', 3000);
+      showToast('Game finished! You already achieved BINGO!', 'info', 3000);
       return;
     }
 
@@ -582,7 +582,7 @@
       onBingo(data);
     } else {
       saveSession();
-      showToast(`⏳ Photo submitted! Marked as IN REVIEW for organizers.`, 'info', 4000);
+      showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
     }
   }
 
@@ -601,7 +601,7 @@
       targetCell.classList.add('verifying');
       targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${dataUrl}')`;
       const hint = targetCell.querySelector('.cell-tap-hint');
-      if (hint) hint.textContent = '⏳ Verifying photo...';
+      if (hint) hint.textContent = 'Verifying photo...';
       if (window.lucide) window.lucide.createIcons();
     }
 
@@ -678,7 +678,7 @@
             onBingo(data);
           } else {
             saveSession();
-            showToast(`🎯 Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
+            showToast(`Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
           }
         }
       }

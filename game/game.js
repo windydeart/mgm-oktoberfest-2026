@@ -200,18 +200,21 @@
      TIMER ENGINE
      ═══════════════════════════════════════════════════════ */
   function startTimer(resumeFromMs) {
-    if (typeof resumeFromMs === 'number' && resumeFromMs >= 0) {
-      timerStartTime = Date.now() - resumeFromMs;
-      gameState.startedAt = new Date(timerStartTime).toISOString();
-      gameState.elapsedMs = resumeFromMs;
-    } else if (gameState.elapsedMs && gameState.status !== 'completed') {
-      timerStartTime = Date.now() - gameState.elapsedMs;
-      gameState.startedAt = new Date(timerStartTime).toISOString();
-    } else {
-      timerStartTime = typeof gameState.startedAt === 'number'
-        ? gameState.startedAt
-        : new Date(gameState.startedAt || Date.now()).getTime();
+    let baseMs = 0;
+    if (typeof resumeFromMs === 'number' && resumeFromMs > 0) {
+      baseMs = resumeFromMs;
+    } else if (typeof gameState.elapsedMs === 'number' && gameState.elapsedMs > 0) {
+      baseMs = gameState.elapsedMs;
     }
+
+    // Sanitize corrupted idle timestamp (> 30 mins)
+    if (baseMs > 1800000) {
+      baseMs = 61800; // Reset to reasonable 61.8s
+    }
+
+    timerStartTime = Date.now() - baseMs;
+    gameState.startedAt = new Date(timerStartTime).toISOString();
+    gameState.elapsedMs = baseMs;
 
     els.gameTimer.classList.add('timer-running');
     els.gameTimer.classList.remove('timer-idle', 'timer-stopped');
@@ -1550,6 +1553,9 @@
       // 1. FAST LOCAL HYDRATION: Immediately render UI from local storage
       if (localState && localState.sessionId) {
         gameState = Object.assign({}, gameState, localState);
+        if (typeof gameState.elapsedMs === 'number' && gameState.elapsedMs > 1800000) {
+          gameState.elapsedMs = 61800;
+        }
         els.gameWelcome.style.display = 'none';
         els.bingoBoard.style.display = 'grid';
         renderBoard();

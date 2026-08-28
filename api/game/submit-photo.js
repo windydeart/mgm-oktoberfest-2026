@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const challengesPool = require('../../data/bingo_challenges.json');
 
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
@@ -44,6 +45,18 @@ function checkBingo(cells) {
     }
   }
   return null;
+}
+
+function getDefaultChallenges() {
+  if (challengesPool && challengesPool.challenges && challengesPool.challenges.length >= 9) {
+    return challengesPool.challenges.slice(0, 9);
+  }
+  return Array.from({ length: 9 }, (_, i) => ({
+    id: `ch_${i + 1}`,
+    category: 'social',
+    icon: 'camera',
+    challenge: `Challenge #${i + 1}`
+  }));
 }
 
 function sanitizeAiReason(reason) {
@@ -115,19 +128,43 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { session_token, cell_index, photo_base64, elapsed_ms: client_elapsed_ms } = req.body || {};
+  const {
+    session_token,
+    cell_index,
+    photo_base64,
+    elapsed_ms: client_elapsed_ms,
+    player_name,
+    location
+  } = req.body || {};
 
-  const session = verifyToken(session_token);
+  let session = verifyToken(session_token);
+
+  // Fallback recovery if token expired/missing but player_name provided
+  if (!session && player_name) {
+    session = {
+      session_id: `session-${player_name}-${location || 'danang'}`,
+      player_name: player_name,
+      location: location || 'danang',
+      challenges: getDefaultChallenges(),
+      completed_cells: [],
+      pending_review_cells: [],
+      cell_photo_urls: {},
+      cell_ai_reasons: {},
+      started_at: new Date().toISOString(),
+      status: 'playing'
+    };
+  }
+
   if (!session) {
     return res.status(400).json({ error: 'Session expired or invalid. Please refresh and play again.' });
   }
 
-  if (session.status === 'completed' || checkBingo(session.completed_cells || []) !== null) {
-    return res.status(400).json({ error: 'Game is already completed! BINGO achieved.' });
-  }
-
   if (typeof cell_index !== 'number' || cell_index < 0 || cell_index > 8 || !photo_base64) {
     return res.status(400).json({ error: 'Invalid parameters.' });
+  }
+
+  if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9) {
+    session.challenges = getDefaultChallenges();
   }
 
   let completedCells = [...(session.completed_cells || [])];
@@ -135,7 +172,7 @@ module.exports = async (req, res) => {
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
 
-  // Sync latest reviews from database to accurately reflect approved/rejected/pending cells
+  // 1. Sync latest reviews from database to accurately reflect approved/rejected/pending cells
   try {
     const revUrl = session.player_name
       ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,photo_url,ai_reason`
@@ -174,6 +211,16 @@ module.exports = async (req, res) => {
     console.warn('Review sync in submit-photo note:', syncErr.message);
   }
 
+  // 2. If board does NOT have a winning line, ensure status is playing
+  const currentBingo = checkBingo(completedCells);
+  if (currentBingo === null) {
+    session.status = 'playing';
+    session.bingo_line = null;
+  } else if (!completedCells.includes(cell_index)) {
+    // If board already has 3 valid winning cells and player is submitting a 4th cell:
+    // Still allow submission to complete 9/9 cells!
+  }
+
   session.completed_cells = completedCells;
   session.pending_review_cells = pendingReviewCells;
   session.cell_photo_urls = cellPhotoUrls;
@@ -189,14 +236,7 @@ module.exports = async (req, res) => {
   }
   session.elapsed_ms = elapsed_ms;
 
-  if (completedCells.includes(cell_index)) {
-    return res.status(400).json({ error: 'This cell is already completed!' });
-  }
-
-  const challenge = session.challenges?.[cell_index];
-  if (!challenge) {
-    return res.status(400).json({ error: 'Challenge not found.' });
-  }
+  const challenge = session.challenges?.[cell_index] || { challenge: `Challenge #${cell_index + 1}` };
 
   // ─── AI Verification with 4.5s Timeout -> Fallback to IN REVIEW ───
   const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
@@ -305,21 +345,20 @@ Reply with ONLY a JSON object:
 
     // Upsert into bingo_photo_reviews for admin dashboard tracking (delete old then insert)
     try {
-      const challengeText = (session.challenges && session.challenges[cell_index])
-        ? (session.challenges[cell_index].challenge || `Challenge #${cell_index + 1}`)
-        : `Challenge #${cell_index + 1}`;
+      const challengeText = challenge.challenge || `Challenge #${cell_index + 1}`;
 
       // Clean up any old reviews for this cell
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'apikey': SUPABASE_SECRET_KEY,
-            'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
-          }
+      const delUrl = session.player_name
+        ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}`
+        : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}`;
+
+      await fetch(delUrl, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
         }
-      );
+      });
 
       // Insert new pending review record
       await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {

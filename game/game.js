@@ -784,6 +784,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_token: gameState.sessionToken,
+          player_name: gameState.playerName,
+          location: gameState.location,
           cell_index: targetIdx,
           photo_base64: base64,
           elapsed_ms: gameState.elapsedMs || 0

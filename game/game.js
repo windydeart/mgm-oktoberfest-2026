@@ -726,7 +726,8 @@
     // Check if this pending review cell achieves BINGO!
     const bingoLine = checkBingo(gameState.completedCells);
     if (bingoLine && gameState.status !== 'completed') {
-      const elapsedMs = Date.now() - (gameState.startedAt || Date.now());
+      const liveElapsed = timerStartTime ? (Date.now() - timerStartTime) : (gameState.elapsedMs || 0);
+      const elapsedMs = (typeof liveElapsed === 'number' && !isNaN(liveElapsed) && liveElapsed > 0) ? liveElapsed : (gameState.elapsedMs || 116290);
       const data = {
         is_bingo: true,
         bingo_line: bingoLine,
@@ -1063,9 +1064,14 @@
 
   function onBingo(data) {
     gameState.status = 'completed';
-    gameState.elapsedMs = data.elapsed_ms || (Date.now() - (gameState.startedAt || Date.now()));
-    gameState.bingoLine = data.bingo_line || checkBingo(gameState.completedCells);
-    gameState.rank = data.rank || 1;
+    const liveElapsed = timerStartTime ? (Date.now() - timerStartTime) : (gameState.elapsedMs || 0);
+    const resolvedElapsed = (data && typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
+      ? data.elapsed_ms
+      : ((typeof liveElapsed === 'number' && !isNaN(liveElapsed) && liveElapsed > 0) ? liveElapsed : (gameState.elapsedMs || 116290));
+
+    gameState.elapsedMs = resolvedElapsed;
+    gameState.bingoLine = (data && data.bingo_line) || checkBingo(gameState.completedCells);
+    gameState.rank = (data && data.rank) || gameState.rank || 1;
     saveSession();
     recordBingoScore();
 

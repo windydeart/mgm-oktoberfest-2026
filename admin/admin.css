@@ -723,16 +723,76 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.player-rank-group {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
 }
 
 .player-name {
     font-weight: 800;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: #fff;
     letter-spacing: 0.2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+}
+
+.player-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.player-rank-badge i {
+    width: 12px;
+    height: 12px;
+}
+
+.player-rank-badge.rank-top1 {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.45) 100%);
+    border: 1px solid #fbbf24;
+    color: #fef08a;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    animation: rankGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes rankGlow {
+    0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+    50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.65); }
+}
+
+.player-rank-badge.rank-top2 {
+    background: rgba(148, 163, 184, 0.2);
+    border: 1px solid #cbd5e1;
+    color: #f1f5f9;
+}
+
+.player-rank-badge.rank-top3 {
+    background: rgba(217, 119, 6, 0.2);
+    border: 1px solid #f97316;
+    color: #fdba74;
+}
+
+.player-rank-badge.rank-top10 {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+}
+
+.player-rank-badge.rank-unranked {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    font-weight: 600;
 }
 
 .location-badge {

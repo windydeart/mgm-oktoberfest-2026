@@ -219,6 +219,23 @@ function renderReviews(reviews) {
             ? `<img src="${escapeHTML(photoSrc)}" alt="Challenge Photo" class="review-img" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
             : `<div class="review-img-placeholder"><i data-lucide="image-off"></i><span>No Image</span></div>`;
 
+        let rankBadgeHTML = '';
+        if (review.rank === 1) {
+            const timeStr = review.elapsed_ms ? ` · ${formatTime(review.elapsed_ms)}` : '';
+            rankBadgeHTML = `<span class="player-rank-badge rank-top1" title="Top 1 Contender"><i data-lucide="trophy"></i> Rank #1${timeStr}</span>`;
+        } else if (review.rank === 2) {
+            const timeStr = review.elapsed_ms ? ` · ${formatTime(review.elapsed_ms)}` : '';
+            rankBadgeHTML = `<span class="player-rank-badge rank-top2" title="Rank 2 Contender"><i data-lucide="medal"></i> Rank #2${timeStr}</span>`;
+        } else if (review.rank === 3) {
+            const timeStr = review.elapsed_ms ? ` · ${formatTime(review.elapsed_ms)}` : '';
+            rankBadgeHTML = `<span class="player-rank-badge rank-top3" title="Rank 3 Contender"><i data-lucide="medal"></i> Rank #3${timeStr}</span>`;
+        } else if (review.rank && review.rank <= 10) {
+            const timeStr = review.elapsed_ms ? ` · ${formatTime(review.elapsed_ms)}` : '';
+            rankBadgeHTML = `<span class="player-rank-badge rank-top10"><i data-lucide="award"></i> Rank #${review.rank}${timeStr}</span>`;
+        } else {
+            rankBadgeHTML = `<span class="player-rank-badge rank-unranked"><i data-lucide="gamepad-2"></i> In Progress</span>`;
+        }
+
         return `
             <div class="review-card ${review.status}">
                 <div class="review-img-container" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
@@ -228,7 +245,10 @@ function renderReviews(reviews) {
                 </div>
                 <div class="review-content">
                     <div class="review-meta">
-                        <span class="player-name">${escapeHTML(review.player_name)}</span>
+                        <div class="player-rank-group">
+                            <span class="player-name">${escapeHTML(review.player_name)}</span>
+                            ${rankBadgeHTML}
+                        </div>
                         <span class="location-badge ${locationClass}">${locationLabel}</span>
                     </div>
                     <div class="review-challenge-box">

@@ -199,14 +199,27 @@
   /* ═══════════════════════════════════════════════════════
      TIMER ENGINE
      ═══════════════════════════════════════════════════════ */
-  function startTimer() {
-    timerStartTime = typeof gameState.startedAt === 'number' ? gameState.startedAt : new Date(gameState.startedAt).getTime();
+  function startTimer(resumeFromMs) {
+    if (typeof resumeFromMs === 'number' && resumeFromMs >= 0) {
+      timerStartTime = Date.now() - resumeFromMs;
+      gameState.startedAt = new Date(timerStartTime).toISOString();
+      gameState.elapsedMs = resumeFromMs;
+    } else if (gameState.elapsedMs && gameState.status !== 'completed') {
+      timerStartTime = Date.now() - gameState.elapsedMs;
+      gameState.startedAt = new Date(timerStartTime).toISOString();
+    } else {
+      timerStartTime = typeof gameState.startedAt === 'number'
+        ? gameState.startedAt
+        : new Date(gameState.startedAt || Date.now()).getTime();
+    }
+
     els.gameTimer.classList.add('timer-running');
     els.gameTimer.classList.remove('timer-idle', 'timer-stopped');
 
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       const elapsed = Date.now() - timerStartTime;
+      gameState.elapsedMs = elapsed;
       els.timerDisplay.textContent = formatTime(elapsed);
     }, 41);
   }
@@ -1547,37 +1560,34 @@
           if (!gameState.bingoLine) gameState.bingoLine = checkBingo(gameState.completedCells);
           stopTimer(gameState.elapsedMs || 0);
         } else {
-          startTimer();
+          startTimer(gameState.elapsedMs || 0);
         }
       }
 
-      // 2. Background Server Sync (Never wipes local data on error)
+      // 2. Background Server Sync (Authoritative server sync)
       if (savedToken) {
         try {
           const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
           if (res.ok) {
             const data = await res.json();
             if (data.session_id) {
-              const completedCells = data.completed_cells || gameState.completedCells || [];
+              const completedCells = data.completed_cells !== undefined ? data.completed_cells : (gameState.completedCells || []);
               const bingoLine = data.bingo_line || checkBingo(completedCells);
               const isCompleted = data.status === 'completed' || bingoLine !== null;
 
-              const pendingReviewCells = Array.from(new Set([
-                ...(data.pending_review_cells || []),
-                ...(localState && localState.pendingReviewCells ? localState.pendingReviewCells : []),
-                ...(gameState.pendingReviewCells || [])
-              ]));
-
+              const pendingReviewCells = data.pending_review_cells || [];
               const serverPhotos = data.cell_photo_urls || {};
-              const localPhotos = Object.assign({}, localState && localState.cellPhotos ? localState.cellPhotos : {}, gameState.cellPhotos || {});
               const cellPhotos = {};
               for (const idx of completedCells) {
-                cellPhotos[idx] = serverPhotos[idx] || localPhotos[idx] || null;
+                cellPhotos[idx] = serverPhotos[idx] || (gameState.cellPhotos && gameState.cellPhotos[idx]) || null;
               }
 
-              const cellAiReasons = Object.assign({}, localState && localState.cellAiReasons ? localState.cellAiReasons : {}, data.cell_ai_reasons || {});
+              const cellAiReasons = data.cell_ai_reasons || (gameState.cellAiReasons || {});
 
               gameState.sessionId = data.session_id;
+              if (data.session_token) {
+                gameState.sessionToken = data.session_token;
+              }
               gameState.playerName = data.player_name;
               gameState.location = data.location;
               gameState.challenges = data.challenges || [];
@@ -1587,8 +1597,8 @@
               gameState.cellAiReasons = cellAiReasons;
               gameState.startedAt = data.started_at;
               gameState.status = isCompleted ? 'completed' : 'playing';
-              gameState.elapsedMs = data.elapsed_ms || (isCompleted ? gameState.elapsedMs : null);
-              gameState.bingoLine = bingoLine;
+              gameState.elapsedMs = data.elapsed_ms !== null && data.elapsed_ms !== undefined ? data.elapsed_ms : gameState.elapsedMs;
+              gameState.bingoLine = isCompleted ? bingoLine : null;
               gameState.rank = data.rank || gameState.rank || 1;
 
               saveSession();
@@ -1596,6 +1606,12 @@
 
               if (isCompleted) {
                 stopTimer(gameState.elapsedMs || 0);
+              } else {
+                startTimer(gameState.elapsedMs || 0);
+              }
+
+              if (pendingReviewCells.length > 0) {
+                startReviewPolling();
               }
             }
           }
@@ -1951,8 +1967,14 @@
     gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => c !== cellIdx);
 
     // Remove photo and AI reason for this cell
-    if (gameState.cellPhotos) delete gameState.cellPhotos[cellIdx];
-    if (gameState.cellAiReasons) delete gameState.cellAiReasons[cellIdx];
+    if (gameState.cellPhotos) {
+      delete gameState.cellPhotos[cellIdx];
+      delete gameState.cellPhotos[String(cellIdx)];
+    }
+    if (gameState.cellAiReasons) {
+      delete gameState.cellAiReasons[cellIdx];
+      delete gameState.cellAiReasons[String(cellIdx)];
+    }
 
     // Check if BINGO is now invalidated
     const wasBingo = gameState.status === 'completed';
@@ -1960,13 +1982,14 @@
 
     if (wasBingo && !currentBingo) {
       // BINGO invalidated!
+      const previousElapsed = gameState.elapsedMs || 0;
       gameState.status = 'playing';
       gameState.bingoLine = null;
       gameState.rank = null;
-      gameState.elapsedMs = null;
+      gameState.elapsedMs = previousElapsed;
 
-      // Resume timer
-      startTimer();
+      // Resume timer smoothly from previous accumulated elapsed time
+      startTimer(previousElapsed);
 
       // Hide victory modal if visible
       if (els.victoryModal) closeModal(els.victoryModal);

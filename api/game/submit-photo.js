@@ -130,7 +130,39 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Invalid parameters.' });
   }
 
-  let completedCells = session.completed_cells || [];
+  let completedCells = [...(session.completed_cells || [])];
+  let pendingReviewCells = [...(session.pending_review_cells || [])];
+  let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
+  let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
+
+  // Sync rejected reviews from database to unblock rejected cells
+  try {
+    const revRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&status=eq.rejected&select=cell_index`,
+      {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      }
+    );
+    if (revRes.ok) {
+      const rejectedList = await revRes.json();
+      for (const r of rejectedList) {
+        completedCells = completedCells.filter(c => c !== r.cell_index);
+        pendingReviewCells = pendingReviewCells.filter(c => c !== r.cell_index);
+        delete cellPhotoUrls[String(r.cell_index)];
+        delete cellPhotoUrls[r.cell_index];
+        delete cellAiReasons[String(r.cell_index)];
+        delete cellAiReasons[r.cell_index];
+      }
+    }
+  } catch (syncErr) {
+    console.warn('Review sync in submit-photo note:', syncErr.message);
+  }
+
+  session.completed_cells = completedCells;
+  session.pending_review_cells = pendingReviewCells;
+  session.cell_photo_urls = cellPhotoUrls;
+  session.cell_ai_reasons = cellAiReasons;
+
   if (completedCells.includes(cell_index)) {
     return res.status(400).json({ error: 'This cell is already completed!' });
   }

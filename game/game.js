@@ -1410,7 +1410,84 @@
             const imgEl = $('#photoReviewImg');
             const txtEl = $('#photoReviewChallengeText');
             const reasonEl = $('#photoReviewAiReason');
-          /* ═══════════════════════════════════════════════════════
+            const pillEl = $('#photoReviewStatusPill');
+            const catIconEl = $('#photoReviewCatIcon');
+
+            if (imgEl) {
+              imgEl.src = photoUrl || '';
+              imgEl.style.display = photoUrl ? 'block' : 'none';
+            }
+            if (txtEl) txtEl.textContent = ch.challenge;
+            if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || 'Verified winning challenge submission by Champion.';
+            if (pillEl) {
+              pillEl.className = 'photo-review-status-pill status-done';
+              pillEl.innerHTML = '<i data-lucide="check"></i> <span>DONE</span>';
+            }
+            if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+
+            openModal(els.photoReviewModal);
+            if (window.lucide) window.lucide.createIcons();
+          });
+
+        } else {
+          // Non-winning cells: pure placeholder, NO camera icon, NO checkmark, NO click handler
+          cellEl.innerHTML = `
+            <p class="winner-cell-text" style="color:var(--text-muted); opacity:0.8; font-size:0.7rem;">Challenge #${idx+1}</p>
+          `;
+        }
+
+        els.winnerMiniBoard.appendChild(cellEl);
+      }
+
+      if (window.lucide) window.lucide.createIcons();
+
+    } catch (e) {
+      if (els.winnerMiniBoard) els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Could not load winner board.</div>';
+    }
+  }
+
+  function closeWinnerShowcase() {
+    closeModal(els.winnerShowcaseModal);
+    if (wasLeaderboardOpen && els.leaderboardModal) {
+      openModal(els.leaderboardModal);
+      renderLeaderboard(currentLbLocation);
+    }
+  }
+
+  function openLeaderboard() {
+    openModal(els.leaderboardModal);
+    renderLeaderboard(currentLbLocation);
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     LOCATION DETECTION
+     ═══════════════════════════════════════════════════════ */
+  async function detectLocation() {
+    try {
+      const res = await fetch('https://ipwho.is/', { cache: 'no-cache' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.success) {
+        const city = (data.city || '').toLowerCase();
+        const lat = data.latitude;
+        if (city.includes('ho chi minh') || city.includes('saigon') || city.includes('can tho') || (lat && lat < 13.5)) {
+          setLocation('hcmc');
+        } else {
+          setLocation('danang');
+        }
+      }
+    } catch (e) { /* silently fail */ }
+  }
+
+  function setLocation(loc) {
+    gameState.location = loc;
+    $$('.loc-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.location === loc);
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════
      SESSION PERSISTENCE & RELOAD RECOVERY (Server-Authoritative)
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
@@ -1463,7 +1540,9 @@
     try {
       const savedPlayerName = localStorage.getItem(STORAGE_KEY_USER_NAME);
       const savedLocation = localStorage.getItem(STORAGE_KEY_USER_LOC) || 'danang';
-      const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN) || localStorage.getItem('bingo_session_token_v4');
+      const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN) || 
+                          localStorage.getItem('bingo_session_token_v4') ||
+                          localStorage.getItem('bingo_session_token');
 
       if (!savedPlayerName && !savedToken) return false;
 
@@ -1475,7 +1554,10 @@
         queryUrl = `${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}`;
       }
 
-      const res = await fetch(queryUrl);
+      let res = await fetch(queryUrl);
+      if (!res.ok && savedPlayerName && queryUrl.includes('token=')) {
+        res = await fetch(`${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}`);
+      }
       if (!res.ok) {
         return false;
       }
@@ -1494,7 +1576,7 @@
       if (data.session_token) {
         gameState.sessionToken = data.session_token;
       }
-      gameState.playerName = data.player_name || savedPlayerName;
+      gameState.playerName = data.player_name || savedPlayerName || '';
       gameState.location = data.location || savedLocation;
       gameState.challenges = data.challenges;
       gameState.completedCells = completedCells;

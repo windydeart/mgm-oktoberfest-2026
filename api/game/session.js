@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const challengesPool = require('../../data/bingo_challenges.json');
 
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
@@ -44,6 +45,18 @@ function checkBingo(cells) {
   return null;
 }
 
+function getDefaultChallenges() {
+  if (challengesPool && challengesPool.challenges && challengesPool.challenges.length >= 9) {
+    return challengesPool.challenges.slice(0, 9);
+  }
+  return Array.from({ length: 9 }, (_, i) => ({
+    id: `ch_${i + 1}`,
+    category: 'social',
+    icon: 'camera',
+    challenge: `Challenge #${i + 1}`
+  }));
+}
+
 function handleCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -77,23 +90,21 @@ module.exports = async (req, res) => {
           const score = scores[0];
           let snapshot = {};
           try { snapshot = JSON.parse(score.player_email || '{}'); } catch (e) {}
-          if (snapshot.challenges && snapshot.challenges.length === 9) {
-            session = {
-              session_id: snapshot.session_id || `recovered-${score.id}`,
-              player_name: score.player_name,
-              location: score.office,
-              challenges: snapshot.challenges,
-              completed_cells: snapshot.completed_cells || [],
-              pending_review_cells: [],
-              cell_photo_urls: snapshot.cell_photos || {},
-              cell_ai_reasons: snapshot.cell_ai_reasons || {},
-              started_at: score.created_at,
-              elapsed_ms: Math.round(score.duration_seconds * 1000),
-              bingo_line: snapshot.bingo_line,
-              status: 'completed',
-              rank: 1
-            };
-          }
+          session = {
+            session_id: snapshot.session_id || `recovered-${score.id}`,
+            player_name: score.player_name,
+            location: score.office,
+            challenges: (snapshot.challenges && snapshot.challenges.length === 9) ? snapshot.challenges : getDefaultChallenges(),
+            completed_cells: snapshot.completed_cells || [],
+            pending_review_cells: [],
+            cell_photo_urls: snapshot.cell_photos || {},
+            cell_ai_reasons: snapshot.cell_ai_reasons || {},
+            started_at: score.created_at,
+            elapsed_ms: Math.round(score.duration_seconds * 1000),
+            bingo_line: snapshot.bingo_line,
+            status: 'completed',
+            rank: 1
+          };
         }
       }
 
@@ -111,7 +122,7 @@ module.exports = async (req, res) => {
               session_id: sid,
               player_name: playerName,
               location: location,
-              challenges: [],
+              challenges: getDefaultChallenges(),
               completed_cells: [],
               pending_review_cells: [],
               cell_photo_urls: {},
@@ -131,15 +142,20 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Session not found or expired' });
   }
 
+  // Ensure challenges is always a valid 9-element array
+  if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9) {
+    session.challenges = getDefaultChallenges();
+  }
+
   let completedCells = [...(session.completed_cells || [])];
   let pendingReviewCells = [...(session.pending_review_cells || [])];
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
 
-  // 1. Authoritative sync with bingo_photo_reviews table
+  // 1. Authoritative sync with bingo_photo_reviews table (order by created_at ASC)
   try {
     const revRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&select=cell_index,status,reviewer_note,photo_url,ai_reason`,
+      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`,
       {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       }
@@ -148,8 +164,10 @@ module.exports = async (req, res) => {
       const reviews = await revRes.json();
       for (const r of reviews) {
         const cellIdx = r.cell_index;
+        if (cellIdx >= 0 && cellIdx < 9 && r.challenge_text && session.challenges[cellIdx]) {
+          session.challenges[cellIdx].challenge = r.challenge_text;
+        }
         if (r.status === 'rejected') {
-          // Cleanly remove rejected cell from everywhere
           completedCells = completedCells.filter(c => c !== cellIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);
           delete cellPhotoUrls[String(cellIdx)];

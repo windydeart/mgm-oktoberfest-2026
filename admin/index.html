@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=3">
+    <link rel="stylesheet" href="/admin/admin.css?v=4">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -17,7 +17,7 @@
                 <span class="brand-divider">|</span>
                 <span class="brand-text"><span class="font-oktoberfest">Oktoberfest</span> <span class="year-highlight">2026</span></span>
             </a>
-            <h1>Organizer Dashboard</h1>
+            <h1><span class="text-white">Organizer</span> <span class="gold-gradient-text">Dashboard</span></h1>
             <form id="loginForm">
                 <div class="input-group">
                     <input type="password" id="passwordInput" placeholder="Enter admin password" required autocomplete="current-password">
@@ -30,6 +30,7 @@
 
     <!-- Dashboard Screen -->
     <div id="dashboardScreen" class="screen hidden">
+        <!-- Top Navigation Bar -->
         <header class="top-bar">
             <div class="top-bar-left">
                 <a href="/" class="nav-brand nav-brand-sm" aria-label="Oktoberfest Homepage">
@@ -37,47 +38,98 @@
                     <span class="brand-divider">|</span>
                     <span class="brand-text"><span class="font-oktoberfest">Oktoberfest</span> <span class="year-highlight">2026</span></span>
                 </a>
-                <span class="top-bar-badge">Organizer Dashboard</span>
             </div>
-            <button id="logoutBtn" class="btn-secondary">
-                <i data-lucide="log-out"></i> Logout
-            </button>
+            <div class="top-bar-right">
+                <button id="logoutBtn" class="btn-secondary" aria-label="Logout">
+                    <i data-lucide="log-out"></i> <span>Logout</span>
+                </button>
+            </div>
         </header>
 
         <main class="dashboard-content">
-            <!-- Stats Cards Row -->
-            <section id="statsCards" class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-title">Total Players</div>
-                    <div class="stat-value" id="statTotalPlayers">0</div>
-                    <div class="stat-subtitle" id="statLocationBreakdown">Da Nang: 0 | HCMC: 0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">BINGO Achieved</div>
-                    <div class="stat-value" id="statBingo">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Pending Reviews <span id="pendingIndicator" class="pulse-dot"></span></div>
-                    <div class="stat-value" id="statPending">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Approved Photos</div>
-                    <div class="stat-value text-success" id="statApproved">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Rejected Photos</div>
-                    <div class="stat-value text-danger" id="statRejected">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Avg Completion Time</div>
-                    <div class="stat-value" id="statAvgTime">00:00</div>
+            <!-- Hero Heading Section (Matching other pages: 2 words, 2 colors) -->
+            <div class="admin-hero">
+                <h1 class="admin-hero-title">
+                    <span class="text-white">Organizer</span> <span class="gold-gradient-text">Dashboard</span>
+                </h1>
+                <p class="admin-hero-subtitle">Live real-time monitoring & photo verification center</p>
+            </div>
+
+            <!-- Single Compact Unified Stats Container -->
+            <section class="stats-container" id="statsCards">
+                <div class="stats-grid">
+                    <!-- Stat 1: Total Players -->
+                    <div class="stat-item stat-players">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Players</span>
+                            <div class="stat-icon-badge"><i data-lucide="users"></i></div>
+                        </div>
+                        <div class="stat-value" id="statTotalPlayers">0</div>
+                        <div class="stat-subtitle" id="statLocationBreakdown">Da Nang: 0 · HCMC: 0</div>
+                    </div>
+
+                    <!-- Stat 2: BINGO Achieved -->
+                    <div class="stat-item stat-bingo">
+                        <div class="stat-header">
+                            <span class="stat-title">BINGO Achieved</span>
+                            <div class="stat-icon-badge stat-icon-gold"><i data-lucide="award"></i></div>
+                        </div>
+                        <div class="stat-value text-gold" id="statBingo">0</div>
+                        <div class="stat-subtitle">Winning Lines Completed</div>
+                    </div>
+
+                    <!-- Stat 3: Pending Reviews -->
+                    <div class="stat-item stat-pending">
+                        <div class="stat-header">
+                            <span class="stat-title">Pending Reviews</span>
+                            <div class="stat-icon-badge stat-icon-amber">
+                                <i data-lucide="clock"></i>
+                                <span id="pendingIndicator" class="pulse-dot"></span>
+                            </div>
+                        </div>
+                        <div class="stat-value text-amber" id="statPending">0</div>
+                        <div class="stat-subtitle">Awaiting Organizer Action</div>
+                    </div>
+
+                    <!-- Stat 4: Approved Photos -->
+                    <div class="stat-item stat-approved">
+                        <div class="stat-header">
+                            <span class="stat-title">Approved Photos</span>
+                            <div class="stat-icon-badge stat-icon-green"><i data-lucide="check-circle-2"></i></div>
+                        </div>
+                        <div class="stat-value text-success" id="statApproved">0</div>
+                        <div class="stat-subtitle">Verified & Counted</div>
+                    </div>
+
+                    <!-- Stat 5: Rejected Photos -->
+                    <div class="stat-item stat-rejected">
+                        <div class="stat-header">
+                            <span class="stat-title">Rejected Photos</span>
+                            <div class="stat-icon-badge stat-icon-red"><i data-lucide="x-circle"></i></div>
+                        </div>
+                        <div class="stat-value text-danger" id="statRejected">0</div>
+                        <div class="stat-subtitle">Penalty Enforced</div>
+                    </div>
+
+                    <!-- Stat 6: Avg Completion Time -->
+                    <div class="stat-item stat-time">
+                        <div class="stat-header">
+                            <span class="stat-title">Avg Completion Time</span>
+                            <div class="stat-icon-badge stat-icon-blue"><i data-lucide="timer"></i></div>
+                        </div>
+                        <div class="stat-value stat-time-val" id="statAvgTime">00:00</div>
+                        <div class="stat-subtitle">Average Winning Speed</div>
+                    </div>
                 </div>
             </section>
 
             <div class="main-grid">
                 <!-- Leaderboard Section -->
                 <section class="leaderboard-section">
-                    <h3>Top 10 Leaderboard</h3>
+                    <div class="section-card-header">
+                        <i data-lucide="trophy" class="header-icon-gold"></i>
+                        <h3>Top 10 Leaderboard</h3>
+                    </div>
                     <div class="table-container">
                         <table class="leaderboard-table">
                             <thead>
@@ -98,7 +150,10 @@
                 <!-- Photo Review Queue Section -->
                 <section class="review-section">
                     <div class="review-header">
-                        <h3>Photo Review Queue</h3>
+                        <div class="section-card-header">
+                            <i data-lucide="camera" class="header-icon-gold"></i>
+                            <h3>Photo Review Queue</h3>
+                        </div>
                         <div class="filters">
                             <select id="locationFilter" class="filter-select">
                                 <option value="all">All Offices</option>
@@ -138,7 +193,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=3"></script>
+    <script src="/admin/admin.js?v=4"></script>
     <script>
         lucide.createIcons();
     </script>

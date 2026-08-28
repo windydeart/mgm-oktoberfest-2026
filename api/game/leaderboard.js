@@ -35,7 +35,20 @@ module.exports = async (req, res) => {
 
     const records = await sbRes.json();
 
-    const leaderboard = (records || []).map((record, index) => ({
+    // Deduplicate: keep only the best (fastest) time per player
+    const bestByPlayer = new Map();
+    for (const record of (records || [])) {
+      const key = (record.player_name || '').trim().toLowerCase();
+      if (!bestByPlayer.has(key) || record.duration_seconds < bestByPlayer.get(key).duration_seconds) {
+        bestByPlayer.set(key, record);
+      }
+    }
+
+    const uniqueRecords = Array.from(bestByPlayer.values())
+      .sort((a, b) => a.duration_seconds - b.duration_seconds)
+      .slice(0, 10);
+
+    const leaderboard = uniqueRecords.map((record, index) => ({
       rank: index + 1,
       player_name: record.player_name,
       location: record.office,

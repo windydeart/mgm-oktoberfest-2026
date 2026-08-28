@@ -49,20 +49,30 @@ module.exports = async (req, res) => {
       supabaseGet('bingo_photo_reviews?status=eq.rejected&select=id'),
     ]);
 
+    // Deduplicate scores: keep only the best (fastest) time per player
+    const bestByPlayer = new Map();
+    for (const s of scores) {
+      const key = (s.player_name || '').trim().toLowerCase();
+      if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
+        bestByPlayer.set(key, s);
+      }
+    }
+    const uniqueScores = Array.from(bestByPlayer.values()).sort((a, b) => a.duration_seconds - b.duration_seconds);
+
     // Calculate stats
-    const totalPlayers = scores.length;
-    const danangPlayers = scores.filter(s => s.office === 'danang').length;
-    const hcmcPlayers = scores.filter(s => s.office === 'hcmc').length;
+    const totalPlayers = uniqueScores.length;
+    const danangPlayers = uniqueScores.filter(s => s.office === 'danang').length;
+    const hcmcPlayers = uniqueScores.filter(s => s.office === 'hcmc').length;
 
     // Average completion time
-    const durations = scores.map(s => s.duration_seconds).filter(d => d > 0);
+    const durations = uniqueScores.map(s => s.duration_seconds).filter(d => d > 0);
     const avgTime = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
 
     // Champion (fastest)
-    const champion = scores.length > 0 ? scores[0] : null;
+    const champion = uniqueScores.length > 0 ? uniqueScores[0] : null;
 
     // Leaderboard (top 10)
-    const leaderboard = scores.slice(0, 10).map((s, idx) => ({
+    const leaderboard = uniqueScores.slice(0, 10).map((s, idx) => ({
       rank: idx + 1,
       player_name: s.player_name,
       location: s.office,

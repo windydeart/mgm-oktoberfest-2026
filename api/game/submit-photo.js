@@ -371,47 +371,52 @@ Reply with ONLY a JSON object:
     if (!session.pending_review_cells.includes(cell_index)) {
       session.pending_review_cells.push(cell_index);
     }
+  } else {
+    session.pending_review_cells = (session.pending_review_cells || []).filter(c => c !== cell_index);
+  }
 
-    // Upsert into bingo_photo_reviews for admin dashboard tracking (delete old then insert)
-    try {
-      const challengeText = challenge.challenge || `Challenge #${cell_index + 1}`;
+  // ─── ALWAYS Upsert into bingo_photo_reviews for database persistence ───
+  try {
+    const challengeText = challenge.challenge || `Challenge #${cell_index + 1}`;
+    const reviewStatus = is_pending_review ? 'pending' : 'approved';
+    const reviewerNote = is_pending_review ? null : 'Approved by AI ✓';
 
-      // Clean up any old reviews for this cell
-      const delUrl = session.player_name
-        ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}`
-        : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}`;
+    // 1. Clean up any old review record for this cell (whether rejected, pending, or approved)
+    const delUrl = session.player_name
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}`;
 
-      await fetch(delUrl, {
-        method: 'DELETE',
-        headers: {
-          'apikey': SUPABASE_SECRET_KEY,
-          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
-        }
-      });
+    await fetch(delUrl, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_SECRET_KEY,
+        'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+      }
+    });
 
-      // Insert new pending review record
-      await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_SECRET_KEY,
-          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          session_id: session.session_id,
-          player_name: session.player_name || 'Unknown',
-          office: session.location || 'danang',
-          cell_index: cell_index,
-          challenge_text: challengeText,
-          photo_url: photoUrl || null,
-          ai_reason: ai_reason,
-          status: 'pending'
-        })
-      });
-    } catch (reviewInsertErr) {
-      console.error('Failed to insert photo review record:', reviewInsertErr.message);
-    }
+    // 2. Insert fresh review record
+    await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SECRET_KEY,
+        'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        session_id: session.session_id,
+        player_name: session.player_name || 'Unknown',
+        office: session.location || 'danang',
+        cell_index: cell_index,
+        challenge_text: challengeText,
+        photo_url: photoUrl || null,
+        ai_reason: ai_reason,
+        status: reviewStatus,
+        reviewer_note: reviewerNote
+      })
+    });
+  } catch (reviewInsertErr) {
+    console.error('Failed to sync photo review record in database:', reviewInsertErr.message);
   }
 
   // Save photo URL and AI reason in session token for persistence

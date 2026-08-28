@@ -801,6 +801,7 @@
       if (data.session_token) {
         gameState.sessionToken = data.session_token;
       }
+      saveSession();
       if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
       gameState.cellAiReasons[targetIdx] = data.ai_reason || data.reason || (data.pending_review ? 'Photo queued for manual review.' : 'Challenge approved!');
 

@@ -162,8 +162,12 @@ module.exports = async (req, res) => {
     );
     if (revRes.ok) {
       const reviews = await revRes.json();
+      const latestMap = {};
       for (const r of reviews) {
-        const cellIdx = r.cell_index;
+        latestMap[r.cell_index] = r;
+      }
+      for (const [cIdxStr, r] of Object.entries(latestMap)) {
+        const cellIdx = parseInt(cIdxStr, 10);
         if (cellIdx >= 0 && cellIdx < 9 && r.challenge_text && session.challenges[cellIdx]) {
           session.challenges[cellIdx].challenge = r.challenge_text;
         }

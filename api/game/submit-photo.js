@@ -135,23 +135,36 @@ module.exports = async (req, res) => {
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
 
-  // Sync rejected reviews from database to unblock rejected cells
+  // Sync latest reviews from database to accurately reflect approved/rejected/pending cells
   try {
     const revRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&status=eq.rejected&select=cell_index`,
+      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status`,
       {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       }
     );
     if (revRes.ok) {
-      const rejectedList = await revRes.json();
-      for (const r of rejectedList) {
-        completedCells = completedCells.filter(c => c !== r.cell_index);
-        pendingReviewCells = pendingReviewCells.filter(c => c !== r.cell_index);
-        delete cellPhotoUrls[String(r.cell_index)];
-        delete cellPhotoUrls[r.cell_index];
-        delete cellAiReasons[String(r.cell_index)];
-        delete cellAiReasons[r.cell_index];
+      const allReviews = await revRes.json();
+      const latestMap = {};
+      for (const r of allReviews) {
+        latestMap[r.cell_index] = r;
+      }
+      for (const [cIdxStr, r] of Object.entries(latestMap)) {
+        const cIdx = parseInt(cIdxStr, 10);
+        if (r.status === 'rejected') {
+          completedCells = completedCells.filter(c => c !== cIdx);
+          pendingReviewCells = pendingReviewCells.filter(c => c !== cIdx);
+          delete cellPhotoUrls[String(cIdx)];
+          delete cellPhotoUrls[cIdx];
+          delete cellAiReasons[String(cIdx)];
+          delete cellAiReasons[cIdx];
+        } else if (r.status === 'approved') {
+          if (!completedCells.includes(cIdx)) completedCells.push(cIdx);
+          pendingReviewCells = pendingReviewCells.filter(c => c !== cIdx);
+        } else if (r.status === 'pending') {
+          if (!completedCells.includes(cIdx)) completedCells.push(cIdx);
+          if (!pendingReviewCells.includes(cIdx)) pendingReviewCells.push(cIdx);
+        }
       }
     }
   } catch (syncErr) {
@@ -277,12 +290,25 @@ Reply with ONLY a JSON object:
       session.pending_review_cells.push(cell_index);
     }
 
-    // Insert into bingo_photo_reviews for admin dashboard tracking
+    // Upsert into bingo_photo_reviews for admin dashboard tracking (delete old then insert)
     try {
       const challengeText = (session.challenges && session.challenges[cell_index])
         ? (session.challenges[cell_index].challenge || `Challenge #${cell_index + 1}`)
         : `Challenge #${cell_index + 1}`;
 
+      // Clean up any old reviews for this cell
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_SECRET_KEY,
+            'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+          }
+        }
+      );
+
+      // Insert new pending review record
       await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
         method: 'POST',
         headers: {
@@ -303,7 +329,6 @@ Reply with ONLY a JSON object:
         })
       });
     } catch (reviewInsertErr) {
-      // Non-blocking — don't fail the photo submission if review insert fails
       console.error('Failed to insert photo review record:', reviewInsertErr.message);
     }
   }

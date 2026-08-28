@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'mgm-okto-admin-2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'okt26gameadmin';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'mgm-admin-jwt-secret-2026-okto';
 
 function createAdminToken(data) {

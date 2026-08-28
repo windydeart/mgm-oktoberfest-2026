@@ -71,11 +71,27 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: `Review already ${review.status}.` });
     }
 
-    // 2. Update the review status
+    // 2. If REJECT, check score duration for Phase 1 accumulation
+    let phase1Ms = 0;
+    if (action === 'reject') {
+      try {
+        const scores = await supabaseGet(
+          `oktoberfest_game_scores?player_name=eq.${encodeURIComponent(review.player_name)}&game_name=eq.photo_bingo&select=duration_seconds&order=created_at.desc&limit=1`,
+          true
+        );
+        if (scores && scores.length > 0 && scores[0].duration_seconds) {
+          phase1Ms = Math.round(scores[0].duration_seconds * 1000);
+        }
+      } catch (e) {}
+    }
+
+    const noteText = note || (action === 'reject' ? 'Photo does not match the challenge requirement.' : 'Approved by organizer.');
+    const finalNote = (action === 'reject' && phase1Ms > 0) ? `${noteText} [phase1_ms:${phase1Ms}]` : noteText;
+
     const updateData = {
       status: action === 'approve' ? 'approved' : 'rejected',
       reviewed_at: new Date().toISOString(),
-      reviewer_note: note || (action === 'reject' ? 'Photo does not match the challenge requirement.' : 'Approved by organizer.')
+      reviewer_note: finalNote
     };
 
     const updateRes = await supabaseRequest(

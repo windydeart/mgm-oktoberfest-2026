@@ -135,7 +135,6 @@ module.exports = async (req, res) => {
               cell_photo_urls: {},
               cell_ai_reasons: {},
               started_at: revs[0].created_at,
-              elapsed_ms: 116290,
               status: 'playing'
             };
           }
@@ -159,21 +158,22 @@ module.exports = async (req, res) => {
   let pendingReviewCells = [...(session.pending_review_cells || [])];
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
+  let allReviews = [];
 
   // 1. Authoritative sync with bingo_photo_reviews table
   try {
     const revUrl = session.player_name
-      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`
-      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`;
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,reviewer_note,reviewed_at,photo_url,ai_reason,challenge_text,created_at`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,reviewer_note,reviewed_at,photo_url,ai_reason,challenge_text,created_at`;
 
     const revRes = await fetch(revUrl, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
 
     if (revRes.ok) {
-      const reviews = await revRes.json();
+      allReviews = await revRes.json();
       const latestMap = {};
-      for (const r of reviews) {
+      for (const r of allReviews) {
         latestMap[r.cell_index] = r;
       }
       for (const [cIdxStr, r] of Object.entries(latestMap)) {
@@ -208,11 +208,28 @@ module.exports = async (req, res) => {
   // 2. Re-calculate BINGO strictly based on active valid completed cells
   const calculatedBingoLine = checkBingo(completedCells);
   let isCompleted = calculatedBingoLine !== null;
-  let elapsed_ms = (typeof session.elapsed_ms === 'number' && session.elapsed_ms > 0) ? session.elapsed_ms : 116290;
   let rank = session.rank || null;
+  let elapsed_ms = 0;
 
-  // 3. If NOT completed, invalidate any stale score in database
-  if (!isCompleted) {
+  if (isCompleted) {
+    // If completed, verify score in DB
+    try {
+      const scoreRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (scoreRes.ok) {
+        const scores = await scoreRes.json();
+        if (scores && scores.length > 0 && scores[0].duration_seconds) {
+          elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
+        }
+      }
+    } catch (e) {
+      console.warn('Score lookup note:', e.message);
+    }
+    if (!elapsed_ms) elapsed_ms = session.elapsed_ms || 155590;
+  } else {
+    // If NOT completed, invalidate any stale score in database
     try {
       await fetch(
         `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
@@ -224,29 +241,34 @@ module.exports = async (req, res) => {
     } catch (delErr) {
       console.warn('Score invalidation note:', delErr.message);
     }
-  } else {
-    // If completed, verify score in DB
-    try {
-      const scoreRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,
-        {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-        }
-      );
-      if (scoreRes.ok) {
-        const scores = await scoreRes.json();
-        if (scores && scores.length > 0 && scores[0].duration_seconds) {
-          elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
-        }
-      }
-    } catch (e) {
-      console.warn('Score lookup note:', e.message);
-    }
-  }
 
-  // Sanitize idle times > 30 mins
-  if (elapsed_ms > 1800000) {
-    elapsed_ms = 116290;
+    // CONTINUOUS LIVE ACCUMULATION: Phase 1 (pre-rejection) + Phase 2 (since rejection timestamp)
+    const rejectedReviews = (allReviews || []).filter(r => r.status === 'rejected');
+    if (rejectedReviews.length > 0) {
+      rejectedReviews.sort((a, b) => new Date(b.reviewed_at || b.created_at) - new Date(a.reviewed_at || a.created_at));
+      const latestRejection = rejectedReviews[0];
+      const rejectionTimestamp = new Date(latestRejection.reviewed_at || latestRejection.created_at).getTime();
+
+      let phase1Ms = 0;
+      const match = (latestRejection.reviewer_note || '').match(/\[phase1_ms:(\d+)\]/);
+      if (match) {
+        phase1Ms = parseInt(match[1], 10);
+      } else if (session.phase1_duration_ms) {
+        phase1Ms = session.phase1_duration_ms;
+      } else if (session.elapsed_ms && session.elapsed_ms > 0 && session.elapsed_ms < 1800000) {
+        phase1Ms = session.elapsed_ms;
+      } else {
+        phase1Ms = 155590;
+      }
+
+      const timeSinceRejection = Math.max(0, Date.now() - rejectionTimestamp);
+      elapsed_ms = phase1Ms + timeSinceRejection;
+    } else if (session.started_at) {
+      const startTimestamp = typeof session.started_at === 'number' ? session.started_at : new Date(session.started_at).getTime();
+      elapsed_ms = Math.max(0, Date.now() - startTimestamp);
+    } else {
+      elapsed_ms = session.elapsed_ms || 0;
+    }
   }
 
   // 4. Update session object and create refreshed token

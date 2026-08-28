@@ -144,6 +144,8 @@ function renderLeaderboard(entries) {
 }
 
 // Review Functions
+let lastRenderedReviewsJson = '';
+
 async function fetchReviews() {
     if (!isAuthenticated()) return;
     try {
@@ -172,8 +174,16 @@ function renderReviews(reviews) {
     if (reviews.length === 0) {
         grid.innerHTML = '';
         emptyMsg.classList.remove('hidden');
+        lastRenderedReviewsJson = '[]';
         return;
     }
+    
+    // Prevent DOM thrashing and image flickering if reviews data hasn't changed
+    const reviewsJson = JSON.stringify(reviews);
+    if (reviewsJson === lastRenderedReviewsJson) {
+        return;
+    }
+    lastRenderedReviewsJson = reviewsJson;
     
     emptyMsg.classList.add('hidden');
     
@@ -236,6 +246,7 @@ async function submitReviewAction(reviewId, action, note = '') {
         
         if (response.ok) {
             showToast(`${action === 'approve' ? 'Approved' : 'Rejected'} successfully!`, 'success');
+            lastRenderedReviewsJson = ''; // Reset diff cache to force immediate UI update
             fetchReviews();
             fetchDashboardStats();
         } else {
@@ -287,6 +298,7 @@ function bindEvents() {
             tabs.forEach(t => t.classList.remove('active'));
             e.target.classList.add('active');
             currentReviewFilter = e.target.dataset.filter;
+            lastRenderedReviewsJson = '';
             fetchReviews();
         });
     });
@@ -294,6 +306,7 @@ function bindEvents() {
     // Location Filter
     document.getElementById('locationFilter').addEventListener('change', (e) => {
         currentLocationFilter = e.target.value;
+        lastRenderedReviewsJson = '';
         fetchReviews();
     });
     
@@ -301,13 +314,13 @@ function bindEvents() {
     modal.querySelector('.modal-overlay').addEventListener('click', closePhotoPreview);
 }
 
-// Auto Refresh
+// Auto Refresh (Every 2 seconds)
 function startAutoRefresh() {
     stopAutoRefresh();
     refreshInterval = setInterval(() => {
         fetchDashboardStats();
         fetchReviews();
-    }, 15000);
+    }, 2000);
 }
 
 function stopAutoRefresh() {

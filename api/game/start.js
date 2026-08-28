@@ -81,10 +81,23 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to load challenge library.' });
   }
 
-  // Balanced random selection (max 2 per category)
+  // Separate pinned (must-include) challenges from the regular pool
+  const pinnedChallenges = allChallenges.filter(c => c.pinned === true);
+  const regularChallenges = allChallenges.filter(c => c.pinned !== true);
+
+  // Start with all pinned challenges guaranteed
+  const selected = [...pinnedChallenges];
+  const remainingSlots = 9 - selected.length;
+
+  // Balanced random selection for remaining slots (max 2 per category)
   const categoryCount = {};
-  const selected = [];
-  const shuffled = [...allChallenges].sort(() => 0.5 - Math.random());
+  // Count categories already used by pinned challenges
+  for (const pc of pinnedChallenges) {
+    const cat = pc.category || 'unknown';
+    categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+  }
+
+  const shuffled = [...regularChallenges].sort(() => 0.5 - Math.random());
   
   for (const challenge of shuffled) {
     const cat = challenge.category || 'unknown';
@@ -95,6 +108,7 @@ module.exports = async (req, res) => {
     if (selected.length === 9) break;
   }
   
+  // Fill any remaining slots if still under 9
   if (selected.length < 9) {
     for (const challenge of shuffled) {
       if (!selected.find(s => s.id === challenge.id)) {
@@ -102,6 +116,12 @@ module.exports = async (req, res) => {
       }
       if (selected.length === 9) break;
     }
+  }
+
+  // Shuffle the final 9 so the pinned challenge lands at a random position
+  for (let i = selected.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [selected[i], selected[j]] = [selected[j], selected[i]];
   }
 
   const session_id = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');

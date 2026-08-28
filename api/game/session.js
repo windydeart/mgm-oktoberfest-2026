@@ -51,10 +51,22 @@ function getDefaultChallenges() {
     ? challengesPool
     : (challengesPool && challengesPool.challenges ? challengesPool.challenges : []);
   if (pool.length >= 9) {
+    // Always include pinned challenges
+    const pinned = pool.filter(c => c.pinned === true);
     const specificIds = [39, 36, 9, 24, 10, 33, 7, 15, 31];
-    const picked = specificIds.map(id => pool.find(c => c.id === id)).filter(Boolean);
+    const picked = pinned.slice();
+    for (const id of specificIds) {
+      if (picked.length >= 9) break;
+      const c = pool.find(ch => ch.id === id);
+      if (c && !picked.find(p => p.id === c.id)) picked.push(c);
+    }
     if (picked.length === 9) return picked;
-    return pool.slice(0, 9);
+    // Fill remaining from pool
+    for (const c of pool) {
+      if (picked.length >= 9) break;
+      if (!picked.find(p => p.id === c.id)) picked.push(c);
+    }
+    return picked.slice(0, 9);
   }
   return Array.from({ length: 9 }, (_, i) => ({
     id: i + 1,

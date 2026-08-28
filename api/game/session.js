@@ -47,13 +47,19 @@ function checkBingo(cells) {
 }
 
 function getDefaultChallenges() {
-  if (challengesPool && challengesPool.challenges && challengesPool.challenges.length >= 9) {
-    return challengesPool.challenges.slice(0, 9);
+  const pool = Array.isArray(challengesPool)
+    ? challengesPool
+    : (challengesPool && challengesPool.challenges ? challengesPool.challenges : []);
+  if (pool.length >= 9) {
+    const specificIds = [39, 36, 9, 24, 10, 33, 7, 15, 31];
+    const picked = specificIds.map(id => pool.find(c => c.id === id)).filter(Boolean);
+    if (picked.length === 9) return picked;
+    return pool.slice(0, 9);
   }
   return Array.from({ length: 9 }, (_, i) => ({
-    id: `ch_${i + 1}`,
-    category: 'social',
-    icon: 'camera',
+    id: i + 1,
+    category: 'Funny',
+    icon: '😂',
     challenge: `Challenge #${i + 1}`
   }));
 }
@@ -144,8 +150,8 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Session not found or expired' });
   }
 
-  // Ensure challenges is always a valid 9-element array
-  if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9) {
+  // Ensure challenges is always a valid 9-element array with actual challenge names
+  if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9 || session.challenges.some(c => !c.challenge || c.challenge.startsWith('Challenge #'))) {
     session.challenges = getDefaultChallenges();
   }
 
@@ -154,7 +160,7 @@ module.exports = async (req, res) => {
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
 
-  // 1. Authoritative sync with bingo_photo_reviews table (query by player_name & office for 100% reliable matching)
+  // 1. Authoritative sync with bingo_photo_reviews table
   try {
     const revUrl = session.player_name
       ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`
@@ -205,7 +211,7 @@ module.exports = async (req, res) => {
   let elapsed_ms = (typeof session.elapsed_ms === 'number' && session.elapsed_ms > 0) ? session.elapsed_ms : 116290;
   let rank = session.rank || null;
 
-  // 3. If NOT completed (e.g. winning line cell was rejected), invalidate any stale score in database
+  // 3. If NOT completed, invalidate any stale score in database
   if (!isCompleted) {
     try {
       await fetch(

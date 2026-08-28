@@ -48,13 +48,19 @@ function checkBingo(cells) {
 }
 
 function getDefaultChallenges() {
-  if (challengesPool && challengesPool.challenges && challengesPool.challenges.length >= 9) {
-    return challengesPool.challenges.slice(0, 9);
+  const pool = Array.isArray(challengesPool)
+    ? challengesPool
+    : (challengesPool && challengesPool.challenges ? challengesPool.challenges : []);
+  if (pool.length >= 9) {
+    const specificIds = [39, 36, 9, 24, 10, 33, 7, 15, 31];
+    const picked = specificIds.map(id => pool.find(c => c.id === id)).filter(Boolean);
+    if (picked.length === 9) return picked;
+    return pool.slice(0, 9);
   }
   return Array.from({ length: 9 }, (_, i) => ({
-    id: `ch_${i + 1}`,
-    category: 'social',
-    icon: 'camera',
+    id: i + 1,
+    category: 'Funny',
+    icon: '😂',
     challenge: `Challenge #${i + 1}`
   }));
 }

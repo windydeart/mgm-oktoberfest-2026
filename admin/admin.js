@@ -192,40 +192,70 @@ function renderReviews(reviews) {
         if (review.status === 'pending') {
             actionHTML = `
                 <div class="review-actions">
-                    <button class="btn-approve" onclick="approveReview(${review.id})">Approve</button>
-                    <button class="btn-reject" onclick="rejectReview(${review.id})">Reject</button>
+                    <button type="button" class="btn-review btn-approve" onclick="approveReview(${review.id})">
+                        <i data-lucide="check"></i> <span>Approve</span>
+                    </button>
+                    <button type="button" class="btn-review btn-reject" onclick="rejectReview(${review.id})">
+                        <i data-lucide="x"></i> <span>Reject</span>
+                    </button>
                 </div>
             `;
         } else {
-            const statusClass = review.status === 'approved' ? 'approved' : 'rejected';
-            actionHTML = `<div class="status-badge ${statusClass}">${review.status.toUpperCase()}</div>`;
+            const statusClass = review.status === 'approved' ? 'status-approved' : 'status-rejected';
+            const statusIcon = review.status === 'approved' ? 'check-circle-2' : 'x-circle';
+            const statusText = review.status === 'approved' ? 'Approved' : 'Rejected';
+            actionHTML = `
+                <div class="review-status-bar ${statusClass}">
+                    <i data-lucide="${statusIcon}"></i>
+                    <span>${statusText}</span>
+                </div>
+            `;
         }
         
+        const locationClass = review.office === 'danang' ? 'loc-danang' : 'loc-hcmc';
         const locationLabel = review.office === 'danang' ? 'Da Nang' : 'HCMC';
         const photoSrc = review.photo_url || '';
         const imgTag = photoSrc 
-            ? `<img src="${escapeHTML(photoSrc)}" alt="Review Photo" class="review-img" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
-            : `<div class="review-img-placeholder">No Image</div>`;
+            ? `<img src="${escapeHTML(photoSrc)}" alt="Challenge Photo" class="review-img" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
+            : `<div class="review-img-placeholder"><i data-lucide="image-off"></i><span>No Image</span></div>`;
 
         return `
-            <div class="review-card">
-                <div class="review-img-container" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')">
+            <div class="review-card ${review.status}">
+                <div class="review-img-container" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
                     ${imgTag}
+                    <div class="img-zoom-hint"><i data-lucide="maximize-2"></i></div>
+                    <span class="img-time-badge">${timeAgo(review.created_at)}</span>
                 </div>
                 <div class="review-content">
                     <div class="review-meta">
                         <span class="player-name">${escapeHTML(review.player_name)}</span>
-                        <span class="location-badge">${locationLabel}</span>
+                        <span class="location-badge ${locationClass}">${locationLabel}</span>
                     </div>
-                    <div class="review-challenge">${escapeHTML(review.challenge_text)}</div>
-                    ${review.ai_reason ? `<div class="ai-reason"><strong>AI:</strong> ${escapeHTML(review.ai_reason)}</div>` : ''}
-                    <div class="review-time">${timeAgo(review.created_at)}</div>
-                    ${review.reviewer_note && review.status !== 'pending' ? `<div class="reviewer-note"><strong>Note:</strong> ${escapeHTML(review.reviewer_note)}</div>` : ''}
+                    <div class="review-challenge-box">
+                        <span class="challenge-label">Challenge:</span>
+                        <span class="review-challenge">${escapeHTML(review.challenge_text)}</span>
+                    </div>
+                    ${review.ai_reason ? `
+                        <div class="ai-reason-box">
+                            <div class="ai-reason-header"><i data-lucide="sparkles"></i> <strong>AI Verdict:</strong></div>
+                            <div class="ai-reason-text">${escapeHTML(review.ai_reason)}</div>
+                        </div>
+                    ` : ''}
+                    ${review.reviewer_note && review.status !== 'pending' ? `
+                        <div class="reviewer-note-box">
+                            <span class="note-label">Organizer Note:</span>
+                            <span class="note-text">${escapeHTML(review.reviewer_note)}</span>
+                        </div>
+                    ` : ''}
                     ${actionHTML}
                 </div>
             </div>
         `;
     }).join('');
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 }
 
 async function approveReview(reviewId) {

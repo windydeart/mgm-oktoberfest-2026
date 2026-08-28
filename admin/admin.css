@@ -55,7 +55,10 @@ body {
     flex-direction: column;
 }
 
-.screen.hidden {
+.hidden,
+.modal.hidden,
+.screen.hidden,
+.toast.hidden {
     display: none !important;
 }
 

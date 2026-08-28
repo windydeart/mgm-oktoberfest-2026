@@ -178,7 +178,7 @@ module.exports = async (req, res) => {
       }
       for (const [cIdxStr, r] of Object.entries(latestMap)) {
         const cellIdx = parseInt(cIdxStr, 10);
-        if (cellIdx >= 0 && cellIdx < 9 && r.challenge_text && session.challenges[cellIdx]) {
+        if (cellIdx >= 0 && cellIdx < 9 && r.challenge_text && !r.challenge_text.startsWith('Challenge #') && session.challenges[cellIdx]) {
           session.challenges[cellIdx].challenge = r.challenge_text;
         }
         if (r.status === 'rejected') {

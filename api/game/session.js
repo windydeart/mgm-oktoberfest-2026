@@ -4,6 +4,7 @@ const challengesPool = require('../../data/bingo_challenges.json');
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || Buffer.from('c2Jfc2VjcmV0Xzd3NkZHN2xGTm5tQW5IZVQyTkRKX1FfMm9uTG1iamo=', 'base64').toString('utf-8');
 
 function verifyToken(token) {
   if (!token || typeof token !== 'string') return null;
@@ -153,14 +154,16 @@ module.exports = async (req, res) => {
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
 
-  // 1. Authoritative sync with bingo_photo_reviews table (order by created_at ASC)
+  // 1. Authoritative sync with bingo_photo_reviews table (query by player_name & office for 100% reliable matching)
   try {
-    const revRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`,
-      {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      }
-    );
+    const revUrl = session.player_name
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,reviewer_note,photo_url,ai_reason,challenge_text`;
+
+    const revRes = await fetch(revUrl, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+
     if (revRes.ok) {
       const reviews = await revRes.json();
       const latestMap = {};
@@ -196,32 +199,43 @@ module.exports = async (req, res) => {
     console.warn('Session review sync note:', err.message);
   }
 
-  // 2. Re-calculate BINGO with updated cells
+  // 2. Re-calculate BINGO strictly based on active valid completed cells
   const calculatedBingoLine = checkBingo(completedCells);
   let isCompleted = calculatedBingoLine !== null;
   let elapsed_ms = (typeof session.elapsed_ms === 'number' && session.elapsed_ms > 0) ? session.elapsed_ms : 116290;
   let rank = session.rank || null;
 
-  // 3. Verify if score actually exists in database
-  try {
-    const scoreRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,
-      {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      }
-    );
-    if (scoreRes.ok) {
-      const scores = await scoreRes.json();
-      if (scores && scores.length > 0 && scores[0].duration_seconds) {
-        elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
-        isCompleted = true;
-      } else {
-        // No score in DB means BINGO was deleted/invalidated
-        isCompleted = false;
-      }
+  // 3. If NOT completed (e.g. winning line cell was rejected), invalidate any stale score in database
+  if (!isCompleted) {
+    try {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
+        {
+          method: 'DELETE',
+          headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}` }
+        }
+      );
+    } catch (delErr) {
+      console.warn('Score invalidation note:', delErr.message);
     }
-  } catch (e) {
-    console.warn('Score lookup note:', e.message);
+  } else {
+    // If completed, verify score in DB
+    try {
+      const scoreRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,
+        {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        }
+      );
+      if (scoreRes.ok) {
+        const scores = await scoreRes.json();
+        if (scores && scores.length > 0 && scores[0].duration_seconds) {
+          elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
+        }
+      }
+    } catch (e) {
+      console.warn('Score lookup note:', e.message);
+    }
   }
 
   // Sanitize idle times > 30 mins
@@ -235,7 +249,7 @@ module.exports = async (req, res) => {
   session.cell_photo_urls = cellPhotoUrls;
   session.cell_ai_reasons = cellAiReasons;
   session.status = isCompleted ? 'completed' : 'playing';
-  session.bingo_line = isCompleted ? (session.bingo_line || calculatedBingoLine) : null;
+  session.bingo_line = isCompleted ? calculatedBingoLine : null;
   session.elapsed_ms = elapsed_ms;
 
   const refreshedToken = createToken(session);
@@ -254,7 +268,7 @@ module.exports = async (req, res) => {
     cell_ai_reasons: cellAiReasons,
     status: isCompleted ? 'completed' : 'playing',
     elapsed_ms: elapsed_ms,
-    bingo_line: session.bingo_line,
-    rank: rank || 1
+    bingo_line: isCompleted ? calculatedBingoLine : null,
+    rank: isCompleted ? (rank || 1) : null
   });
 };

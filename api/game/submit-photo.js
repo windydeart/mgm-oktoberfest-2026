@@ -137,12 +137,13 @@ module.exports = async (req, res) => {
 
   // Sync latest reviews from database to accurately reflect approved/rejected/pending cells
   try {
-    const revRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status`,
-      {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      }
-    );
+    const revUrl = session.player_name
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,photo_url,ai_reason`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,photo_url,ai_reason`;
+
+    const revRes = await fetch(revUrl, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
     if (revRes.ok) {
       const allReviews = await revRes.json();
       const latestMap = {};
@@ -161,9 +162,11 @@ module.exports = async (req, res) => {
         } else if (r.status === 'approved') {
           if (!completedCells.includes(cIdx)) completedCells.push(cIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cIdx);
+          if (r.photo_url) cellPhotoUrls[cIdx] = r.photo_url;
         } else if (r.status === 'pending') {
           if (!completedCells.includes(cIdx)) completedCells.push(cIdx);
           if (!pendingReviewCells.includes(cIdx)) pendingReviewCells.push(cIdx);
+          if (r.photo_url) cellPhotoUrls[cIdx] = r.photo_url;
         }
       }
     }

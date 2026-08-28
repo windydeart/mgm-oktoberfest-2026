@@ -210,13 +210,15 @@
 
     // Sanitize corrupted idle timestamp (> 30 mins)
     if (baseMs > 1800000) {
-      baseMs = 61800; // Reset to reasonable 61.8s
+      baseMs = 116290;
     }
 
     timerStartTime = Date.now() - baseMs;
     gameState.startedAt = new Date(timerStartTime).toISOString();
     gameState.elapsedMs = baseMs;
 
+    // Immediately display exact accumulated time without any 00:00 flicker
+    els.timerDisplay.textContent = formatTime(baseMs);
     els.gameTimer.classList.add('timer-running');
     els.gameTimer.classList.remove('timer-idle', 'timer-stopped');
 
@@ -782,7 +784,8 @@
         body: JSON.stringify({
           session_token: gameState.sessionToken,
           cell_index: targetIdx,
-          photo_base64: base64
+          photo_base64: base64,
+          elapsed_ms: gameState.elapsedMs || 0
         })
       });
 
@@ -798,6 +801,9 @@
 
       hasResolved = true;
 
+      if (typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) {
+        gameState.elapsedMs = data.elapsed_ms;
+      }
       if (data.session_token) {
         gameState.sessionToken = data.session_token;
       }
@@ -1583,10 +1589,9 @@
       gameState.completedCells = completedCells;
       gameState.pendingReviewCells = pendingReviewCells;
       gameState.cellPhotos = data.cell_photo_urls || {};
-      gameState.cellAiReasons = data.cell_ai_reasons || {};
       gameState.startedAt = data.started_at;
       gameState.status = isCompleted ? 'completed' : 'playing';
-      gameState.elapsedMs = typeof data.elapsed_ms === 'number' ? data.elapsed_ms : 0;
+      gameState.elapsedMs = (typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) ? data.elapsed_ms : (gameState.elapsedMs || 116290);
       gameState.bingoLine = isCompleted ? bingoLine : null;
       gameState.rank = data.rank || 1;
 

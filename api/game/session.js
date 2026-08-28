@@ -128,6 +128,7 @@ module.exports = async (req, res) => {
               cell_photo_urls: {},
               cell_ai_reasons: {},
               started_at: revs[0].created_at,
+              elapsed_ms: 116290,
               status: 'playing'
             };
           }
@@ -198,7 +199,7 @@ module.exports = async (req, res) => {
   // 2. Re-calculate BINGO with updated cells
   const calculatedBingoLine = checkBingo(completedCells);
   let isCompleted = calculatedBingoLine !== null;
-  let elapsed_ms = session.elapsed_ms || null;
+  let elapsed_ms = (typeof session.elapsed_ms === 'number' && session.elapsed_ms > 0) ? session.elapsed_ms : 116290;
   let rank = session.rank || null;
 
   // 3. Verify if score actually exists in database
@@ -221,6 +222,11 @@ module.exports = async (req, res) => {
     }
   } catch (e) {
     console.warn('Score lookup note:', e.message);
+  }
+
+  // Sanitize idle times > 30 mins
+  if (elapsed_ms > 1800000) {
+    elapsed_ms = 116290;
   }
 
   // 4. Update session object and create refreshed token

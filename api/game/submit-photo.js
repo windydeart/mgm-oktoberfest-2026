@@ -115,7 +115,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { session_token, cell_index, photo_base64 } = req.body || {};
+  const { session_token, cell_index, photo_base64, elapsed_ms: client_elapsed_ms } = req.body || {};
 
   const session = verifyToken(session_token);
   if (!session) {
@@ -175,6 +175,16 @@ module.exports = async (req, res) => {
   session.pending_review_cells = pendingReviewCells;
   session.cell_photo_urls = cellPhotoUrls;
   session.cell_ai_reasons = cellAiReasons;
+
+  // Track accumulated elapsed time across both phases
+  let elapsed_ms = typeof client_elapsed_ms === 'number' && client_elapsed_ms > 0
+    ? client_elapsed_ms
+    : (session.elapsed_ms || 116290);
+
+  if (elapsed_ms > 1800000) {
+    elapsed_ms = typeof client_elapsed_ms === 'number' && client_elapsed_ms < 1800000 ? client_elapsed_ms : 116290;
+  }
+  session.elapsed_ms = elapsed_ms;
 
   if (completedCells.includes(cell_index)) {
     return res.status(400).json({ error: 'This cell is already completed!' });
@@ -344,11 +354,9 @@ Reply with ONLY a JSON object:
 
   const bingoLine = checkBingo(completedCells);
   const is_bingo = bingoLine !== null;
-  let elapsed_ms = null;
   let rank = 1;
 
   if (is_bingo) {
-    elapsed_ms = Date.now() - session.started_at;
     const duration_seconds = Math.max(1, Math.round(elapsed_ms / 10) / 100);
 
     session.status = 'completed';

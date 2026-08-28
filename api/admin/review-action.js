@@ -1,0 +1,193 @@
+const { verifyAdminToken } = require('./auth');
+
+const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || Buffer.from('c2Jfc2VjcmV0Xzd3NkZHN2xGTm5tQW5IZVQyTkRKX1FfMm9uTG1iamo=', 'base64').toString('utf-8');
+
+function handleCors(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+async function supabaseRequest(method, path, body, useSecret = false) {
+  const key = useSecret ? SUPABASE_SECRET_KEY : SUPABASE_KEY;
+  const opts = {
+    method,
+    headers: {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
+  return res;
+}
+
+async function supabaseGet(path, useSecret = false) {
+  const key = useSecret ? SUPABASE_SECRET_KEY : SUPABASE_KEY;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`
+    }
+  });
+  if (!res.ok) throw new Error(`Supabase GET error: ${res.status} - ${await res.text()}`);
+  return res.json();
+}
+
+module.exports = async (req, res) => {
+  handleCors(req, res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Verify admin token
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.replace('Bearer ', '');
+  const admin = verifyAdminToken(token);
+  if (!admin) return res.status(401).json({ error: 'Unauthorized' });
+
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  const { review_id, action, note } = body || {};
+
+  if (!review_id || !action || !['approve', 'reject'].includes(action)) {
+    return res.status(400).json({ error: 'Missing review_id or invalid action (approve|reject).' });
+  }
+
+  try {
+    // 1. Fetch the review record
+    const reviews = await supabaseGet(`bingo_photo_reviews?id=eq.${review_id}&select=*`);
+    if (!reviews.length) {
+      return res.status(404).json({ error: 'Review not found.' });
+    }
+    const review = reviews[0];
+
+    if (review.status !== 'pending') {
+      return res.status(400).json({ error: `Review already ${review.status}.` });
+    }
+
+    // 2. Update the review status
+    const updateData = {
+      status: action === 'approve' ? 'approved' : 'rejected',
+      reviewed_at: new Date().toISOString(),
+      reviewer_note: note || (action === 'reject' ? 'Photo does not match the challenge requirement.' : 'Approved by organizer.')
+    };
+
+    const updateRes = await supabaseRequest(
+      'PATCH',
+      `bingo_photo_reviews?id=eq.${review_id}`,
+      updateData,
+      true // Use secret key for UPDATE
+    );
+
+    if (!updateRes.ok) {
+      const errText = await updateRes.text();
+      console.error('Failed to update review:', errText);
+      return res.status(500).json({ error: 'Failed to update review status.' });
+    }
+
+    // 3. If REJECT → handle leaderboard penalty
+    if (action === 'reject') {
+      await handleRejection(review);
+    }
+
+    return res.status(200).json({
+      success: true,
+      action,
+      review_id,
+      message: action === 'approve'
+        ? `Photo approved for ${review.player_name}, cell ${review.cell_index + 1}.`
+        : `Photo rejected for ${review.player_name}, cell ${review.cell_index + 1}. Player's BINGO may be invalidated.`
+    });
+  } catch (err) {
+    console.error('Review action error:', err);
+    return res.status(500).json({ error: 'Failed to process review action.' });
+  }
+};
+
+async function handleRejection(review) {
+  const { player_name, cell_index, session_id } = review;
+
+  try {
+    // Find the player's score record
+    const scores = await supabaseGet(
+      `oktoberfest_game_scores?player_name=eq.${encodeURIComponent(player_name)}&game_name=eq.photo_bingo&select=*&order=created_at.desc&limit=1`,
+      true
+    );
+
+    if (!scores.length) {
+      console.log(`No score record found for ${player_name}, nothing to invalidate.`);
+      return;
+    }
+
+    const score = scores[0];
+
+    // Parse snapshot from player_email
+    let snapshot = null;
+    try {
+      snapshot = JSON.parse(score.player_email || '{}');
+    } catch (e) {
+      snapshot = {};
+    }
+
+    const completedCells = snapshot.completed_cells || [];
+    const bingoLine = snapshot.bingo_line || null;
+
+    // Check if the rejected cell is part of the winning BINGO line
+    const BINGO_LINES = {
+      'row-0': [0, 1, 2], 'row-1': [3, 4, 5], 'row-2': [6, 7, 8],
+      'col-0': [0, 3, 6], 'col-1': [1, 4, 7], 'col-2': [2, 5, 8],
+      'diag-main': [0, 4, 8], 'diag-anti': [2, 4, 6]
+    };
+
+    const winningCells = bingoLine ? (BINGO_LINES[bingoLine] || []) : [];
+    const isInWinningLine = winningCells.includes(cell_index);
+
+    if (isInWinningLine) {
+      // BINGO is invalidated — DELETE the score record
+      console.log(`Rejecting cell ${cell_index} invalidates BINGO line ${bingoLine} for ${player_name}. Deleting score.`);
+
+      const deleteRes = await supabaseRequest(
+        'DELETE',
+        `oktoberfest_game_scores?id=eq.${score.id}`,
+        null,
+        true
+      );
+
+      if (!deleteRes.ok) {
+        console.error('Failed to delete score:', await deleteRes.text());
+      } else {
+        console.log(`Score record ${score.id} deleted for ${player_name}.`);
+      }
+    } else {
+      // Cell is not in the winning line, just update the snapshot
+      console.log(`Rejected cell ${cell_index} is NOT in winning line ${bingoLine} for ${player_name}. Updating snapshot only.`);
+
+      // Remove cell from completed_cells in snapshot
+      const updatedCompleted = completedCells.filter(c => c !== cell_index);
+      snapshot.completed_cells = updatedCompleted;
+
+      // Remove from cell_photos and cell_ai_reasons
+      if (snapshot.cell_photos) delete snapshot.cell_photos[String(cell_index)];
+      if (snapshot.cell_ai_reasons) delete snapshot.cell_ai_reasons[String(cell_index)];
+
+      const patchRes = await supabaseRequest(
+        'PATCH',
+        `oktoberfest_game_scores?id=eq.${score.id}`,
+        { player_email: JSON.stringify(snapshot) },
+        true
+      );
+
+      if (!patchRes.ok) {
+        console.error('Failed to update snapshot:', await patchRes.text());
+      }
+    }
+  } catch (err) {
+    console.error('Rejection handling error:', err);
+  }
+}

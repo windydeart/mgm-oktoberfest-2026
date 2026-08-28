@@ -721,6 +721,9 @@
       saveSession();
       showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
     }
+
+    // Start polling for organizer decisions
+    startReviewPolling();
   }
 
       async function submitPhoto() {
@@ -1867,6 +1870,139 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     ADMIN REVIEW POLLING — Check for organizer decisions
+     ═══════════════════════════════════════════════════════ */
+  let reviewPollInterval = null;
+  let processedReviewDecisions = new Set(); // Track already-processed decision IDs
+
+  function startReviewPolling() {
+    if (reviewPollInterval) return;
+    reviewPollInterval = setInterval(pollReviewDecisions, 8000);
+    // Also poll once immediately
+    setTimeout(pollReviewDecisions, 1000);
+  }
+
+  function stopReviewPolling() {
+    if (reviewPollInterval) {
+      clearInterval(reviewPollInterval);
+      reviewPollInterval = null;
+    }
+  }
+
+  async function pollReviewDecisions() {
+    // Only poll if we have pending review cells and a session ID
+    if (!gameState.sessionId) return;
+    if (!gameState.pendingReviewCells || gameState.pendingReviewCells.length === 0) {
+      stopReviewPolling();
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/check-reviews?session_id=${encodeURIComponent(gameState.sessionId)}`);
+      if (!res.ok) return;
+
+      const data = await res.json();
+      if (!data.success || !data.decisions || data.decisions.length === 0) return;
+
+      for (const decision of data.decisions) {
+        const decisionKey = `${decision.id}-${decision.status}`;
+        if (processedReviewDecisions.has(decisionKey)) continue;
+        processedReviewDecisions.add(decisionKey);
+
+        if (decision.status === 'approved') {
+          handleReviewApproved(decision);
+        } else if (decision.status === 'rejected') {
+          handleReviewRejected(decision);
+        }
+      }
+    } catch (err) {
+      console.warn('Review poll error:', err);
+    }
+  }
+
+  function handleReviewApproved(decision) {
+    const cellIdx = decision.cell_index;
+
+    // Remove from pendingReviewCells
+    gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => c !== cellIdx);
+
+    // Update AI reason
+    if (gameState.cellAiReasons) {
+      gameState.cellAiReasons[cellIdx] = 'Approved by organizer ✓';
+    }
+
+    // Update cell visuals
+    const cells = $$('.bingo-cell');
+    if (cells[cellIdx]) {
+      cells[cellIdx].classList.remove('pending-review');
+    }
+
+    saveSession();
+    renderBoard();
+    showToast(`📸 Photo for Challenge #${cellIdx + 1} approved by organizers! ✓`, 'success', 5000);
+  }
+
+  function handleReviewRejected(decision) {
+    const cellIdx = decision.cell_index;
+    const note = decision.reviewer_note || 'Photo does not match the challenge. Please try again.';
+
+    // Remove from both completedCells and pendingReviewCells
+    gameState.completedCells = (gameState.completedCells || []).filter(c => c !== cellIdx);
+    gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => c !== cellIdx);
+
+    // Remove photo and AI reason for this cell
+    if (gameState.cellPhotos) delete gameState.cellPhotos[cellIdx];
+    if (gameState.cellAiReasons) delete gameState.cellAiReasons[cellIdx];
+
+    // Check if BINGO is now invalidated
+    const wasBingo = gameState.status === 'completed';
+    const currentBingo = checkBingo(gameState.completedCells || []);
+
+    if (wasBingo && !currentBingo) {
+      // BINGO invalidated!
+      gameState.status = 'playing';
+      gameState.bingoLine = null;
+      gameState.rank = null;
+      gameState.elapsedMs = null;
+
+      // Resume timer
+      startTimer();
+
+      // Hide victory modal if visible
+      if (els.victoryModal) closeModal(els.victoryModal);
+
+      // Remove laser cut line
+      const laserLine = document.querySelector('.laser-cut-line');
+      if (laserLine) laserLine.remove();
+
+      showToast(`⚠️ Photo rejected: ${note}\nYour BINGO has been invalidated. Timer resumed — keep going!`, 'error', 8000);
+    } else {
+      showToast(`❌ Photo rejected for Challenge #${cellIdx + 1}: ${note}`, 'error', 6000);
+    }
+
+    // Reset cell visuals with shake animation
+    const cells = $$('.bingo-cell');
+    if (cells[cellIdx]) {
+      const cell = cells[cellIdx];
+      cell.classList.remove('completed', 'pending-review', 'bingo-line-cell');
+      cell.style.backgroundImage = '';
+      cell.classList.add('cell-rejected-shake');
+      setTimeout(() => cell.classList.remove('cell-rejected-shake'), 600);
+
+      const hint = cell.querySelector('.cell-tap-hint');
+      if (hint) hint.textContent = 'Tap to retry';
+    }
+
+    saveSession();
+    renderBoard();
+
+    // If there are still pending cells, keep polling
+    if (gameState.pendingReviewCells && gameState.pendingReviewCells.length > 0) {
+      startReviewPolling();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
      INITIALIZATION
      ═══════════════════════════════════════════════════════ */
   async function init() {
@@ -1885,6 +2021,11 @@
     const recovered = await tryRecoverSession();
     if (!recovered) {
       resetTimer();
+    }
+
+    // Start polling for admin review decisions if there are pending cells
+    if (gameState.pendingReviewCells && gameState.pendingReviewCells.length > 0) {
+      startReviewPolling();
     }
   }
 

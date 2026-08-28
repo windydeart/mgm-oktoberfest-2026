@@ -244,6 +244,36 @@ Reply with ONLY a JSON object:
     if (!session.pending_review_cells.includes(cell_index)) {
       session.pending_review_cells.push(cell_index);
     }
+
+    // Insert into bingo_photo_reviews for admin dashboard tracking
+    try {
+      const challengeText = (session.challenges && session.challenges[cell_index])
+        ? (session.challenges[cell_index].challenge || `Challenge #${cell_index + 1}`)
+        : `Challenge #${cell_index + 1}`;
+
+      await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          player_name: session.player_name || 'Unknown',
+          office: session.location || 'danang',
+          cell_index: cell_index,
+          challenge_text: challengeText,
+          photo_url: photoUrl || null,
+          ai_reason: ai_reason,
+          status: 'pending'
+        })
+      });
+    } catch (reviewInsertErr) {
+      // Non-blocking — don't fail the photo submission if review insert fails
+      console.error('Failed to insert photo review record:', reviewInsertErr.message);
+    }
   }
 
   // Save photo URL and AI reason in session token for persistence

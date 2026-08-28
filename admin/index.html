@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Dashboard | Oktoberfest 2026</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen">
+        <div class="login-card">
+            <div class="logo">mgm | Oktoberfest 2026</div>
+            <h1>Organizer Dashboard</h1>
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="password" id="passwordInput" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+                <div id="loginError" class="error-msg"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen" class="screen hidden">
+        <header class="top-bar">
+            <h2>Organizer Dashboard</h2>
+            <button id="logoutBtn" class="btn-secondary">
+                <i data-lucide="log-out"></i> Logout
+            </button>
+        </header>
+
+        <main class="dashboard-content">
+            <!-- Stats Cards Row -->
+            <section id="statsCards" class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Players</div>
+                    <div class="stat-value" id="statTotalPlayers">0</div>
+                    <div class="stat-subtitle" id="statLocationBreakdown">Da Nang: 0 | HCMC: 0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">BINGO Achieved</div>
+                    <div class="stat-value" id="statBingo">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Pending Reviews <span id="pendingIndicator" class="pulse-dot"></span></div>
+                    <div class="stat-value" id="statPending">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Approved Photos</div>
+                    <div class="stat-value text-success" id="statApproved">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Rejected Photos</div>
+                    <div class="stat-value text-danger" id="statRejected">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Avg Completion Time</div>
+                    <div class="stat-value" id="statAvgTime">00:00</div>
+                </div>
+            </section>
+
+            <div class="main-grid">
+                <!-- Leaderboard Section -->
+                <section class="leaderboard-section">
+                    <h3>Top 10 Leaderboard</h3>
+                    <div class="table-container">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player</th>
+                                    <th>Location</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Photo Review Queue Section -->
+                <section class="review-section">
+                    <div class="review-header">
+                        <h3>Photo Review Queue</h3>
+                        <div class="filters">
+                            <select id="locationFilter" class="filter-select">
+                                <option value="all">All Offices</option>
+                                <option value="danang">Da Nang</option>
+                                <option value="hcmc">HCMC</option>
+                            </select>
+                            <div class="tabs" id="statusTabs">
+                                <button class="tab-btn" data-filter="all">All</button>
+                                <button class="tab-btn active" data-filter="pending">Pending</button>
+                                <button class="tab-btn" data-filter="approved">Approved</button>
+                                <button class="tab-btn" data-filter="rejected">Rejected</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="reviewGrid" class="review-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div id="emptyReviewMsg" class="empty-msg hidden">No reviews found matching criteria.</div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Photo Preview Modal -->
+    <div id="photoModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button id="closeModalBtn" class="close-btn"><i data-lucide="x"></i></button>
+            <div class="modal-header">
+                <h3 id="modalChallengeText">Challenge</h3>
+            </div>
+            <img id="modalImage" src="" alt="Photo Preview">
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="/admin/admin.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

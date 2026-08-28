@@ -177,18 +177,19 @@ module.exports = async (req, res) => {
   let pendingReviewCells = [...(session.pending_review_cells || [])];
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
+  let allReviews = [];
 
   // 1. Sync latest reviews from database to accurately reflect approved/rejected/pending cells
   try {
     const revUrl = session.player_name
-      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,photo_url,ai_reason`
-      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,photo_url,ai_reason`;
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&order=created_at.asc&select=cell_index,status,reviewer_note,reviewed_at,photo_url,ai_reason,challenge_text,created_at`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.asc&select=cell_index,status,reviewer_note,reviewed_at,photo_url,ai_reason,challenge_text,created_at`;
 
     const revRes = await fetch(revUrl, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
     if (revRes.ok) {
-      const allReviews = await revRes.json();
+      allReviews = await revRes.json();
       const latestMap = {};
       for (const r of allReviews) {
         latestMap[r.cell_index] = r;

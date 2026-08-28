@@ -58,8 +58,75 @@ module.exports = async (req, res) => {
 
   const url = new URL(req.url, `http://${req.headers.host}`);
   const token = url.searchParams.get('token');
+  const playerName = url.searchParams.get('player_name');
+  const location = url.searchParams.get('location') || 'danang';
 
-  const session = verifyToken(token);
+  let session = verifyToken(token);
+
+  // If token is missing/expired, attempt server-side recovery by player_name and location
+  if (!session && playerName) {
+    try {
+      // 1. Check score table for completed game snapshot
+      const scoreRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.desc&limit=1`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (scoreRes.ok) {
+        const scores = await scoreRes.json();
+        if (scores && scores.length > 0) {
+          const score = scores[0];
+          let snapshot = {};
+          try { snapshot = JSON.parse(score.player_email || '{}'); } catch (e) {}
+          if (snapshot.challenges && snapshot.challenges.length === 9) {
+            session = {
+              session_id: snapshot.session_id || `recovered-${score.id}`,
+              player_name: score.player_name,
+              location: score.office,
+              challenges: snapshot.challenges,
+              completed_cells: snapshot.completed_cells || [],
+              pending_review_cells: [],
+              cell_photo_urls: snapshot.cell_photos || {},
+              cell_ai_reasons: snapshot.cell_ai_reasons || {},
+              started_at: score.created_at,
+              elapsed_ms: Math.round(score.duration_seconds * 1000),
+              bingo_line: snapshot.bingo_line,
+              status: 'completed',
+              rank: 1
+            };
+          }
+        }
+      }
+
+      // 2. If not found in scores, check bingo_photo_reviews
+      if (!session) {
+        const revLookup = await fetch(
+          `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.desc&limit=1`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (revLookup.ok) {
+          const revs = await revLookup.json();
+          if (revs && revs.length > 0) {
+            const sid = revs[0].session_id;
+            session = {
+              session_id: sid,
+              player_name: playerName,
+              location: location,
+              challenges: [],
+              completed_cells: [],
+              pending_review_cells: [],
+              cell_photo_urls: {},
+              cell_ai_reasons: {},
+              started_at: revs[0].created_at,
+              status: 'playing'
+            };
+          }
+        }
+      }
+    } catch (recoverErr) {
+      console.warn('Player lookup error:', recoverErr.message);
+    }
+  }
+
   if (!session) {
     return res.status(404).json({ error: 'Session not found or expired' });
   }
@@ -69,10 +136,10 @@ module.exports = async (req, res) => {
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
 
-  // 1. Sync review statuses from bingo_photo_reviews table
+  // 1. Authoritative sync with bingo_photo_reviews table
   try {
     const revRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&select=cell_index,status,reviewer_note`,
+      `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&select=cell_index,status,reviewer_note,photo_url,ai_reason`,
       {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       }
@@ -82,7 +149,7 @@ module.exports = async (req, res) => {
       for (const r of reviews) {
         const cellIdx = r.cell_index;
         if (r.status === 'rejected') {
-          // Exclude rejected cell completely
+          // Cleanly remove rejected cell from everywhere
           completedCells = completedCells.filter(c => c !== cellIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);
           delete cellPhotoUrls[String(cellIdx)];
@@ -92,10 +159,13 @@ module.exports = async (req, res) => {
         } else if (r.status === 'approved') {
           if (!completedCells.includes(cellIdx)) completedCells.push(cellIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);
+          if (r.photo_url) cellPhotoUrls[cellIdx] = r.photo_url;
           cellAiReasons[cellIdx] = 'Approved by organizer ✓';
         } else if (r.status === 'pending') {
           if (!completedCells.includes(cellIdx)) completedCells.push(cellIdx);
           if (!pendingReviewCells.includes(cellIdx)) pendingReviewCells.push(cellIdx);
+          if (r.photo_url) cellPhotoUrls[cellIdx] = r.photo_url;
+          if (r.ai_reason) cellAiReasons[cellIdx] = r.ai_reason;
         }
       }
     }
@@ -109,7 +179,7 @@ module.exports = async (req, res) => {
   let elapsed_ms = session.elapsed_ms || null;
   let rank = session.rank || null;
 
-  // 3. Check if score actually exists in oktoberfest_game_scores table
+  // 3. Verify if score actually exists in database
   try {
     const scoreRes = await fetch(
       `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,

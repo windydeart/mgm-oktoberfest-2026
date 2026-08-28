@@ -52,12 +52,13 @@
   let cameraStream = null;
   let currentCellIndex = null;
   let facingMode = 'environment';
-  /* ─── ACTIVE STORAGE RESET (BUMP TO V3) ─── */
-  const STORAGE_KEY_TOKEN = 'bingo_session_token_v4';
-  const STORAGE_KEY_STATE = 'bingo_game_state_v4';
+  /* ─── LOCAL STORAGE KEYS (Server-Authoritative Tracking) ─── */
+  const STORAGE_KEY_USER_NAME = 'bingo_player_name';
+  const STORAGE_KEY_USER_LOC = 'bingo_player_location';
+  const STORAGE_KEY_TOKEN = 'bingo_session_token';
 
   try {
-    ['bingo_session_token', 'bingo_game_state', 'bingo_session_token_v2', 'bingo_game_state_v2', 'bingo_session_token_v3', 'bingo_game_state_v3'].forEach(k => {
+    ['bingo_game_state', 'bingo_game_state_v2', 'bingo_game_state_v3', 'bingo_game_state_v4', 'bingo_session_token_v2', 'bingo_session_token_v3'].forEach(k => {
       localStorage.removeItem(k);
     });
   } catch (e) {}
@@ -1409,118 +1410,37 @@
             const imgEl = $('#photoReviewImg');
             const txtEl = $('#photoReviewChallengeText');
             const reasonEl = $('#photoReviewAiReason');
-            const pillEl = $('#photoReviewStatusPill');
-            const catIconEl = $('#photoReviewCatIcon');
-
-            if (imgEl) {
-              imgEl.src = photoUrl || '';
-              imgEl.style.display = photoUrl ? 'block' : 'none';
-            }
-            if (txtEl) txtEl.textContent = ch.challenge;
-            if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || 'Verified winning challenge submission by Champion.';
-            if (pillEl) {
-              pillEl.className = 'photo-review-status-pill status-done';
-              pillEl.innerHTML = '<i data-lucide="check"></i> <span>DONE</span>';
-            }
-            if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
-
-            openModal(els.photoReviewModal);
-            if (window.lucide) window.lucide.createIcons();
-          });
-
-        } else {
-          // Non-winning cells: pure placeholder, NO camera icon, NO checkmark, NO click handler
-          cellEl.innerHTML = `
-            <p class="winner-cell-text" style="color:var(--text-muted); opacity:0.8; font-size:0.7rem;">Challenge #${idx+1}</p>
-          `;
-        }
-
-        els.winnerMiniBoard.appendChild(cellEl);
-      }
-
-      if (window.lucide) window.lucide.createIcons();
-
-    } catch (e) {
-      els.winnerMiniBoard.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Could not load winner board.</div>';
-    }
-  }
-
-  function closeWinnerShowcase() {
-    closeModal(els.winnerShowcaseModal);
-    if (wasLeaderboardOpen && els.leaderboardModal) {
-      openModal(els.leaderboardModal);
-      renderLeaderboard(currentLbLocation);
-    }
-  }
-
-
-  function openLeaderboard() {
-    openModal(els.leaderboardModal);
-    renderLeaderboard(currentLbLocation);
-    if (window.lucide) window.lucide.createIcons();
-  }
-
-  /* ═══════════════════════════════════════════════════════
-     LOCATION DETECTION
-     ═══════════════════════════════════════════════════════ */
-  async function detectLocation() {
-    try {
-      const res = await fetch('https://ipwho.is/', { cache: 'no-cache' });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data && data.success) {
-        const city = (data.city || '').toLowerCase();
-        const lat = data.latitude;
-        if (city.includes('ho chi minh') || city.includes('saigon') || city.includes('can tho') || city.includes('binh duong') || (lat && lat < 13.5)) {
-          setLocation('hcmc');
-        } else {
-          setLocation('danang');
-        }
-      }
-    } catch (e) { /* silently fail */ }
-  }
-
-  function setLocation(loc) {
-    gameState.location = loc;
-    $$('.loc-toggle-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.location === loc);
-    });
-  }
-
-  /* ═══════════════════════════════════════════════════════
-     SESSION PERSISTENCE & RELOAD RECOVERY
+          /* ═══════════════════════════════════════════════════════
+     SESSION PERSISTENCE & RELOAD RECOVERY (Server-Authoritative)
      ═══════════════════════════════════════════════════════ */
   function saveSession() {
     try {
-      const dataToSave = {
-        sessionId: gameState.sessionId,
-        sessionToken: gameState.sessionToken,
-        playerName: gameState.playerName,
-        location: gameState.location,
-        challenges: gameState.challenges,
-        completedCells: gameState.completedCells,
-        pendingReviewCells: gameState.pendingReviewCells || [],
-        cellPhotos: gameState.cellPhotos || {},
-        cellAiReasons: gameState.cellAiReasons || {},
-        status: gameState.status,
-        startedAt: gameState.startedAt,
-        elapsedMs: gameState.elapsedMs,
-        bingoLine: gameState.bingoLine,
-        rank: gameState.rank
-      };
-      localStorage.setItem(STORAGE_KEY_TOKEN, gameState.sessionToken || '');
-      localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(dataToSave));
+      if (gameState.playerName) {
+        localStorage.setItem(STORAGE_KEY_USER_NAME, gameState.playerName);
+      }
+      if (gameState.location) {
+        localStorage.setItem(STORAGE_KEY_USER_LOC, gameState.location);
+      }
+      if (gameState.sessionToken) {
+        localStorage.setItem(STORAGE_KEY_TOKEN, gameState.sessionToken);
+      }
+      // Purge all old local state blobs so client NEVER uses stale local data
+      localStorage.removeItem('bingo_game_state_v4');
+      localStorage.removeItem('bingo_game_state');
     } catch (e) { /* ignore */ }
   }
 
   function clearSession() {
     try {
+      localStorage.removeItem(STORAGE_KEY_USER_NAME);
+      localStorage.removeItem(STORAGE_KEY_USER_LOC);
       localStorage.removeItem(STORAGE_KEY_TOKEN);
-      localStorage.removeItem(STORAGE_KEY_STATE);
+      localStorage.removeItem('bingo_session_token_v4');
+      localStorage.removeItem('bingo_game_state_v4');
     } catch (e) { /* ignore */ }
   }
 
-    function resetToWelcome() {
+  function resetToWelcome() {
     clearSession();
     gameState = {
       sessionId: null, sessionToken: null, playerName: '', location: gameState.location || 'danang',
@@ -1539,96 +1459,74 @@
     resetTimer();
   }
 
-    async function tryRecoverSession() {
+  async function tryRecoverSession() {
     try {
-      const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
-      const savedLocalStateStr = localStorage.getItem(STORAGE_KEY_STATE);
-      let localState = null;
-      if (savedLocalStateStr) {
-        try { localState = JSON.parse(savedLocalStateStr); } catch (e) {}
-      }
+      const savedPlayerName = localStorage.getItem(STORAGE_KEY_USER_NAME);
+      const savedLocation = localStorage.getItem(STORAGE_KEY_USER_LOC) || 'danang';
+      const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN) || localStorage.getItem('bingo_session_token_v4');
 
-      if (!savedToken && !localState) return false;
+      if (!savedPlayerName && !savedToken) return false;
 
-      // 1. FAST LOCAL HYDRATION: Immediately render UI from local storage
-      if (localState && localState.sessionId) {
-        gameState = Object.assign({}, gameState, localState);
-        if (typeof gameState.elapsedMs === 'number' && gameState.elapsedMs > 1800000) {
-          gameState.elapsedMs = 61800;
-        }
-        els.gameWelcome.style.display = 'none';
-        els.bingoBoard.style.display = 'grid';
-        renderBoard();
-
-        const isLocalCompleted = gameState.status === 'completed' || checkBingo(gameState.completedCells || []) !== null;
-        if (isLocalCompleted) {
-          gameState.status = 'completed';
-          if (!gameState.bingoLine) gameState.bingoLine = checkBingo(gameState.completedCells);
-          stopTimer(gameState.elapsedMs || 0);
-        } else {
-          startTimer(gameState.elapsedMs || 0);
-        }
-      }
-
-      // 2. Background Server Sync (Authoritative server sync)
+      // 100% AUTHORITATIVE SERVER-SIDE RECOVERY
+      let queryUrl = '';
       if (savedToken) {
-        try {
-          const res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.session_id) {
-              const completedCells = data.completed_cells !== undefined ? data.completed_cells : (gameState.completedCells || []);
-              const bingoLine = data.bingo_line || checkBingo(completedCells);
-              const isCompleted = data.status === 'completed' || bingoLine !== null;
+        queryUrl = `${API_BASE}/session?token=${encodeURIComponent(savedToken)}`;
+      } else if (savedPlayerName) {
+        queryUrl = `${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}`;
+      }
 
-              const pendingReviewCells = data.pending_review_cells || [];
-              const serverPhotos = data.cell_photo_urls || {};
-              const cellPhotos = {};
-              for (const idx of completedCells) {
-                cellPhotos[idx] = serverPhotos[idx] || (gameState.cellPhotos && gameState.cellPhotos[idx]) || null;
-              }
+      const res = await fetch(queryUrl);
+      if (!res.ok) {
+        return false;
+      }
 
-              const cellAiReasons = data.cell_ai_reasons || (gameState.cellAiReasons || {});
+      const data = await res.json();
+      if (!data || !data.success || !data.challenges || data.challenges.length === 0) {
+        return false;
+      }
 
-              gameState.sessionId = data.session_id;
-              if (data.session_token) {
-                gameState.sessionToken = data.session_token;
-              }
-              gameState.playerName = data.player_name;
-              gameState.location = data.location;
-              gameState.challenges = data.challenges || [];
-              gameState.completedCells = completedCells;
-              gameState.pendingReviewCells = pendingReviewCells;
-              gameState.cellPhotos = cellPhotos;
-              gameState.cellAiReasons = cellAiReasons;
-              gameState.startedAt = data.started_at;
-              gameState.status = isCompleted ? 'completed' : 'playing';
-              gameState.elapsedMs = data.elapsed_ms !== null && data.elapsed_ms !== undefined ? data.elapsed_ms : gameState.elapsedMs;
-              gameState.bingoLine = isCompleted ? bingoLine : null;
-              gameState.rank = data.rank || gameState.rank || 1;
+      const completedCells = data.completed_cells || [];
+      const pendingReviewCells = data.pending_review_cells || [];
+      const bingoLine = data.bingo_line || checkBingo(completedCells);
+      const isCompleted = data.status === 'completed' || bingoLine !== null;
 
-              saveSession();
-              renderBoard();
+      gameState.sessionId = data.session_id;
+      if (data.session_token) {
+        gameState.sessionToken = data.session_token;
+      }
+      gameState.playerName = data.player_name || savedPlayerName;
+      gameState.location = data.location || savedLocation;
+      gameState.challenges = data.challenges;
+      gameState.completedCells = completedCells;
+      gameState.pendingReviewCells = pendingReviewCells;
+      gameState.cellPhotos = data.cell_photo_urls || {};
+      gameState.cellAiReasons = data.cell_ai_reasons || {};
+      gameState.startedAt = data.started_at;
+      gameState.status = isCompleted ? 'completed' : 'playing';
+      gameState.elapsedMs = typeof data.elapsed_ms === 'number' ? data.elapsed_ms : 0;
+      gameState.bingoLine = isCompleted ? bingoLine : null;
+      gameState.rank = data.rank || 1;
 
-              if (isCompleted) {
-                stopTimer(gameState.elapsedMs || 0);
-              } else {
-                startTimer(gameState.elapsedMs || 0);
-              }
+      saveSession(); // Only persists player_name, location, and session_token
 
-              if (pendingReviewCells.length > 0) {
-                startReviewPolling();
-              }
-            }
-          }
-        } catch (fetchErr) {
-          console.warn('Server session sync note:', fetchErr);
-        }
+      // Render UI strictly from server state
+      els.gameWelcome.style.display = 'none';
+      els.bingoBoard.style.display = 'grid';
+      renderBoard();
+
+      if (isCompleted) {
+        stopTimer(gameState.elapsedMs || 0);
+      } else {
+        startTimer(gameState.elapsedMs || 0);
+      }
+
+      if (pendingReviewCells.length > 0) {
+        startReviewPolling();
       }
 
       return true;
     } catch (e) {
-      console.warn('Session recovery error:', e);
+      console.warn('Authoritative session recovery error:', e);
       return false;
     }
   }
@@ -1962,6 +1860,16 @@
     saveSession();
     renderBoard();
     showToast(`📸 Photo for Challenge #${cellIdx + 1} approved by organizers! ✓`, 'success', 5000);
+
+    // Sync refreshed token and state from server
+    if (gameState.sessionToken) {
+      fetch(`${API_BASE}/session?token=${encodeURIComponent(gameState.sessionToken)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.session_token) gameState.sessionToken = d.session_token;
+          saveSession();
+        }).catch(() => {});
+    }
   }
 
   function handleReviewRejected(decision) {
@@ -2024,6 +1932,16 @@
 
     saveSession();
     renderBoard();
+
+    // Sync refreshed token and state from server
+    if (gameState.sessionToken) {
+      fetch(`${API_BASE}/session?token=${encodeURIComponent(gameState.sessionToken)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.session_token) gameState.sessionToken = d.session_token;
+          saveSession();
+        }).catch(() => {});
+    }
 
     // If there are still pending cells, keep polling
     if (gameState.pendingReviewCells && gameState.pendingReviewCells.length > 0) {

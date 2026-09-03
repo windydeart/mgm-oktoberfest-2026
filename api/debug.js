@@ -1,4 +1,4 @@
-const { getVertexCredentials, getVertexAccessToken } = require('./lib/vertex');
+const { getVertexCredentials, getVertexAccessToken } = require('../lib/vertex');
 
 module.exports = async (req, res) => {
   const envVal = process.env.GCP_SERVICE_ACCOUNT_KEY;

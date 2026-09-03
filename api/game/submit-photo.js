@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const challengesPool = require('../../data/bingo_challenges.json');
-const { callVertexGemini } = require('../lib/vertex');
+const { callVertexGemini } = require('../../lib/vertex');
 
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';

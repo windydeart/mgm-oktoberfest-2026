@@ -1,6 +1,6 @@
 const { readFileSync } = require('fs');
 const { join } = require('path');
-const { callVertexGemini } = require('./lib/vertex');
+const { callVertexGemini } = require('../lib/vertex');
 
 /* ─── RATE LIMITING (in-memory, per-instance) ─── */
 const rateLimitMap = new Map();

@@ -160,7 +160,7 @@ function renderLeaderboard(entries) {
         const locationLabel = entry.location === 'danang' ? 'Da Nang' : 'HCMC';
 
         return `
-            <tr class="${isTop1 ? 'lb-winner-row' : ''}">
+            <tr class="${isTop1 ? 'lb-winner-row' : ''}" ${isTop1 ? `onclick="openWinnerShowcaseAdmin('${adminLbLocation || 'all'}')"` : ''} title="${isTop1 ? 'Click to view Winner Showcase & 3x3 Board' : ''}">
                 <td class="lb-rank">
                     ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
                 </td>
@@ -300,6 +300,17 @@ function renderReviews(reviews) {
                             <div class="ai-reason-text">${escapeHTML(review.ai_reason)}</div>
                         </div>
                     ` : '')}
+                    ${review.status === 'approved' ? `
+                        <div class="reviewer-note-box">
+                            <div class="reviewer-note-content">
+                                <span class="note-label">Organizer Note:</span>
+                                <span class="note-text">${escapeHTML(review.reviewer_note || 'Approved by AI ✓')}</span>
+                            </div>
+                            <button type="button" class="btn-note-reject" onclick="event.stopPropagation(); rejectReview(${review.id})" title="Overturn approval and Reject">
+                                <i data-lucide="x"></i> <span>Reject</span>
+                            </button>
+                        </div>
+                    ` : ''}
                     ${actionHTML}
                 </div>
             </div>
@@ -597,4 +608,157 @@ function showToast(message, type = 'success') {
     toastTimeout = setTimeout(() => {
         toastEl.classList.add('hidden');
     }, 3000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN WINNER SHOWCASE MODAL (Top 1 Board Preview)
+   ═══════════════════════════════════════════════════════ */
+const BINGO_LINE_NAMES = {
+    'row-0': 'Top Row',
+    'row-1': 'Middle Row',
+    'row-2': 'Bottom Row',
+    'col-0': 'Left Column',
+    'col-1': 'Center Column',
+    'col-2': 'Right Column',
+    'diag-main': 'Main Diagonal',
+    'diag-anti': 'Anti Diagonal'
+};
+
+const CATEGORY_ICONS = {
+    'Beer': 'beer',
+    'Food': 'utensils',
+    'Outfit': 'shirt',
+    'Fun & Games': 'party-popper',
+    'People': 'users',
+    'Social': 'users',
+    'Team Building': 'handshake',
+    'Marketing': 'camera',
+    'Atmosphere': 'sparkles'
+};
+
+function closeWinnerShowcaseAdmin() {
+    const modal = document.getElementById('winnerShowcaseModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function openWinnerShowcaseAdmin(location) {
+    const modal = document.getElementById('winnerShowcaseModal');
+    const nameEl = document.getElementById('adminWinnerPlayerName');
+    const locBadge = document.getElementById('adminWinnerLocationBadge');
+    const timeBadge = document.getElementById('adminWinnerTimeBadge');
+    const lineBadge = document.getElementById('adminWinnerLineBadge');
+    const boardEl = document.getElementById('adminWinnerMiniBoard');
+
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    if (nameEl) nameEl.textContent = 'Loading Champion...';
+    if (boardEl) boardEl.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--text-muted);">Loading winner board...</div>';
+
+    try {
+        const targetLoc = location || adminLbLocation || 'all';
+        const res = await fetch(`/api/game/winner?location=${targetLoc}`);
+        if (!res.ok) throw new Error('Failed to load winner');
+        const data = await res.json();
+        if (!data.success || !data.winner) {
+            if (nameEl) nameEl.textContent = 'No Champion Yet';
+            if (boardEl) boardEl.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:var(--gold); font-weight:700;">No champions yet for this filter.</div>';
+            return;
+        }
+
+        const winner = data.winner;
+        const winnerHasSnapshot = (winner.challenges && winner.challenges.length === 9);
+        const rawChallenges = winnerHasSnapshot ? winner.challenges : Array.from({length: 9}, (_, idx) => ({ id: `w_${idx}`, category: 'Social', icon: 'camera', challenge: `Challenge #${idx+1}` }));
+        const completedCells = (winner.completed_cells || []).map(Number);
+        const cellPhotos = winner.cell_photos || {};
+
+        let winningLineKey = winner.bingo_line;
+        if (!winningLineKey) {
+            const lines = [
+                { indices: [0, 1, 2], name: 'row-0' },
+                { indices: [3, 4, 5], name: 'row-1' },
+                { indices: [6, 7, 8], name: 'row-2' },
+                { indices: [0, 3, 6], name: 'col-0' },
+                { indices: [1, 4, 7], name: 'col-1' },
+                { indices: [2, 5, 8], name: 'col-2' },
+                { indices: [0, 4, 8], name: 'diag-main' },
+                { indices: [2, 4, 6], name: 'diag-anti' }
+            ];
+            for (const l of lines) {
+                if (l.indices.every(idx => completedCells.includes(idx))) {
+                    winningLineKey = l.name;
+                    break;
+                }
+            }
+            if (!winningLineKey) winningLineKey = 'row-0';
+        }
+
+        const lines = [
+            { indices: [0, 1, 2], name: 'row-0' },
+            { indices: [3, 4, 5], name: 'row-1' },
+            { indices: [6, 7, 8], name: 'row-2' },
+            { indices: [0, 3, 6], name: 'col-0' },
+            { indices: [1, 4, 7], name: 'col-1' },
+            { indices: [2, 5, 8], name: 'col-2' },
+            { indices: [0, 4, 8], name: 'diag-main' },
+            { indices: [2, 4, 6], name: 'diag-anti' }
+        ];
+        const winningLineObj = lines.find(l => l.name === winningLineKey);
+        const winningIndices = winningLineObj ? winningLineObj.indices : [0, 1, 2];
+
+        if (nameEl) nameEl.textContent = winner.player_name || 'Champion';
+        if (locBadge) {
+            locBadge.textContent = winner.location === 'danang' ? 'Da Nang' : (winner.location === 'hcmc' ? 'HCMC' : 'All Offices');
+            locBadge.className = `location-badge ${winner.location === 'danang' ? 'loc-danang' : 'loc-hcmc'}`;
+        }
+        if (timeBadge) timeBadge.innerHTML = `<i data-lucide="timer"></i> ${formatTime(winner.elapsed_ms || 0)}`;
+        if (lineBadge) lineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winningLineKey] || winningLineKey || 'BINGO Line'}`;
+
+        if (boardEl) {
+            boardEl.innerHTML = '';
+            for (let idx = 0; idx < 9; idx++) {
+                const isWinningCell = winningIndices.includes(idx);
+                const ch = rawChallenges[idx] || { id: `w_${idx}`, category: 'Social', icon: 'camera', challenge: `Challenge #${idx+1}` };
+                const photoUrl = cellPhotos[idx] || cellPhotos[String(idx)] || null;
+                const catIcon = CATEGORY_ICONS[ch.category] || 'camera';
+
+                const cellEl = document.createElement('div');
+                cellEl.className = `winner-mini-cell ${isWinningCell ? 'winner-winning-cell' : ''}`;
+
+                if (isWinningCell) {
+                    if (photoUrl) {
+                        cellEl.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.25), rgba(11, 19, 43, 0.65)), url('${photoUrl}')`;
+                    }
+                    cellEl.innerHTML = `
+                        <div class="winner-cell-overlay"></div>
+                        <div class="winner-cell-cat-icon"><i data-lucide="${catIcon}"></i></div>
+                        <div class="winner-cell-check"><i data-lucide="check"></i></div>
+                        <p class="winner-cell-text">${escapeHTML(ch.challenge)}</p>
+                    `;
+                    if (photoUrl) {
+                        cellEl.title = `Click to zoom photo for ${ch.challenge}`;
+                        cellEl.addEventListener('click', (ev) => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            openPhotoPreview(photoUrl, `${winner.player_name} — ${ch.challenge}`);
+                        });
+                    }
+                } else {
+                    cellEl.innerHTML = `
+                        <div class="winner-cell-overlay"></div>
+                        <p class="winner-cell-text">${escapeHTML(ch.challenge)}</p>
+                    `;
+                }
+                boardEl.appendChild(cellEl);
+            }
+        }
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    } catch (err) {
+        console.error('Failed to load winner showcase:', err);
+        if (nameEl) nameEl.textContent = 'Error Loading Winner';
+        if (boardEl) boardEl.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:#ef4444;">Failed to load winner board.</div>';
+    }
 }

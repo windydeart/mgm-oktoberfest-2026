@@ -1638,3 +1638,215 @@ body {
         gap: 0.35rem;
     }
 }
+
+/* ─── 16. WINNER SHOWCASE MODAL (Admin Top 1 Preview) ─── */
+.modal-content.winner-showcase-dialog {
+    max-width: 440px;
+    width: 92vw;
+    max-height: 90vh;
+    padding: 1.5rem 1.25rem;
+    overflow-y: auto;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.25), 0 25px 60px rgba(0, 0, 0, 0.8);
+}
+
+.winner-showcase-header {
+    text-align: center;
+    margin-bottom: 0.85rem;
+}
+
+.winner-champion-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.winner-champion-tag i,
+.winner-champion-tag svg {
+    width: 14px;
+    height: 14px;
+    color: var(--gold);
+}
+
+.winner-player-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0.25rem 0 0.35rem;
+    letter-spacing: 0.3px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.winner-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.winner-time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gold);
+    font-family: monospace;
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+.winner-time-badge i,
+.winner-time-badge svg {
+    width: 14px;
+    height: 14px;
+    color: var(--gold);
+}
+
+.winner-line-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #4ade80;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.winner-line-badge i,
+.winner-line-badge svg {
+    width: 14px;
+    height: 14px;
+    color: #4ade80;
+}
+
+.winner-board-container {
+    margin: 0.6rem 0 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.winner-mini-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1;
+}
+
+.winner-mini-cell {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: rgba(11, 19, 43, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    cursor: default;
+    user-select: none;
+}
+
+.winner-mini-cell.winner-winning-cell {
+    border: 2px solid #fbbf24;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.5), inset 0 0 8px rgba(245, 158, 11, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.winner-mini-cell.winner-winning-cell:hover {
+    transform: scale(1.06);
+    z-index: 2;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.65);
+}
+
+.winner-mini-cell:not(.winner-winning-cell) {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+}
+
+.winner-cell-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 19, 43, 0.5);
+    pointer-events: none;
+}
+
+.winner-cell-cat-icon {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(11, 19, 43, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: var(--gold);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    z-index: 1;
+}
+
+.winner-cell-cat-icon i,
+.winner-cell-cat-icon svg {
+    width: 9px;
+    height: 9px;
+}
+
+.winner-cell-check {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #22c55e;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 900;
+    z-index: 1;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.winner-cell-check i,
+.winner-cell-check svg {
+    width: 9px;
+    height: 9px;
+}
+
+.winner-cell-text {
+    font-size: 0.68rem;
+    line-height: 1.2;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.lb-ranking-table tr.lb-winner-row {
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lb-ranking-table tr.lb-winner-row:hover {
+    background: rgba(245, 158, 11, 0.12) !important;
+}
+

@@ -238,10 +238,35 @@
         </div>
     </div>
 
+    <!-- Winner Showcase Modal (Admin Top 1 Board Preview) -->
+    <div id="winnerShowcaseModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeWinnerShowcaseAdmin()"></div>
+        <div class="modal-content winner-showcase-dialog">
+            <button type="button" class="close-btn" onclick="closeWinnerShowcaseAdmin()"><i data-lucide="x"></i></button>
+            <div class="winner-showcase-header">
+                <div class="winner-champion-tag"><i data-lucide="crown"></i> BAVARIAN CHAMPION</div>
+                <h2 class="winner-player-name" id="adminWinnerPlayerName">Loading Champion...</h2>
+                <div class="winner-stats-row">
+                    <span class="location-badge loc-danang" id="adminWinnerLocationBadge">All Offices</span>
+                    <span class="winner-time-badge" id="adminWinnerTimeBadge"><i data-lucide="timer"></i> 00:00.00</span>
+                    <span class="winner-line-badge" id="adminWinnerLineBadge"><i data-lucide="award"></i> BINGO Line</span>
+                </div>
+            </div>
+            <div class="winner-board-container">
+                <div class="winner-mini-board" id="adminWinnerMiniBoard">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            <div class="winner-showcase-footer">
+                <button type="button" class="btn-modal-cancel" style="width:100%;" onclick="closeWinnerShowcaseAdmin()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=13"></script>
+    <script src="/admin/admin.js?v=14"></script>
     <script>
         lucide.createIcons();
     </script>

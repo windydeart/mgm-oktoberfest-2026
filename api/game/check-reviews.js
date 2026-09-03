@@ -14,14 +14,17 @@ module.exports = async (req, res) => {
 
   const url = new URL(req.url, `http://${req.headers.host}`);
   const sessionId = url.searchParams.get('session_id');
+  const playerName = url.searchParams.get('player_name');
+  const location = url.searchParams.get('location') || 'danang';
 
-  if (!sessionId) {
-    return res.status(400).json({ error: 'Missing session_id parameter.' });
+  if (!sessionId && !playerName) {
+    return res.status(400).json({ error: 'Missing session_id or player_name parameter.' });
   }
 
   try {
-    // Query all reviews for this session in chronological order to find the latest state per cell
-    const queryUrl = `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(sessionId)}&select=id,cell_index,status,reviewer_note,reviewed_at,created_at&order=created_at.asc`;
+    const queryUrl = playerName
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&select=id,cell_index,status,reviewer_note,reviewed_at,created_at&order=created_at.asc,id.asc`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(sessionId)}&select=id,cell_index,status,reviewer_note,reviewed_at,created_at&order=created_at.asc,id.asc`;
 
     const sbRes = await fetch(queryUrl, {
       headers: {
@@ -45,7 +48,7 @@ module.exports = async (req, res) => {
     // Map each cell_index to its latest submission
     const latestByCell = {};
     for (const r of allRevs) {
-      latestByCell[r.cell_index] = r;
+      latestByCell[Number(r.cell_index)] = r;
     }
 
     // Only return decisions for cells where the LATEST submission has been resolved (status !== 'pending')
@@ -55,7 +58,7 @@ module.exports = async (req, res) => {
       if (r.status !== 'pending') {
         decisions.push({
           id: r.id,
-          cell_index: r.cell_index,
+          cell_index: Number(r.cell_index),
           status: r.status,
           reviewer_note: r.reviewer_note,
           reviewed_at: r.reviewed_at

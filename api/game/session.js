@@ -28,6 +28,8 @@ function createToken(data) {
 }
 
 function checkBingo(cells) {
+  if (!cells || !cells.length) return null;
+  const numCells = cells.map(Number);
   const lines = [
     { indices: [0, 1, 2], name: 'row-0' },
     { indices: [3, 4, 5], name: 'row-1' },
@@ -39,7 +41,7 @@ function checkBingo(cells) {
     { indices: [2, 4, 6], name: 'diag-anti' }
   ];
   for (const line of lines) {
-    if (line.indices.every(i => cells.includes(i))) {
+    if (line.indices.every(i => numCells.includes(i))) {
       return line.name;
     }
   }
@@ -217,8 +219,9 @@ module.exports = async (req, res) => {
     console.warn('Session review sync note:', err.message);
   }
 
-  // 2. Re-calculate BINGO strictly based on active valid completed cells
-  const calculatedBingoLine = checkBingo(completedCells);
+  // 2. Re-calculate BINGO strictly based on CONFIRMED completed cells (exclude pending review)
+  const confirmedCells = completedCells.filter(c => !pendingReviewCells.includes(c));
+  const calculatedBingoLine = checkBingo(confirmedCells);
   let isCompleted = calculatedBingoLine !== null;
   let rank = null;
   let elapsed_ms = 0;

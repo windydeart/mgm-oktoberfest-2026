@@ -176,7 +176,7 @@ async function handleRejection(review) {
 
       const deleteRes = await supabaseRequest(
         'DELETE',
-        `oktoberfest_game_scores?id=eq.${score.id}`,
+        `oktoberfest_game_scores?player_name=eq.${encodeURIComponent(player_name)}&game_name=eq.photo_bingo`,
         null,
         true
       );

@@ -274,6 +274,7 @@
      ═══════════════════════════════════════════════════════ */
   function checkBingo(cells) {
     if (!cells || !cells.length) return null;
+    const numCells = cells.map(Number);
     const lines = [
       { indices: [0, 1, 2], name: 'row-0' },
       { indices: [3, 4, 5], name: 'row-1' },
@@ -285,7 +286,7 @@
       { indices: [2, 4, 6], name: 'diag-anti' }
     ];
     for (const line of lines) {
-      if (line.indices.every(i => cells.includes(i))) {
+      if (line.indices.every(i => numCells.includes(i))) {
         return line.name;
       }
     }
@@ -1658,7 +1659,8 @@
 
       const completedCells = data.completed_cells || [];
       const pendingReviewCells = data.pending_review_cells || [];
-      const bingoLine = checkBingo(completedCells);
+      const confirmedCells = completedCells.filter(c => !pendingReviewCells.includes(c));
+      const bingoLine = checkBingo(confirmedCells);
       const isCompleted = bingoLine !== null;
 
       gameState.sessionId = data.session_id;
@@ -1987,16 +1989,12 @@
      ADMIN REVIEW POLLING — Check for organizer decisions
      ═══════════════════════════════════════════════════════ */
   let processedReviewDecisions = new Set();
-  try {
-    const saved = JSON.parse(sessionStorage.getItem('processed_review_decisions') || '[]');
-    if (Array.isArray(saved)) processedReviewDecisions = new Set(saved);
-  } catch (e) {}
 
   function startReviewPolling() {
     if (reviewPollInterval) return;
-    reviewPollInterval = setInterval(pollReviewDecisions, 2500);
+    reviewPollInterval = setInterval(pollReviewDecisions, 2000);
     // Also poll once immediately
-    setTimeout(pollReviewDecisions, 500);
+    setTimeout(pollReviewDecisions, 300);
   }
 
   function stopReviewPolling() {
@@ -2008,37 +2006,37 @@
 
   async function pollReviewDecisions() {
     // Keep polling while game is active
-    if (!gameState.sessionId || gameState.status === 'idle') {
+    if ((!gameState.sessionId && !gameState.playerName) || gameState.status === 'idle') {
       stopReviewPolling();
       return;
     }
 
     try {
-      const res = await fetch(`${API_BASE}/check-reviews?session_id=${encodeURIComponent(gameState.sessionId)}&_t=${Date.now()}`);
+      const qParams = new URLSearchParams({
+        session_id: gameState.sessionId || '',
+        player_name: gameState.playerName || '',
+        location: gameState.location || 'danang',
+        _t: Date.now()
+      });
+      const res = await fetch(`${API_BASE}/check-reviews?${qParams.toString()}`);
       if (!res.ok) return;
 
       const data = await res.json();
       if (!data.success || !data.decisions || data.decisions.length === 0) return;
 
       for (const decision of data.decisions) {
+        const cIdx = parseInt(decision.cell_index, 10);
+        if (isNaN(cIdx)) continue;
+
         const decisionKey = `${decision.id}-${decision.status}`;
         if (processedReviewDecisions.has(decisionKey)) continue;
-        processedReviewDecisions.add(decisionKey);
-        try {
-          sessionStorage.setItem('processed_review_decisions', JSON.stringify([...processedReviewDecisions]));
-        } catch (e) {}
 
         if (decision.status === 'approved') {
-          if (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(decision.cell_index)) {
-            handleReviewApproved(decision);
-          }
+          handleReviewApproved(decision);
+          processedReviewDecisions.add(decisionKey);
         } else if (decision.status === 'rejected') {
-          // If this cell was completed or pending in user board, apply rejection immediately!
-          const isCellRelevant = (gameState.completedCells && gameState.completedCells.includes(decision.cell_index)) ||
-                                 (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(decision.cell_index));
-          if (isCellRelevant) {
-            handleReviewRejected(decision);
-          }
+          handleReviewRejected(decision);
+          processedReviewDecisions.add(decisionKey);
         }
       }
     } catch (err) {
@@ -2047,10 +2045,14 @@
   }
 
   function handleReviewApproved(decision) {
-    const cellIdx = decision.cell_index;
+    const cellIdx = parseInt(decision.cell_index, 10);
+    if (isNaN(cellIdx)) return;
 
     // Remove from pendingReviewCells
-    gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => c !== cellIdx);
+    gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => Number(c) !== cellIdx);
+    if (!gameState.completedCells.some(c => Number(c) === cellIdx)) {
+      gameState.completedCells.push(cellIdx);
+    }
 
     // Update AI reason
     if (gameState.cellAiReasons) {
@@ -2067,6 +2069,13 @@
     renderBoard();
     showToast(`📸 Photo for Challenge #${cellIdx + 1} approved by organizers! ✓`, 'success', 5000);
 
+    // Check if this approval completes BINGO
+    const confirmedCells = gameState.completedCells.filter(c => !(gameState.pendingReviewCells || []).includes(c));
+    const bingoLine = checkBingo(confirmedCells);
+    if (bingoLine && gameState.status !== 'completed') {
+      onBingo({ bingo_line: bingoLine, elapsed_ms: gameState.elapsedMs });
+    }
+
     // Sync refreshed token and state from server
     if (gameState.sessionToken) {
       fetch(`${API_BASE}/session?token=${encodeURIComponent(gameState.sessionToken)}`)
@@ -2079,12 +2088,14 @@
   }
 
   function handleReviewRejected(decision) {
-    const cellIdx = decision.cell_index;
+    const cellIdx = parseInt(decision.cell_index, 10);
+    if (isNaN(cellIdx)) return;
+
     const note = decision.reviewer_note || 'Photo does not match the challenge. Please try again.';
 
     // Remove from both completedCells and pendingReviewCells
-    gameState.completedCells = (gameState.completedCells || []).filter(c => c !== cellIdx);
-    gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => c !== cellIdx);
+    gameState.completedCells = (gameState.completedCells || []).filter(c => Number(c) !== cellIdx);
+    gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => Number(c) !== cellIdx);
 
     // Remove photo and AI reason for this cell
     if (gameState.cellPhotos) {
@@ -2096,9 +2107,10 @@
       delete gameState.cellAiReasons[String(cellIdx)];
     }
 
-    // Check if BINGO is now invalidated
+    // Check if BINGO is now invalidated based on confirmed completed cells
+    const confirmedCells = gameState.completedCells.filter(c => !(gameState.pendingReviewCells || []).includes(c));
+    const currentBingo = checkBingo(confirmedCells);
     const wasBingo = gameState.status === 'completed';
-    const currentBingo = checkBingo(gameState.completedCells || []);
 
     if (wasBingo && !currentBingo) {
       // BINGO invalidated!

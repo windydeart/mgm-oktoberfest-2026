@@ -474,7 +474,8 @@ Reply with ONLY a JSON object:
   session.cell_ai_reasons = session.cell_ai_reasons || {};
   session.cell_ai_reasons[cell_index] = ai_reason;
 
-  const bingoLine = checkBingo(completedCells);
+  const confirmedForBingo = completedCells.filter(c => !(session.pending_review_cells || []).includes(c));
+  const bingoLine = checkBingo(confirmedForBingo);
   const is_bingo = bingoLine !== null;
   let rank = 1;
 

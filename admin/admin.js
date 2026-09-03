@@ -303,7 +303,6 @@ function renderReviews(reviews) {
                     ${review.status === 'approved' ? `
                         <div class="reviewer-note-box">
                             <div class="reviewer-note-content">
-                                <span class="note-label">Organizer Note:</span>
                                 <span class="note-text">${escapeHTML(review.reviewer_note || 'Approved by AI ✓')}</span>
                             </div>
                             <button type="button" class="btn-note-reject" onclick="event.stopPropagation(); rejectReview(${review.id})" title="Overturn approval and Reject">

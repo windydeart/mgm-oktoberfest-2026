@@ -264,11 +264,11 @@ module.exports = async function handler(req, res) {
   }
 
   const candidateModels = [
+    'gemini-3.8-flash',
     'gemini-3.6-flash',
     'gemini-3.5-flash',
     'gemini-3.5-flash-lite',
-    'gemini-flash-latest',
-    'gemini-flash-lite-latest'
+    'gemini-flash-latest'
   ];
 
   let reply = null;

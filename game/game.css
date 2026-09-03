@@ -289,24 +289,24 @@ body.game-page::before {
   margin: 0 auto 1.1rem;
 }
 
-/* ─── LIVE STATUS BAR (Full Width Matching Bingo Board Frame) ─── */
+/* ─── LIVE STATUS BAR (Floating on Background - No Outer Border Box) ─── */
 .game-status-bar {
   display: flex !important;
   width: 100%;
   max-width: 500px;
-  margin: 0.85rem auto 1.1rem;
+  margin: 0.65rem auto 1rem;
   box-sizing: border-box;
   flex-wrap: nowrap !important;
   align-items: center;
   justify-content: space-evenly;
   gap: 8px;
-  background: rgba(11, 19, 43, 0.9);
-  border: 1.5px solid rgba(245, 158, 11, 0.35);
-  border-radius: var(--radius-full);
-  padding: 8px 18px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(245, 158, 11, 0.15);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 4px 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .status-pill {
@@ -314,10 +314,11 @@ body.game-page::before {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
 .status-pill i,
@@ -2081,35 +2082,40 @@ body.game-page::before {
     padding: 1rem 0.8rem 2.5rem;
   }
 
-  /* Full Width matching the Bingo Board Frame horizontally */
+  /* Floating Status Bar matching the Bingo Board Frame horizontally */
   .game-status-bar {
     display: flex !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0.65rem auto 1rem !important;
-    padding: 7px 12px !important;
+    margin: 0.5rem auto 0.9rem !important;
+    padding: 2px 0 !important;
     justify-content: space-around !important;
     gap: 4px !important;
-    border-radius: var(--radius-full) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
   }
 
   .status-pill {
     gap: 5px !important;
-    font-size: 0.84rem !important;
+    font-size: 0.88rem !important;
     font-weight: 700 !important;
     white-space: nowrap !important;
     flex-shrink: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95) !important;
   }
 
   .status-pill i,
   .status-pill svg {
-    width: 14px !important;
-    height: 14px !important;
+    width: 15px !important;
+    height: 15px !important;
   }
 
   .status-pill.goal-pill {
     padding: 2px 8px !important;
-    font-size: 0.8rem !important;
+    font-size: 0.82rem !important;
   }
   
   .game-arena-title {

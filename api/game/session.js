@@ -129,16 +129,30 @@ module.exports = async (req, res) => {
         }
       }
 
-      // 2. If not found in scores, check bingo_photo_reviews
+      // 2. If not found in scores, check bingo_photo_reviews for the latest active session
       if (!session) {
-        const revLookup = await fetch(
-          `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.asc&limit=1`,
+        const latestRevLookup = await fetch(
+          `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.desc&limit=1`,
           { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
         );
-        if (revLookup.ok) {
-          const revs = await revLookup.json();
+        if (latestRevLookup.ok) {
+          const revs = await latestRevLookup.json();
           if (revs && revs.length > 0) {
             const sid = revs[0].session_id;
+            let sessionStartedAt = revs[0].created_at;
+            try {
+              const earliestRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(sid)}&order=created_at.asc&limit=1`,
+                { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+              );
+              if (earliestRes.ok) {
+                const earliestList = await earliestRes.json();
+                if (earliestList && earliestList.length > 0) {
+                  sessionStartedAt = earliestList[0].created_at;
+                }
+              }
+            } catch (e) {}
+
             session = {
               session_id: sid,
               player_name: playerName,
@@ -148,7 +162,7 @@ module.exports = async (req, res) => {
               pending_review_cells: [],
               cell_photo_urls: {},
               cell_ai_reasons: {},
-              started_at: revs[0].created_at,
+              started_at: sessionStartedAt,
               status: 'playing'
             };
           }

@@ -9,4 +9,5 @@ venv/
 *.env
 api/*client*.json
 api/*.json
+api/sa_base64.txt
 *-*.json

@@ -725,6 +725,32 @@ body {
     height: 12px;
 }
 
+.img-status-tag-approved {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(34, 197, 94, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    color: #ffffff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.img-status-tag-approved i,
+.img-status-tag-approved svg {
+    width: 12px;
+    height: 12px;
+}
+
 .review-img-placeholder {
     display: flex;
     flex-direction: column;
@@ -796,9 +822,10 @@ body {
 }
 
 .review-challenge-box {
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 3px solid rgba(245, 158, 11, 0.85);
+    border-radius: 6px;
     padding: 0.55rem 0.75rem;
 }
 
@@ -820,26 +847,25 @@ body {
 }
 
 .ai-reason-box {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-left: 3px solid rgba(245, 158, 11, 0.6);
-    border-radius: 6px;
-    padding: 0.55rem 0.75rem;
+    background: transparent;
+    border: none;
+    padding: 0.15rem 0.1rem;
     font-size: 0.8rem;
 }
 
 .ai-reason-header {
     display: flex;
     align-items: center;
-    gap: 4px;
     color: var(--gold);
     font-size: 0.72rem;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
-.ai-reason-header i {
-    width: 12px;
-    height: 12px;
+.ai-reason-header i,
+.ai-reason-header svg {
+    display: none;
 }
 
 .ai-reason-text {
@@ -919,34 +945,31 @@ body {
 }
 
 .reject-reason-box {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.28);
-    border-radius: 8px;
-    padding: 0.55rem 0.75rem;
+    background: transparent;
+    border: none;
+    padding: 0.15rem 0.1rem;
 }
 
 .reject-reason-header {
     display: flex;
     align-items: center;
-    gap: 6px;
     font-size: 0.72rem;
     font-weight: 700;
     color: #f87171;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: 3px;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
 }
 
 .reject-reason-header i,
 .reject-reason-header svg {
-    width: 13px;
-    height: 13px;
+    display: none;
 }
 
 .reject-reason-text {
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     color: #fca5a5;
-    line-height: 1.45;
+    line-height: 1.4;
 }
 
 .log-card-footer {
@@ -995,12 +1018,13 @@ body {
 
 /* ─── 13. ACTION BUTTONS (Refined & Compact) ─── */
 .review-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.55rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6rem;
     margin-top: auto;
     padding-top: 0.35rem;
-    width: 100%;
+    width: auto;
 }
 
 .btn-review {
@@ -1008,15 +1032,15 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    padding: 0.42rem 0.65rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     cursor: pointer;
     border: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 100%;
-    min-height: 35px;
+    width: auto;
+    min-height: 32px;
     letter-spacing: 0.2px;
 }
 
@@ -1104,6 +1128,48 @@ body {
     background: rgba(16, 25, 52, 0.5);
     border-radius: var(--radius-card);
     border: 1px dashed var(--border-color);
+}
+
+.show-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.25rem;
+    padding-bottom: 0.5rem;
+    width: 100%;
+}
+
+.btn-show-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+    padding: 0.6rem 1.4rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.btn-show-more:hover {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(245, 158, 11, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.2);
+}
+
+.btn-show-more:active {
+    transform: translateY(0);
+}
+
+.btn-show-more i,
+.btn-show-more svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* ─── 14. PHOTO PREVIEW MODAL & TOAST ─── */

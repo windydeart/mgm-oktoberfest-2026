@@ -167,27 +167,38 @@ async function fetchReviews() {
     }
 }
 
+let currentAllReviews = [];
+let isMobileReviewsExpanded = false;
+const MOBILE_REVIEW_LIMIT = 3;
+
 function renderReviews(reviews) {
+    currentAllReviews = reviews || [];
     const grid = document.getElementById('reviewGrid');
     const emptyMsg = document.getElementById('emptyReviewMsg');
+    const showMoreContainer = document.getElementById('showMoreContainer');
     
-    if (reviews.length === 0) {
+    if (!reviews || reviews.length === 0) {
         grid.innerHTML = '';
         emptyMsg.classList.remove('hidden');
+        if (showMoreContainer) showMoreContainer.classList.add('hidden');
         lastRenderedReviewsJson = '[]';
         return;
     }
     
+    emptyMsg.classList.add('hidden');
+
+    const isMobile = window.innerWidth <= 768;
+    const shouldTruncate = isMobile && !isMobileReviewsExpanded && reviews.length > MOBILE_REVIEW_LIMIT;
+    const displayedReviews = shouldTruncate ? reviews.slice(0, MOBILE_REVIEW_LIMIT) : reviews;
+
     // Prevent DOM thrashing and image flickering if reviews data hasn't changed
-    const reviewsJson = JSON.stringify(reviews);
-    if (reviewsJson === lastRenderedReviewsJson) {
+    const renderSignature = `${JSON.stringify(displayedReviews)}-${isMobile}-${isMobileReviewsExpanded}`;
+    if (renderSignature === lastRenderedReviewsJson) {
         return;
     }
-    lastRenderedReviewsJson = reviewsJson;
+    lastRenderedReviewsJson = renderSignature;
     
-    emptyMsg.classList.add('hidden');
-    
-    grid.innerHTML = reviews.map(review => {
+    grid.innerHTML = displayedReviews.map(review => {
         let actionHTML = '';
         if (review.status === 'pending') {
             actionHTML = `
@@ -198,16 +209,6 @@ function renderReviews(reviews) {
                     <button type="button" class="btn-review btn-reject" onclick="rejectReview(${review.id})">
                         <i data-lucide="x"></i> <span>Reject</span>
                     </button>
-                </div>
-            `;
-        } else {
-            const statusClass = review.status === 'approved' ? 'status-approved' : 'status-rejected';
-            const statusIcon = review.status === 'approved' ? 'check-circle-2' : 'x-circle';
-            const statusText = review.status === 'approved' ? 'Approved' : 'Rejected';
-            actionHTML = `
-                <div class="review-status-bar ${statusClass}">
-                    <i data-lucide="${statusIcon}"></i>
-                    <span>${statusText}</span>
                 </div>
             `;
         }
@@ -225,13 +226,20 @@ function renderReviews(reviews) {
             .replace(/\s*\[phase1_ms:\d+\]/g, '')
             .trim();
 
+        let statusTagHTML = '';
+        if (review.status === 'approved') {
+            statusTagHTML = `<span class="img-status-tag-approved"><i data-lucide="check-circle-2"></i> Approved</span>`;
+        } else if (review.status === 'rejected') {
+            statusTagHTML = `<span class="img-status-tag-rejected"><i data-lucide="x-circle"></i> Rejected</span>`;
+        }
+
         return `
             <div class="review-card ${review.status}">
                 <div class="review-img-container ${review.status === 'rejected' ? 'img-rejected' : ''}" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
                     ${imgTag}
                     <div class="img-zoom-hint"><i data-lucide="maximize-2"></i></div>
                     <span class="img-time-badge">${timeAgo(review.reviewed_at || review.created_at)}</span>
-                    ${review.status === 'rejected' ? `<span class="img-status-tag-rejected"><i data-lucide="x-circle"></i> Rejected</span>` : ''}
+                    ${statusTagHTML}
                 </div>
                 <div class="review-content">
                     <div class="review-meta">
@@ -247,34 +255,51 @@ function renderReviews(reviews) {
                     </div>
                     ${review.status === 'rejected' ? `
                         <div class="reject-reason-box">
-                            <div class="reject-reason-header">
-                                <i data-lucide="alert-triangle"></i>
-                                <span>Rejection Reason:</span>
-                            </div>
+                            <div class="reject-reason-header"><span>Rejection Reason:</span></div>
                             <div class="reject-reason-text">${escapeHTML(cleanReason)}</div>
                         </div>
                     ` : (review.ai_reason ? `
                         <div class="ai-reason-box">
-                            <div class="ai-reason-header"><i data-lucide="sparkles"></i> <strong>AI Verdict:</strong></div>
+                            <div class="ai-reason-header"><strong>AI Verdict:</strong></div>
                             <div class="ai-reason-text">${escapeHTML(review.ai_reason)}</div>
                         </div>
                     ` : '')}
-                    ${review.status === 'approved' && review.reviewer_note ? `
-                        <div class="reviewer-note-box">
-                            <div class="reviewer-note-content">
-                                <span class="note-label">Organizer Note:</span>
-                                <span class="note-text">${escapeHTML(review.reviewer_note)}</span>
-                            </div>
-                            <button type="button" class="btn-note-reject" onclick="rejectReview(${review.id})" title="Overturn approval and Reject">
-                                <i data-lucide="x"></i> <span>Reject</span>
-                            </button>
-                        </div>
-                    ` : ''}
                     ${actionHTML}
                 </div>
             </div>
         `;
     }).join('');
+
+    // Handle Mobile Show More button
+    if (showMoreContainer) {
+        if (isMobile && reviews.length > MOBILE_REVIEW_LIMIT) {
+            showMoreContainer.classList.remove('hidden');
+            if (isMobileReviewsExpanded) {
+                showMoreContainer.innerHTML = `
+                    <button type="button" id="btnShowMore" class="btn-show-more">
+                        <i data-lucide="chevron-up"></i> <span>Show Less</span>
+                    </button>
+                `;
+            } else {
+                const remaining = reviews.length - MOBILE_REVIEW_LIMIT;
+                showMoreContainer.innerHTML = `
+                    <button type="button" id="btnShowMore" class="btn-show-more">
+                        <i data-lucide="chevron-down"></i> <span>Show More (${remaining} more)</span>
+                    </button>
+                `;
+            }
+            const btn = document.getElementById('btnShowMore');
+            if (btn) {
+                btn.onclick = () => {
+                    isMobileReviewsExpanded = !isMobileReviewsExpanded;
+                    lastRenderedReviewsJson = '';
+                    renderReviews(currentAllReviews);
+                };
+            }
+        } else {
+            showMoreContainer.classList.add('hidden');
+        }
+    }
 
     if (window.lucide) {
         lucide.createIcons();
@@ -401,6 +426,7 @@ function bindEvents() {
             tabs.forEach(t => t.classList.remove('active'));
             e.target.classList.add('active');
             currentReviewFilter = e.target.dataset.filter;
+            isMobileReviewsExpanded = false;
             lastRenderedReviewsJson = '';
             fetchReviews();
         });
@@ -409,8 +435,16 @@ function bindEvents() {
     // Location Filter
     document.getElementById('locationFilter').addEventListener('change', (e) => {
         currentLocationFilter = e.target.value;
+        isMobileReviewsExpanded = false;
         lastRenderedReviewsJson = '';
         fetchReviews();
+    });
+
+    // Window resize handler for mobile responsive limit
+    window.addEventListener('resize', () => {
+        if (currentAllReviews && currentAllReviews.length > 0) {
+            renderReviews(currentAllReviews);
+        }
     });
     
     // Close modal on outside click

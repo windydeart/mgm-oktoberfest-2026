@@ -37,6 +37,8 @@
     location: 'danang',
     challenges: [],
     completedCells: [],
+    pendingReviewCells: [],
+    rejectedCells: new Set(),
     status: 'idle', // 'idle' | 'playing' | 'completed'
     startedAt: null,
     elapsedMs: null,
@@ -366,7 +368,10 @@
           if (hint) hint.textContent = '';
         } else {
           cell.classList.remove('cell-unfilled', 'cell-inactive');
-          if (hint) hint.textContent = 'Tap to Snap';
+          const isRejected = gameState.rejectedCells && gameState.rejectedCells.has(i);
+          if (hint) hint.textContent = isRejected ? 'Tap to retry' : 'Tap to Snap';
+          if (isRejected) cell.classList.add('cell-rejected-border');
+          else cell.classList.remove('cell-rejected-border');
         }
       }
 
@@ -764,6 +769,7 @@
     const challenge = gameState.challenges[targetIdx];
 
     // ─── 1. Instantly close camera & unblock player ───
+    if (gameState.rejectedCells) gameState.rejectedCells.delete(targetIdx);
     closeCamera();
 
     // ─── 2. Set cell into Verifying state immediately ───
@@ -1987,6 +1993,7 @@
   /* ═══════════════════════════════════════════════════════
      ADMIN REVIEW POLLING — Check for organizer decisions
      ═══════════════════════════════════════════════════════ */
+  let reviewPollInterval = null;
   let processedReviewDecisions = new Set();
 
   function startReviewPolling() {
@@ -2004,17 +2011,15 @@
   }
 
   async function pollReviewDecisions() {
-    // Keep polling while game is active
-    if ((!gameState.sessionId && !gameState.playerName) || gameState.status === 'idle') {
-      stopReviewPolling();
-      return;
-    }
+    const pName = gameState.playerName || localStorage.getItem(STORAGE_KEY_USER_NAME);
+    const pLoc = gameState.location || localStorage.getItem(STORAGE_KEY_USER_LOC) || 'danang';
+    if (!pName && !gameState.sessionId) return;
 
     try {
       const qParams = new URLSearchParams({
         session_id: gameState.sessionId || '',
-        player_name: gameState.playerName || '',
-        location: gameState.location || 'danang',
+        player_name: pName || '',
+        location: pLoc,
         _t: Date.now()
       });
       const res = await fetch(`${API_BASE}/check-reviews?${qParams.toString()}`);
@@ -2091,6 +2096,10 @@
     if (isNaN(cellIdx)) return;
 
     const note = decision.reviewer_note || 'Photo does not match the challenge. Please try again.';
+
+    // Track rejected cell
+    if (!gameState.rejectedCells) gameState.rejectedCells = new Set();
+    gameState.rejectedCells.add(cellIdx);
 
     // Remove from both completedCells and pendingReviewCells
     gameState.completedCells = (gameState.completedCells || []).filter(c => Number(c) !== cellIdx);

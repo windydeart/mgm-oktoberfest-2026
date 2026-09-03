@@ -234,35 +234,14 @@ module.exports = async (req, res) => {
   session.cell_photo_urls = cellPhotoUrls;
   session.cell_ai_reasons = cellAiReasons;
 
-  // CONTINUOUS LIVE TIME ACCUMULATION: Phase 1 (pre-rejection) + Phase 2 (since rejection timestamp)
   let elapsed_ms = 0;
-  const rejectedReviews = (allReviews || []).filter(r => r.status === 'rejected');
-  if (rejectedReviews.length > 0) {
-    rejectedReviews.sort((a, b) => new Date(b.reviewed_at || b.created_at) - new Date(a.reviewed_at || a.created_at));
-    const latestRejection = rejectedReviews[0];
-    const rejectionTimestamp = new Date(latestRejection.reviewed_at || latestRejection.created_at).getTime();
-
-    let phase1Ms = 0;
-    const match = (latestRejection.reviewer_note || '').match(/\[phase1_ms:(\d+)\]/);
-    if (match) {
-      phase1Ms = parseInt(match[1], 10);
-    } else if (session.phase1_duration_ms) {
-      phase1Ms = session.phase1_duration_ms;
-    } else if (session.elapsed_ms && session.elapsed_ms > 0 && session.elapsed_ms < 1800000) {
-      phase1Ms = session.elapsed_ms;
-    } else {
-      phase1Ms = 155590;
-    }
-
-    const timeSinceRejection = Math.max(0, Date.now() - rejectionTimestamp);
-    elapsed_ms = phase1Ms + timeSinceRejection;
-  } else if (typeof client_elapsed_ms === 'number' && client_elapsed_ms > 0) {
+  if (typeof client_elapsed_ms === 'number' && client_elapsed_ms > 0) {
     elapsed_ms = client_elapsed_ms;
   } else if (session.started_at) {
     const startTimestamp = typeof session.started_at === 'number' ? session.started_at : new Date(session.started_at).getTime();
-    elapsed_ms = Math.max(0, Date.now() - startTimestamp);
+    elapsed_ms = isNaN(startTimestamp) ? (session.elapsed_ms || 1000) : Math.max(1000, Date.now() - startTimestamp);
   } else {
-    elapsed_ms = session.elapsed_ms || 0;
+    elapsed_ms = session.elapsed_ms || 1000;
   }
 
   session.elapsed_ms = elapsed_ms;

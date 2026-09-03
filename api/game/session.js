@@ -283,39 +283,12 @@ module.exports = async (req, res) => {
       console.warn('Score invalidation note:', delErr.message);
     }
 
-    // CONTINUOUS LIVE ACCUMULATION: Phase 1 (pre-rejection) + Phase 2 (since rejection timestamp)
-    const rejectedReviews = (allReviews || []).filter(r => r.status === 'rejected');
-    if (rejectedReviews.length > 0) {
-      rejectedReviews.sort((a, b) => new Date(b.reviewed_at || b.created_at) - new Date(a.reviewed_at || a.created_at));
-      const latestRejection = rejectedReviews[0];
-      const rejectionTimestamp = new Date(latestRejection.reviewed_at || latestRejection.created_at).getTime();
-
-      let phase1Ms = 0;
-      const match = (latestRejection.reviewer_note || '').match(/\[phase1_ms:(\d+)\]/);
-      if (match) {
-        phase1Ms = parseInt(match[1], 10);
-      } else if (session.phase1_duration_ms) {
-        phase1Ms = session.phase1_duration_ms;
-      } else if (session.elapsed_ms && session.elapsed_ms > 0 && session.elapsed_ms < 1800000) {
-        phase1Ms = session.elapsed_ms;
-      } else {
-        phase1Ms = 155590;
-      }
-
-      const safeRejectionTs = isNaN(rejectionTimestamp) ? Date.now() : rejectionTimestamp;
-      const timeSinceRejection = Math.max(0, Date.now() - safeRejectionTs);
-      elapsed_ms = phase1Ms + timeSinceRejection;
-    } else if (session.started_at) {
-      const startTimestamp = typeof session.started_at === 'number' ? session.started_at : new Date(session.started_at).getTime();
-      elapsed_ms = isNaN(startTimestamp) ? 116290 : Math.max(0, Date.now() - startTimestamp);
-    } else {
-      elapsed_ms = session.elapsed_ms || 116290;
+    let startTimestamp = session.started_at ? new Date(session.started_at).getTime() : 0;
+    if (isNaN(startTimestamp) || startTimestamp <= 0) {
+      startTimestamp = Date.now() - (session.elapsed_ms || 60000);
+      session.started_at = new Date(startTimestamp).toISOString();
     }
-
-    elapsed_ms = Math.round(Number(elapsed_ms)) || 0;
-    if (elapsed_ms <= 0) {
-      elapsed_ms = 116290;
-    }
+    elapsed_ms = Math.max(1000, Date.now() - startTimestamp);
   }
 
   // 4. Update session object and create refreshed token

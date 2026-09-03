@@ -221,10 +221,6 @@
       }
     }
 
-    // Sanitize corrupted idle timestamp (> 30 mins)
-    if (baseMs > 1800000) {
-      baseMs = 116290;
-    }
 
     timerStartTime = Date.now() - baseMs;
     gameState.startedAt = new Date(timerStartTime).toISOString();
@@ -737,24 +733,9 @@
 
     if (window.lucide) window.lucide.createIcons();
 
-    // Check if this pending review cell achieves BINGO!
-    const bingoLine = checkBingo(gameState.completedCells);
-    if (bingoLine && gameState.status !== 'completed') {
-      const liveElapsed = timerStartTime ? (Date.now() - timerStartTime) : (gameState.elapsedMs || 0);
-      const elapsedMs = (typeof liveElapsed === 'number' && !isNaN(liveElapsed) && liveElapsed > 0) ? liveElapsed : (gameState.elapsedMs || 116290);
-      const data = {
-        is_bingo: true,
-        bingo_line: bingoLine,
-        elapsed_ms: elapsedMs,
-        rank: gameState.rank || null,
-        pending_review: true
-      };
-      saveSession();
-      onBingo(data);
-    } else {
-      saveSession();
-      showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
-    }
+    saveSession();
+    renderBoard();
+    showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
 
     // Start polling for organizer decisions
     startReviewPolling();

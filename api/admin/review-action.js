@@ -90,12 +90,11 @@ module.exports = async (req, res) => {
     }
 
     const noteText = note || (action === 'reject' ? 'Photo does not match the challenge requirement.' : 'Approved by organizer.');
-    const finalNote = (action === 'reject' && phase1Ms > 0) ? `${noteText} [phase1_ms:${phase1Ms}]` : noteText;
 
     const updateData = {
       status: action === 'approve' ? 'approved' : 'rejected',
       reviewed_at: new Date().toISOString(),
-      reviewer_note: finalNote
+      reviewer_note: noteText
     };
 
     // Retain photo_url in database and storage so organizers can inspect rejected photos in the admin dashboard

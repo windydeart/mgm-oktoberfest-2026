@@ -221,51 +221,17 @@ function renderReviews(reviews) {
 
         const rankTextHTML = review.rank ? `<span class="player-rank-text">Rank #${review.rank}</span>` : '';
 
-        if (review.status === 'rejected') {
-            const cleanReason = (review.reviewer_note || review.ai_reason || 'Photo does not match the challenge requirement.')
-                .replace(/\s*\[phase1_ms:\d+\]/g, '')
-                .trim();
-            const timeStr = timeAgo(review.reviewed_at || review.created_at);
-
-            return `
-                <div class="review-card rejected review-log-card">
-                    <div class="review-content log-card-content">
-                        <div class="review-meta">
-                            <div class="player-rank-group">
-                                <span class="player-name">${escapeHTML(review.player_name)}</span>
-                                ${rankTextHTML}
-                            </div>
-                            <span class="location-badge ${locationClass}">${locationLabel}</span>
-                        </div>
-
-                        <div class="review-challenge-box">
-                            <span class="challenge-label">Challenge:</span>
-                            <span class="review-challenge">${escapeHTML(review.challenge_text)}</span>
-                        </div>
-
-                        <div class="reject-reason-box">
-                            <div class="reject-reason-header">
-                                <i data-lucide="alert-triangle"></i>
-                                <span>Rejection Reason:</span>
-                            </div>
-                            <div class="reject-reason-text">${escapeHTML(cleanReason)}</div>
-                        </div>
-
-                        <div class="log-card-footer">
-                            <span class="log-time-text"><i data-lucide="clock"></i> Rejected ${timeStr}</span>
-                            <span class="log-status-tag"><i data-lucide="x-circle"></i> Rejected</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+        const cleanReason = (review.reviewer_note || review.ai_reason || 'Photo does not match the challenge requirement.')
+            .replace(/\s*\[phase1_ms:\d+\]/g, '')
+            .trim();
 
         return `
             <div class="review-card ${review.status}">
-                <div class="review-img-container" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
+                <div class="review-img-container ${review.status === 'rejected' ? 'img-rejected' : ''}" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
                     ${imgTag}
                     <div class="img-zoom-hint"><i data-lucide="maximize-2"></i></div>
-                    <span class="img-time-badge">${timeAgo(review.created_at)}</span>
+                    <span class="img-time-badge">${timeAgo(review.reviewed_at || review.created_at)}</span>
+                    ${review.status === 'rejected' ? `<span class="img-status-tag-rejected"><i data-lucide="x-circle"></i> Rejected</span>` : ''}
                 </div>
                 <div class="review-content">
                     <div class="review-meta">
@@ -279,23 +245,29 @@ function renderReviews(reviews) {
                         <span class="challenge-label">Challenge:</span>
                         <span class="review-challenge">${escapeHTML(review.challenge_text)}</span>
                     </div>
-                    ${review.ai_reason ? `
+                    ${review.status === 'rejected' ? `
+                        <div class="reject-reason-box">
+                            <div class="reject-reason-header">
+                                <i data-lucide="alert-triangle"></i>
+                                <span>Rejection Reason:</span>
+                            </div>
+                            <div class="reject-reason-text">${escapeHTML(cleanReason)}</div>
+                        </div>
+                    ` : (review.ai_reason ? `
                         <div class="ai-reason-box">
                             <div class="ai-reason-header"><i data-lucide="sparkles"></i> <strong>AI Verdict:</strong></div>
                             <div class="ai-reason-text">${escapeHTML(review.ai_reason)}</div>
                         </div>
-                    ` : ''}
-                    ${(review.reviewer_note || review.status === 'approved') && review.status !== 'pending' ? `
+                    ` : '')}
+                    ${review.status === 'approved' && review.reviewer_note ? `
                         <div class="reviewer-note-box">
                             <div class="reviewer-note-content">
                                 <span class="note-label">Organizer Note:</span>
-                                <span class="note-text">${escapeHTML(review.reviewer_note || 'Approved by AI ✓')}</span>
+                                <span class="note-text">${escapeHTML(review.reviewer_note)}</span>
                             </div>
-                            ${review.status === 'approved' ? `
-                                <button type="button" class="btn-note-reject" onclick="rejectReview(${review.id})" title="Overturn approval and Reject">
-                                    <i data-lucide="x"></i> <span>Reject</span>
-                                </button>
-                            ` : ''}
+                            <button type="button" class="btn-note-reject" onclick="rejectReview(${review.id})" title="Overturn approval and Reject">
+                                <i data-lucide="x"></i> <span>Reject</span>
+                            </button>
                         </div>
                     ` : ''}
                     ${actionHTML}

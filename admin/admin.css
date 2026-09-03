@@ -699,6 +699,32 @@ body {
     font-weight: 500;
 }
 
+.img-status-tag-rejected {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(239, 68, 68, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    color: #ffffff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.img-status-tag-rejected i,
+.img-status-tag-rejected svg {
+    width: 12px;
+    height: 12px;
+}
+
 .review-img-placeholder {
     display: flex;
     flex-direction: column;

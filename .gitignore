@@ -7,3 +7,6 @@ venv/
 .env.*
 .env.local
 *.env
+api/*client*.json
+api/*.json
+*-*.json

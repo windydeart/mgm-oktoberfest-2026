@@ -1,5 +1,6 @@
 const { readFileSync } = require('fs');
 const { join } = require('path');
+const { callVertexGemini } = require('./lib/vertex');
 
 /* ─── RATE LIMITING (in-memory, per-instance) ─── */
 const rateLimitMap = new Map();
@@ -276,10 +277,34 @@ module.exports = async function handler(req, res) {
   let lastError = null;
   let isRateLimitedByGoogle = false;
 
-  for (const model of candidateModels) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    try {
-      const geminiResponse = await fetch(apiUrl, {
+  // ─── 1. Primary: Google Cloud Vertex AI (Singapore / US) ───
+  try {
+    const vertexResult = await callVertexGemini({
+      systemInstruction: systemPrompt,
+      contents: contents,
+      generationConfig: {
+        temperature: 0.7,
+        topP: 0.9,
+        topK: 40,
+        maxOutputTokens: 2048
+      },
+      timeoutMs: 6000
+    });
+
+    if (vertexResult.ok && vertexResult.text) {
+      reply = vertexResult.text.trim();
+      console.log(`[Vertex AI Chat] Replied via ${vertexResult.model} (${vertexResult.location})`);
+    }
+  } catch (vErr) {
+    console.warn('[Vertex AI Chat] Error:', vErr.message);
+  }
+
+  // ─── 2. Secondary Fallback: Google AI Studio ───
+  if (!reply) {
+    for (const model of candidateModels) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      try {
+        const geminiResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -312,9 +337,10 @@ module.exports = async function handler(req, res) {
         reply = text.trim();
         break; // Success!
       }
-    } catch (err) {
-      console.warn(`Error connecting to model ${model}:`, err.message);
-      lastError = err.message;
+      } catch (err) {
+        console.warn(`Error connecting to model ${model}:`, err.message);
+        lastError = err.message;
+      }
     }
   }
 

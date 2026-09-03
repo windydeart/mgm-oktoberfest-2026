@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const challengesPool = require('../../data/bingo_challenges.json');
+const { callVertexGemini } = require('../lib/vertex');
 
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
@@ -289,8 +290,49 @@ module.exports = async (req, res) => {
   // Run AI check and photo upload concurrently for speed
   const photoUploadPromise = uploadPhotoToStorage(base64Data, session.session_id, cell_index);
 
-  for (const model of candidateModels) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // ─── 1. Primary Evaluation via Google Cloud Vertex AI (Singapore / US) ───
+  try {
+    const vertexResult = await callVertexGemini({
+      systemInstruction: `You are an AI photo challenge evaluator for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
+Evaluate the submitted photo objectively.
+- APPROVE if the photo reasonably matches or demonstrates a genuine attempt at the challenge (subject, people, beer, festive atmosphere, props, food).
+- REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
+CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
+Reply with ONLY a JSON object:
+{"approved": true/false, "reason": "1-2 concise objective sentences explaining the visual assessment without asking to retry"}`,
+      contents: [{
+        role: 'user',
+        parts: [
+          { inline_data: { mime_type: 'image/jpeg', data: base64Data } },
+          { text: `Match "${challenge.challenge}"?` }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 256,
+        responseMimeType: 'application/json'
+      },
+      timeoutMs: 4000
+    });
+
+    if (vertexResult.ok && vertexResult.text) {
+      const result = extractJson(vertexResult.text);
+      if (result && typeof result.approved === 'boolean') {
+        ai_decision_made = true;
+        ai_verified = result.approved === true;
+        const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+        ai_reason = sanitizeAiReason(rawReason);
+        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}`);
+      }
+    }
+  } catch (vertexErr) {
+    console.warn('[Vertex AI] Evaluation error:', vertexErr.message);
+  }
+
+  // ─── 2. Secondary Fallback to Google AI Studio (if Vertex did not resolve) ───
+  if (!ai_decision_made) {
+    for (const model of candidateModels) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -342,11 +384,12 @@ Reply with ONLY a JSON object:
           }
         }
       } else {
-        const errText = await geminiRes.text();
-        console.warn(`Model ${model} returned status ${geminiRes.status}:`, errText);
+          const errText = await geminiRes.text();
+          console.warn(`Model ${model} returned status ${geminiRes.status}:`, errText);
+        }
+      } catch (err) {
+        console.error(`Model ${model} evaluation error:`, err.message);
       }
-    } catch (err) {
-      console.error(`Model ${model} evaluation error:`, err.message);
     }
   }
 

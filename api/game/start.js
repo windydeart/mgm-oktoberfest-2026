@@ -14,7 +14,7 @@ function createToken(data) {
 
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000;
-const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_MAX = 300; // Allow high concurrency for 200+ event users sharing venue WiFi
 
 function isRateLimited(ip) {
   const now = Date.now();

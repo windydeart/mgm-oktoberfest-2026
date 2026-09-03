@@ -219,9 +219,8 @@ module.exports = async (req, res) => {
     console.warn('Review sync in submit-photo note:', syncErr.message);
   }
 
-  // 2. If board does NOT have a confirmed winning line, ensure status is playing
-  const confirmedForCheck = completedCells.filter(c => !pendingReviewCells.includes(c));
-  const currentBingo = checkBingo(confirmedForCheck);
+  // 2. If board does NOT have a winning line, ensure status is playing
+  const currentBingo = checkBingo(completedCells);
   if (currentBingo === null) {
     session.status = 'playing';
     session.bingo_line = null;
@@ -454,8 +453,7 @@ Reply with ONLY a JSON object:
   session.cell_ai_reasons = session.cell_ai_reasons || {};
   session.cell_ai_reasons[cell_index] = ai_reason;
 
-  const confirmedForBingo = completedCells.filter(c => !(session.pending_review_cells || []).includes(c));
-  const bingoLine = checkBingo(confirmedForBingo);
+  const bingoLine = checkBingo(completedCells);
   const is_bingo = bingoLine !== null;
   let rank = 1;
 

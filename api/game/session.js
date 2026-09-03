@@ -251,9 +251,8 @@ module.exports = async (req, res) => {
     console.warn('Session review sync note:', err.message);
   }
 
-  // 2. Re-calculate BINGO strictly based on CONFIRMED completed cells (exclude pending review)
-  const confirmedCells = completedCells.filter(c => !pendingReviewCells.includes(c));
-  const calculatedBingoLine = checkBingo(confirmedCells);
+  // 2. Calculate BINGO based on all completed cells (including in-review cells)
+  const calculatedBingoLine = checkBingo(completedCells);
   let isCompleted = calculatedBingoLine !== null;
   let rank = null;
   let elapsed_ms = 0;
@@ -274,7 +273,17 @@ module.exports = async (req, res) => {
     } catch (e) {
       console.warn('Score lookup note:', e.message);
     }
-    if (!elapsed_ms) elapsed_ms = session.elapsed_ms || 155590;
+    if (!elapsed_ms) {
+      if (allReviews && allReviews.length > 0) {
+        const sorted = [...allReviews].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        const lastPhotoTime = new Date(sorted[sorted.length - 1].created_at).getTime();
+        const startTs = new Date(session.started_at).getTime();
+        if (!isNaN(lastPhotoTime) && !isNaN(startTs) && lastPhotoTime > startTs) {
+          elapsed_ms = Math.max(1000, lastPhotoTime - startTs);
+        }
+      }
+      if (!elapsed_ms) elapsed_ms = session.elapsed_ms || 60000;
+    }
 
     // Calculate authoritative real rank
     try {

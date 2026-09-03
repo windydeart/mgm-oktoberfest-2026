@@ -319,8 +319,7 @@
      ═══════════════════════════════════════════════════════ */
   function renderBoard() {
     const cells = $$('.bingo-cell');
-    const confirmedCells = (gameState.completedCells || []).filter(c => !(gameState.pendingReviewCells || []).includes(c));
-    const winningLine = gameState.status === 'completed' ? (gameState.bingoLine || checkBingo(confirmedCells)) : null;
+    const winningLine = gameState.status === 'completed' ? (gameState.bingoLine || checkBingo(gameState.completedCells || [])) : null;
     const winningIndices = winningLine ? getBingoLineIndices(winningLine) : [];
 
     cells.forEach((cell, i) => {
@@ -757,6 +756,17 @@
     saveSession();
     renderBoard();
     showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
+
+    // Check if this newly promoted cell completes BINGO (even while in review)!
+    const winningLine = checkBingo(gameState.completedCells);
+    if (winningLine && gameState.status !== 'completed') {
+      gameState.status = 'completed';
+      gameState.bingoLine = winningLine;
+      stopTimer(gameState.elapsedMs);
+      saveSession();
+      renderBoard();
+      onBingo({ bingo_line: winningLine, elapsed_ms: gameState.elapsedMs });
+    }
 
     // Start polling for organizer decisions
     startReviewPolling();
@@ -1664,8 +1674,7 @@
 
       const completedCells = (data.completed_cells || []).map(Number);
       const pendingReviewCells = (data.pending_review_cells || []).map(Number);
-      const confirmedCells = completedCells.filter(c => !pendingReviewCells.includes(c));
-      const bingoLine = checkBingo(confirmedCells);
+      const bingoLine = checkBingo(completedCells);
       const isCompleted = bingoLine !== null;
 
       gameState.sessionId = data.session_id;
@@ -2115,9 +2124,8 @@
       delete gameState.cellAiReasons[String(cellIdx)];
     }
 
-    // Check if BINGO is now invalidated based on confirmed completed cells
-    const confirmedCells = gameState.completedCells.filter(c => !(gameState.pendingReviewCells || []).includes(c));
-    const currentBingo = checkBingo(confirmedCells);
+    // Check if BINGO is now invalidated based on remaining completed cells
+    const currentBingo = checkBingo(gameState.completedCells);
     const wasBingo = gameState.status === 'completed';
 
     if (wasBingo && !currentBingo) {

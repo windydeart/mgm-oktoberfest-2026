@@ -702,53 +702,27 @@ body {
 .img-status-tag-rejected {
     position: absolute;
     top: 8px;
-    left: 8px;
-    background: rgba(239, 68, 68, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    padding: 3px 8px;
+    left: 10px;
     font-size: 0.72rem;
-    color: #ffffff;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    color: #f87171;
+    font-weight: 800;
     z-index: 2;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-}
-
-.img-status-tag-rejected i,
-.img-status-tag-rejected svg {
-    width: 12px;
-    height: 12px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.8);
 }
 
 .img-status-tag-approved {
     position: absolute;
     top: 8px;
-    left: 8px;
-    background: rgba(34, 197, 94, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 5px;
-    padding: 3px 8px;
+    left: 10px;
     font-size: 0.72rem;
-    color: #ffffff;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    color: #4ade80;
+    font-weight: 800;
     z-index: 2;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-}
-
-.img-status-tag-approved i,
-.img-status-tag-approved svg {
-    width: 12px;
-    height: 12px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.8);
 }
 
 .review-img-placeholder {

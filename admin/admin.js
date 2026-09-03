@@ -228,9 +228,9 @@ function renderReviews(reviews) {
 
         let statusTagHTML = '';
         if (review.status === 'approved') {
-            statusTagHTML = `<span class="img-status-tag-approved"><i data-lucide="check-circle-2"></i> Approved</span>`;
+            statusTagHTML = `<span class="img-status-tag-approved">APPROVED</span>`;
         } else if (review.status === 'rejected') {
-            statusTagHTML = `<span class="img-status-tag-rejected"><i data-lucide="x-circle"></i> Rejected</span>`;
+            statusTagHTML = `<span class="img-status-tag-rejected">REJECTED</span>`;
         }
 
         return `

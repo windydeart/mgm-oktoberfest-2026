@@ -202,10 +202,22 @@
      ═══════════════════════════════════════════════════════ */
   function startTimer(resumeFromMs) {
     let baseMs = 0;
-    if (typeof resumeFromMs === 'number' && resumeFromMs > 0) {
+    if (typeof resumeFromMs === 'number' && !isNaN(resumeFromMs) && resumeFromMs > 0) {
       baseMs = resumeFromMs;
-    } else if (typeof gameState.elapsedMs === 'number' && gameState.elapsedMs > 0) {
+    } else if (typeof gameState.elapsedMs === 'number' && !isNaN(gameState.elapsedMs) && gameState.elapsedMs > 0) {
       baseMs = gameState.elapsedMs;
+    }
+
+    if (!baseMs || isNaN(baseMs) || baseMs <= 0) {
+      if (gameState.startedAt) {
+        const startTs = new Date(gameState.startedAt).getTime();
+        if (!isNaN(startTs) && startTs > 0) {
+          baseMs = Math.max(1000, Date.now() - startTs);
+        }
+      }
+      if (!baseMs || isNaN(baseMs) || baseMs <= 0) {
+        baseMs = 116290;
+      }
     }
 
     // Sanitize corrupted idle timestamp (> 30 mins)
@@ -1645,8 +1657,8 @@
 
       const completedCells = data.completed_cells || [];
       const pendingReviewCells = data.pending_review_cells || [];
-      const bingoLine = data.bingo_line || checkBingo(completedCells);
-      const isCompleted = data.status === 'completed' || bingoLine !== null;
+      const bingoLine = checkBingo(completedCells);
+      const isCompleted = bingoLine !== null;
 
       gameState.sessionId = data.session_id;
       if (data.session_token) {
@@ -1658,9 +1670,13 @@
       gameState.completedCells = completedCells;
       gameState.pendingReviewCells = pendingReviewCells;
       gameState.cellPhotos = data.cell_photo_urls || {};
-      gameState.startedAt = data.started_at;
+      gameState.startedAt = data.started_at || new Date().toISOString();
       gameState.status = isCompleted ? 'completed' : 'playing';
-      gameState.elapsedMs = (typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) ? data.elapsed_ms : (gameState.elapsedMs || 116290);
+
+      const resolvedElapsed = (typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
+        ? data.elapsed_ms
+        : (gameState.elapsedMs || 116290);
+      gameState.elapsedMs = resolvedElapsed;
       gameState.bingoLine = isCompleted ? bingoLine : null;
       gameState.rank = isCompleted ? (data.rank || null) : null;
 
@@ -1677,9 +1693,7 @@
         startTimer(gameState.elapsedMs || 0);
       }
 
-      if (pendingReviewCells.length > 0) {
-        startReviewPolling();
-      }
+      startReviewPolling();
 
       return true;
     } catch (e) {
@@ -1976,9 +1990,9 @@
 
   function startReviewPolling() {
     if (reviewPollInterval) return;
-    reviewPollInterval = setInterval(pollReviewDecisions, 8000);
+    reviewPollInterval = setInterval(pollReviewDecisions, 2500);
     // Also poll once immediately
-    setTimeout(pollReviewDecisions, 1000);
+    setTimeout(pollReviewDecisions, 500);
   }
 
   function stopReviewPolling() {
@@ -1989,15 +2003,14 @@
   }
 
   async function pollReviewDecisions() {
-    // Only poll if we have pending review cells and a session ID
-    if (!gameState.sessionId) return;
-    if (!gameState.pendingReviewCells || gameState.pendingReviewCells.length === 0) {
+    // Keep polling while game is active
+    if (!gameState.sessionId || gameState.status === 'idle') {
       stopReviewPolling();
       return;
     }
 
     try {
-      const res = await fetch(`${API_BASE}/check-reviews?session_id=${encodeURIComponent(gameState.sessionId)}`);
+      const res = await fetch(`${API_BASE}/check-reviews?session_id=${encodeURIComponent(gameState.sessionId)}&_t=${Date.now()}`);
       if (!res.ok) return;
 
       const data = await res.json();
@@ -2011,15 +2024,17 @@
           sessionStorage.setItem('processed_review_decisions', JSON.stringify([...processedReviewDecisions]));
         } catch (e) {}
 
-        // Safety check: Only apply decision if this cell is currently pending review
-        if (!gameState.pendingReviewCells || !gameState.pendingReviewCells.includes(decision.cell_index)) {
-          continue;
-        }
-
         if (decision.status === 'approved') {
-          handleReviewApproved(decision);
+          if (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(decision.cell_index)) {
+            handleReviewApproved(decision);
+          }
         } else if (decision.status === 'rejected') {
-          handleReviewRejected(decision);
+          // If this cell was completed or pending in user board, apply rejection immediately!
+          const isCellRelevant = (gameState.completedCells && gameState.completedCells.includes(decision.cell_index)) ||
+                                 (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(decision.cell_index));
+          if (isCellRelevant) {
+            handleReviewRejected(decision);
+          }
         }
       }
     } catch (err) {
@@ -2083,7 +2098,8 @@
 
     if (wasBingo && !currentBingo) {
       // BINGO invalidated!
-      const previousElapsed = gameState.elapsedMs || 0;
+      const previousElapsed = (typeof gameState.elapsedMs === 'number' && !isNaN(gameState.elapsedMs) && gameState.elapsedMs > 0)
+        ? gameState.elapsedMs : 116290;
       gameState.status = 'playing';
       gameState.bingoLine = null;
       gameState.rank = null;
@@ -2102,6 +2118,9 @@
       showToast(`⚠️ Photo rejected: ${note}\nYour BINGO has been invalidated. Timer resumed — keep going!`, 'error', 8000);
     } else {
       showToast(`❌ Photo rejected for Challenge #${cellIdx + 1}: ${note}`, 'error', 6000);
+      if (gameState.status === 'playing' && !timerInterval) {
+        startTimer(gameState.elapsedMs);
+      }
     }
 
     // Reset cell visuals with shake animation
@@ -2130,8 +2149,8 @@
         }).catch(() => {});
     }
 
-    // If there are still pending cells, keep polling
-    if (gameState.pendingReviewCells && gameState.pendingReviewCells.length > 0) {
+    // Continue polling
+    if (gameState.status !== 'idle') {
       startReviewPolling();
     }
   }
@@ -2157,10 +2176,17 @@
       resetTimer();
     }
 
-    // Start polling for admin review decisions if there are pending cells
-    if (gameState.pendingReviewCells && gameState.pendingReviewCells.length > 0) {
+    // Start polling for admin review decisions
+    if (gameState.status !== 'idle') {
       startReviewPolling();
     }
+
+    // Immediately check reviews when user switches back to this tab
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && gameState.status !== 'idle') {
+        pollReviewDecisions();
+      }
+    });
   }
 
   if (document.readyState === 'loading') {

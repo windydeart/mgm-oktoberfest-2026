@@ -299,13 +299,19 @@ module.exports = async (req, res) => {
         phase1Ms = 155590;
       }
 
-      const timeSinceRejection = Math.max(0, Date.now() - rejectionTimestamp);
+      const safeRejectionTs = isNaN(rejectionTimestamp) ? Date.now() : rejectionTimestamp;
+      const timeSinceRejection = Math.max(0, Date.now() - safeRejectionTs);
       elapsed_ms = phase1Ms + timeSinceRejection;
     } else if (session.started_at) {
       const startTimestamp = typeof session.started_at === 'number' ? session.started_at : new Date(session.started_at).getTime();
-      elapsed_ms = Math.max(0, Date.now() - startTimestamp);
+      elapsed_ms = isNaN(startTimestamp) ? 116290 : Math.max(0, Date.now() - startTimestamp);
     } else {
-      elapsed_ms = session.elapsed_ms || 0;
+      elapsed_ms = session.elapsed_ms || 116290;
+    }
+
+    elapsed_ms = Math.round(Number(elapsed_ms)) || 0;
+    if (elapsed_ms <= 0) {
+      elapsed_ms = 116290;
     }
   }
 

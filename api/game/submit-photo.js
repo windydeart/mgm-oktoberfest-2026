@@ -219,8 +219,9 @@ module.exports = async (req, res) => {
     console.warn('Review sync in submit-photo note:', syncErr.message);
   }
 
-  // 2. If board does NOT have a winning line, ensure status is playing
-  const currentBingo = checkBingo(completedCells);
+  // 2. If board does NOT have a confirmed winning line, ensure status is playing
+  const confirmedForCheck = completedCells.filter(c => !pendingReviewCells.includes(c));
+  const currentBingo = checkBingo(confirmedForCheck);
   if (currentBingo === null) {
     session.status = 'playing';
     session.bingo_line = null;

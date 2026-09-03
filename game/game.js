@@ -201,50 +201,62 @@
      TIMER ENGINE
      ═══════════════════════════════════════════════════════ */
   function startTimer(resumeFromMs) {
-    console.log('[TIMER] startTimer called with resumeFromMs=', resumeFromMs, 'gameState.elapsedMs=', gameState.elapsedMs, 'gameState.startedAt=', gameState.startedAt);
-    let baseMs = 0;
-    if (typeof resumeFromMs === 'number' && !isNaN(resumeFromMs) && resumeFromMs > 0) {
-      baseMs = resumeFromMs;
-    } else if (typeof gameState.elapsedMs === 'number' && !isNaN(gameState.elapsedMs) && gameState.elapsedMs > 0) {
-      baseMs = gameState.elapsedMs;
-    }
+    try {
+      let baseMs = 0;
 
-    if (!baseMs || isNaN(baseMs) || baseMs <= 0) {
-      if (gameState.startedAt) {
-        const startTs = new Date(gameState.startedAt).getTime();
+      // 1. Use provided value if valid
+      if (typeof resumeFromMs === 'number' && !isNaN(resumeFromMs) && resumeFromMs > 0) {
+        baseMs = resumeFromMs;
+      }
+
+      // 2. Fallback: use gameState.elapsedMs
+      if (!baseMs && typeof gameState.elapsedMs === 'number' && !isNaN(gameState.elapsedMs) && gameState.elapsedMs > 0) {
+        baseMs = gameState.elapsedMs;
+      }
+
+      // 3. Fallback: calculate from startedAt
+      if (!baseMs && gameState.startedAt) {
+        const startTs = typeof gameState.startedAt === 'number' ? gameState.startedAt : new Date(gameState.startedAt).getTime();
         if (!isNaN(startTs) && startTs > 0) {
           baseMs = Math.max(1000, Date.now() - startTs);
         }
       }
+
+      // 4. Absolute fallback: minimum 1 second
       if (!baseMs || isNaN(baseMs) || baseMs <= 0) {
-        baseMs = 116290;
+        baseMs = 1000;
       }
+
+      // DO NOT overwrite gameState.startedAt — it must remain the original game start time
+      timerStartTime = Date.now() - baseMs;
+      gameState.elapsedMs = baseMs;
+
+      // Immediately display exact accumulated time — never flicker 00:00
+      if (els.timerDisplay) els.timerDisplay.textContent = formatTime(baseMs);
+      if (els.gameTimer) {
+        els.gameTimer.classList.add('timer-running');
+        els.gameTimer.classList.remove('timer-idle', 'timer-stopped');
+      }
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const elapsed = Date.now() - timerStartTime;
+        gameState.elapsedMs = elapsed;
+        if (els.timerDisplay) els.timerDisplay.textContent = formatTime(elapsed);
+      }, 41);
+    } catch (e) {
+      console.error('[TIMER] startTimer error:', e);
     }
-
-
-    timerStartTime = Date.now() - baseMs;
-    gameState.startedAt = new Date(timerStartTime).toISOString();
-    gameState.elapsedMs = baseMs;
-
-    // Immediately display exact accumulated time without any 00:00 flicker
-    els.timerDisplay.textContent = formatTime(baseMs);
-    els.gameTimer.classList.add('timer-running');
-    els.gameTimer.classList.remove('timer-idle', 'timer-stopped');
-
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      const elapsed = Date.now() - timerStartTime;
-      gameState.elapsedMs = elapsed;
-      els.timerDisplay.textContent = formatTime(elapsed);
-    }, 41);
   }
 
   function stopTimer(finalMs) {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = null;
-    els.gameTimer.classList.remove('timer-running');
-    els.gameTimer.classList.add('timer-stopped');
-    if (finalMs != null) {
+    if (els.gameTimer) {
+      els.gameTimer.classList.remove('timer-running');
+      els.gameTimer.classList.add('timer-stopped');
+    }
+    if (finalMs != null && els.timerDisplay) {
       els.timerDisplay.textContent = formatTime(finalMs);
     }
   }
@@ -252,9 +264,11 @@
   function resetTimer() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = null;
-    els.timerDisplay.textContent = '00:00.00';
-    els.gameTimer.classList.remove('timer-running', 'timer-stopped');
-    els.gameTimer.classList.add('timer-idle');
+    if (els.timerDisplay) els.timerDisplay.textContent = '00:00.00';
+    if (els.gameTimer) {
+      els.gameTimer.classList.remove('timer-running', 'timer-stopped');
+      els.gameTimer.classList.add('timer-idle');
+    }
   }
 
   function formatTime(ms) {
@@ -302,8 +316,8 @@
      BINGO BOARD RENDERING (Flat Icons + 4x Camera Watermark)
      ═══════════════════════════════════════════════════════ */
   function renderBoard() {
-    const cells = $$('.bingo-cell');
-    const winningLine = gameState.bingoLine || checkBingo(gameState.completedCells || []);
+    const confirmedCells = (gameState.completedCells || []).filter(c => !(gameState.pendingReviewCells || []).includes(c));
+    const winningLine = gameState.status === 'completed' ? (gameState.bingoLine || checkBingo(confirmedCells)) : null;
     const winningIndices = winningLine ? getBingoLineIndices(winningLine) : [];
 
     cells.forEach((cell, i) => {
@@ -566,6 +580,7 @@
       await runRevealAnimation();
       renderBoard();
       startTimer();
+      startReviewPolling();
       showToast('Game started! Tap any cell to take a photo.', 'success');
 
     } catch (err) {
@@ -1617,17 +1632,19 @@
 
       if (!savedPlayerName && !savedToken) return false;
 
-      // 100% AUTHORITATIVE SERVER-SIDE RECOVERY
+      // ALWAYS query by player_name for the most authoritative server state.
+      // The token may contain stale data (old started_at, wrong completed_cells).
+      // player_name lookup syncs directly with the database every time.
       let queryUrl = '';
-      if (savedToken) {
-        queryUrl = `${API_BASE}/session?token=${encodeURIComponent(savedToken)}`;
-      } else if (savedPlayerName) {
+      if (savedPlayerName) {
         queryUrl = `${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}`;
+      } else if (savedToken) {
+        queryUrl = `${API_BASE}/session?token=${encodeURIComponent(savedToken)}`;
       }
 
       let res = await fetch(queryUrl);
-      if (!res.ok && savedPlayerName && queryUrl.includes('token=')) {
-        res = await fetch(`${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}`);
+      if (!res.ok && savedToken && !queryUrl.includes('token=')) {
+        res = await fetch(`${API_BASE}/session?token=${encodeURIComponent(savedToken)}`);
       }
       if (!res.ok) {
         return false;
@@ -1638,8 +1655,8 @@
         return false;
       }
 
-      const completedCells = data.completed_cells || [];
-      const pendingReviewCells = data.pending_review_cells || [];
+      const completedCells = (data.completed_cells || []).map(Number);
+      const pendingReviewCells = (data.pending_review_cells || []).map(Number);
       const confirmedCells = completedCells.filter(c => !pendingReviewCells.includes(c));
       const bingoLine = checkBingo(confirmedCells);
       const isCompleted = bingoLine !== null;
@@ -1657,34 +1674,34 @@
       gameState.startedAt = data.started_at || new Date().toISOString();
       gameState.status = isCompleted ? 'completed' : 'playing';
 
-      const resolvedElapsed = (typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
-        ? data.elapsed_ms
-        : (gameState.elapsedMs || 116290);
+      // Resolve elapsed_ms: server value > client value > minimum 1s
+      const serverElapsed = (typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
+        ? data.elapsed_ms : 0;
+      const resolvedElapsed = serverElapsed || gameState.elapsedMs || 1000;
       gameState.elapsedMs = resolvedElapsed;
       gameState.bingoLine = isCompleted ? bingoLine : null;
       gameState.rank = isCompleted ? (data.rank || null) : null;
 
-      saveSession(); // Only persists player_name, location, and session_token
+      saveSession();
 
-      // Render UI strictly from server state
-      els.gameWelcome.style.display = 'none';
-      els.bingoBoard.style.display = 'grid';
+      // Render UI from server state (null-safe)
+      if (els.gameWelcome) els.gameWelcome.style.display = 'none';
+      if (els.bingoBoard) els.bingoBoard.style.display = 'grid';
       renderBoard();
 
-      console.log('[RECOVER] isCompleted=', isCompleted, 'bingoLine=', bingoLine, 'completedCells=', completedCells, 'resolvedElapsed=', resolvedElapsed, 'data.elapsed_ms=', data.elapsed_ms, 'data.status=', data.status);
       if (isCompleted) {
-        console.log('[RECOVER] -> stopTimer', gameState.elapsedMs);
-        stopTimer(gameState.elapsedMs || 0);
+        stopTimer(gameState.elapsedMs || 1000);
       } else {
-        console.log('[RECOVER] -> startTimer', gameState.elapsedMs);
-        startTimer(gameState.elapsedMs || 0);
+        startTimer(gameState.elapsedMs);
       }
 
+      // Clear processed decisions on every recovery so new rejections are always processed
+      processedReviewDecisions = new Set();
       startReviewPolling();
 
       return true;
     } catch (e) {
-      console.warn('Authoritative session recovery error:', e);
+      console.error('Session recovery error:', e);
       return false;
     }
   }
@@ -2169,7 +2186,7 @@
     startLeaderboardPolling();
 
     const recovered = await tryRecoverSession();
-    if (!recovered) {
+    if (!recovered && !localStorage.getItem(STORAGE_KEY_USER_NAME) && !localStorage.getItem(STORAGE_KEY_TOKEN)) {
       resetTimer();
     }
 

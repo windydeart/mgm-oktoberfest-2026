@@ -132,7 +132,7 @@ module.exports = async (req, res) => {
       // 2. If not found in scores, check bingo_photo_reviews
       if (!session) {
         const revLookup = await fetch(
-          `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.desc&limit=1`,
+          `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.asc&limit=1`,
           { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
         );
         if (revLookup.ok) {

@@ -35,7 +35,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=89">
+  <link rel="stylesheet" href="./css/styles.css?v=90">
 </head>
 <body class="dark-theme">
 
@@ -683,15 +683,19 @@
       <div class="jotform-iframe-container" id="regIframeContainer">
         <iframe
           id="JotFormIFrame-262091577915061"
-          title="mgm Oktoberfest 2026 Registration"
+          title="mgm Oktoberfest 2026"
+          onload="window.parent.scrollTo(0,0)"
           allowtransparency="true"
-          allow="geolocation; microphone; camera; fullscreen"
+          allow="geolocation; microphone; camera; fullscreen; payment"
           src="https://form.jotform.com/262091577915061"
           frameborder="0"
+          style="min-width:100%;max-width:100%;height:539px;border:none;"
+          scrolling="no"
           class="jotform-iframe"
-          scrolling="yes"
         >
         </iframe>
+        <script src="https://cdn.jotfor.ms/s/umd/latest/for-form-embed-handler.js"></script>
+        <script>window.jotformEmbedHandler("iframe[id='JotFormIFrame-262091577915061']", "https://form.jotform.com/")</script>
       </div>
     </div>
   </div>

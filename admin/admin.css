@@ -877,6 +877,104 @@ body {
     height: 12px;
 }
 
+/* ─── REJECTED REVIEW LOG CARDS (No Photo Image) ─── */
+.review-card.review-log-card {
+    border-left: 3px solid #ef4444;
+    background: rgba(22, 32, 61, 0.95);
+    grid-column: span 1;
+}
+
+.log-card-content {
+    padding: 1.15rem 1.25rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    height: 100%;
+}
+
+.reject-reason-box {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+}
+
+.reject-reason-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #f87171;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 3px;
+}
+
+.reject-reason-header i,
+.reject-reason-header svg {
+    width: 13px;
+    height: 13px;
+}
+
+.reject-reason-text {
+    font-size: 0.84rem;
+    color: #fca5a5;
+    line-height: 1.45;
+}
+
+.log-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: auto;
+}
+
+.log-time-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.log-time-text i,
+.log-time-text svg {
+    width: 12px;
+    height: 12px;
+}
+
+.btn-review-reapprove {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    border-radius: 5px;
+    color: #4ade80;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-review-reapprove:hover {
+    background: rgba(34, 197, 94, 0.32);
+    border-color: #22c55e;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-review-reapprove i,
+.btn-review-reapprove svg {
+    width: 12px;
+    height: 12px;
+}
+
 /* ─── 13. ACTION BUTTONS (Refined & Compact) ─── */
 .review-actions {
     display: grid;

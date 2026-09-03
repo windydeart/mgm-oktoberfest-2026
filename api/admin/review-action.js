@@ -94,6 +94,27 @@ module.exports = async (req, res) => {
       reviewer_note: finalNote
     };
 
+    // If REJECT: Do not retain image (nullify photo_url and purge storage)
+    if (action === 'reject') {
+      updateData.photo_url = null;
+      if (review.photo_url && review.photo_url.includes('/bingo-photos/')) {
+        try {
+          const parts = review.photo_url.split('/bingo-photos/');
+          if (parts[1]) {
+            await fetch(`${SUPABASE_URL}/storage/v1/object/bingo-photos/${parts[1]}`, {
+              method: 'DELETE',
+              headers: {
+                'apikey': SUPABASE_SECRET_KEY,
+                'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+              }
+            });
+          }
+        } catch (storageDelErr) {
+          console.warn('Storage delete note:', storageDelErr.message);
+        }
+      }
+    }
+
     const updateRes = await supabaseRequest(
       'PATCH',
       `bingo_photo_reviews?id=eq.${review_id}`,

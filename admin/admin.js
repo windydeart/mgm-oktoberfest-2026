@@ -221,6 +221,47 @@ function renderReviews(reviews) {
 
         const rankTextHTML = review.rank ? `<span class="player-rank-text">Rank #${review.rank}</span>` : '';
 
+        if (review.status === 'rejected') {
+            const cleanReason = (review.reviewer_note || review.ai_reason || 'Photo does not match the challenge requirement.')
+                .replace(/\s*\[phase1_ms:\d+\]/g, '')
+                .trim();
+            const timeStr = timeAgo(review.reviewed_at || review.created_at);
+
+            return `
+                <div class="review-card rejected review-log-card">
+                    <div class="review-content log-card-content">
+                        <div class="review-meta">
+                            <div class="player-rank-group">
+                                <span class="player-name">${escapeHTML(review.player_name)}</span>
+                                ${rankTextHTML}
+                            </div>
+                            <span class="location-badge ${locationClass}">${locationLabel}</span>
+                        </div>
+
+                        <div class="review-challenge-box">
+                            <span class="challenge-label">Challenge:</span>
+                            <span class="review-challenge">${escapeHTML(review.challenge_text)}</span>
+                        </div>
+
+                        <div class="reject-reason-box">
+                            <div class="reject-reason-header">
+                                <i data-lucide="alert-triangle"></i>
+                                <span>Rejection Reason:</span>
+                            </div>
+                            <div class="reject-reason-text">${escapeHTML(cleanReason)}</div>
+                        </div>
+
+                        <div class="log-card-footer">
+                            <span class="log-time-text"><i data-lucide="clock"></i> Rejected ${timeStr}</span>
+                            <button type="button" class="btn-review-reapprove" onclick="approveReview(${review.id})" title="Overturn and Approve">
+                                <i data-lucide="check"></i> <span>Re-approve</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         return `
             <div class="review-card ${review.status}">
                 <div class="review-img-container" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
@@ -275,7 +316,9 @@ async function approveReview(reviewId) {
 }
 
 async function rejectReview(reviewId) {
-    await submitReviewAction(reviewId, 'reject', 'Photo does not match the challenge requirement.');
+    const reason = prompt('Lý do từ chối (Rejection reason):', 'Ảnh không khớp với yêu cầu của thử thách.');
+    if (reason === null) return; // User cancelled
+    await submitReviewAction(reviewId, 'reject', reason.trim() || 'Ảnh không khớp với yêu cầu của thử thách.');
 }
 
 async function submitReviewAction(reviewId, action, note = '') {

@@ -289,36 +289,41 @@ body.game-page::before {
   margin: 0 auto 1.1rem;
 }
 
-/* ─── LIVE STATUS BAR (Single Row Enforced) ─── */
+/* ─── LIVE STATUS BAR (Full Width Matching Bingo Board Frame) ─── */
 .game-status-bar {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background: rgba(11, 19, 43, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-full);
-  padding: 5px 14px;
-  max-width: 98vw;
+  display: flex !important;
+  width: 100%;
+  max-width: 500px;
+  margin: 0.85rem auto 1.1rem;
   box-sizing: border-box;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 8px;
+  background: rgba(11, 19, 43, 0.9);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(245, 158, 11, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .status-pill i,
 .status-pill svg {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
 }
 
@@ -330,10 +335,10 @@ body.game-page::before {
 
 .status-pill.goal-pill {
   color: var(--text-gold);
-  font-weight: 700;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  padding: 2px 7px;
+  font-weight: 800;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  padding: 3px 10px;
   border-radius: var(--radius-full);
   animation: goalPulse 1.5s ease-in-out infinite alternate;
 }
@@ -2076,32 +2081,35 @@ body.game-page::before {
     padding: 1rem 0.8rem 2.5rem;
   }
 
-  /* Force 3 status elements on a single row on mobile */
+  /* Full Width matching the Bingo Board Frame horizontally */
   .game-status-bar {
-    display: inline-flex !important;
-    flex-wrap: nowrap !important;
-    gap: 7px !important;
-    padding: 4px 10px !important;
-    max-width: 98vw;
-    border-radius: var(--radius-full);
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.65rem auto 1rem !important;
+    padding: 7px 12px !important;
+    justify-content: space-around !important;
+    gap: 4px !important;
+    border-radius: var(--radius-full) !important;
   }
 
   .status-pill {
-    gap: 3px !important;
-    font-size: 0.72rem !important;
+    gap: 5px !important;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
     white-space: nowrap !important;
     flex-shrink: 0;
   }
 
   .status-pill i,
   .status-pill svg {
-    width: 12px !important;
-    height: 12px !important;
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .status-pill.goal-pill {
-    padding: 1.5px 6px !important;
-    font-size: 0.7rem !important;
+    padding: 2px 8px !important;
+    font-size: 0.8rem !important;
   }
   
   .game-arena-title {

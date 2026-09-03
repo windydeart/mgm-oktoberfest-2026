@@ -356,7 +356,7 @@
     // Update Status Bar & User Header Line
     if (gameState.status === 'playing' || gameState.status === 'completed') {
       if (els.headerUserLine) els.headerUserLine.style.display = 'inline-flex';
-      if (els.gameStatusBar) els.gameStatusBar.style.display = 'inline-flex';
+      if (els.gameStatusBar) els.gameStatusBar.style.display = 'flex';
       if (els.statusPlayerName) els.statusPlayerName.textContent = gameState.playerName || 'Player';
       if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
       if (els.statusProgress) els.statusProgress.textContent = `${gameState.completedCells.length}/9 Completed`;

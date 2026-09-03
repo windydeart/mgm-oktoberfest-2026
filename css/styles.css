@@ -2914,8 +2914,10 @@ h1, h2, h3, h4 {
 .reg-modal-content.jotform-modal-content {
   max-width: 1020px;
   width: 95%;
-  height: 92vh;
-  max-height: 880px;
+  height: 90vh;
+  height: 90dvh;
+  max-height: 90vh;
+  max-height: 90dvh;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -3051,10 +3053,15 @@ h1, h2, h3, h4 {
 }
 
 @media (max-width: 768px) {
+  .modal-backdrop {
+    padding: 0.75rem 0.5rem;
+  }
   .reg-modal-content.jotform-modal-content {
     width: 100%;
-    height: 95vh;
-    max-height: 95vh;
+    height: 90vh;
+    height: 90dvh;
+    max-height: 90vh;
+    max-height: 90dvh;
     border-radius: var(--radius-md);
   }
 }

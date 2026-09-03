@@ -1287,14 +1287,23 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-  async function loadSidebarLeaderboard() {
-    const entries = await fetchLeaderboard('all');
-    if (!els.sidebarLbList) return;
+  let currentSidebarLbLocation = 'all';
+
+  async function loadSidebarLeaderboard(location) {
+    currentSidebarLbLocation = location || currentSidebarLbLocation;
+    const entries = await fetchLeaderboard(currentSidebarLbLocation);
+    const tbody = document.getElementById('sidebarLbTableBody');
+    const emptyEl = document.getElementById('sidebarLbEmpty');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
 
     if (!entries.length) {
-      els.sidebarLbList.innerHTML = '<div class="sidebar-lb-empty">No champions yet. Be the first!</div>';
+      if (emptyEl) emptyEl.style.display = 'block';
       return;
     }
+
+    if (emptyEl) emptyEl.style.display = 'none';
 
     // Update live rank for current user if found in leaderboard and completed
     if (gameState.playerName && gameState.status === 'completed') {
@@ -1307,33 +1316,45 @@
     }
 
     const top10 = entries.slice(0, 10);
-    els.sidebarLbList.innerHTML = top10.map((entry, idx) => {
+    top10.forEach((entry, idx) => {
       const rank = idx + 1;
       const isWinner = rank === 1;
       const medal = isWinner ? '👑 #1' : `#${rank}`;
       const isMe = entry.player_name === gameState.playerName &&
                     entry.location === gameState.location &&
                     Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
-      return `
-        <div class="sidebar-lb-item ${isWinner ? 'sidebar-lb-winner' : (isMe ? 'current-player-item' : '')}" ${isWinner ? 'title="Click to view Champion Winning Board"' : ''}>
-          <span class="sidebar-lb-rank" style="color:${isWinner?'#fbbf24':(isMe?'#38bdf8':'inherit')};">${medal}</span>
-          <div class="sidebar-lb-name-group">
-            <span class="sidebar-lb-name">${escapeHtml(entry.player_name)}</span>
+      const locationClass = entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc';
+      const locationLabel = entry.location === 'danang' ? 'Da Nang' : 'HCMC';
+
+      const tr = document.createElement('tr');
+      if (isWinner) {
+        tr.classList.add('lb-winner-row');
+        tr.title = 'Click to view Champion Winning Board';
+        tr.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openWinnerShowcase(currentSidebarLbLocation);
+        });
+      }
+      if (isMe && !isWinner) tr.classList.add('current-player-row');
+
+      tr.innerHTML = `
+        <td class="lb-rank">
+          ${isWinner ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
+        </td>
+        <td class="lb-name">
+          <div class="lb-player-with-prize">
+            <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
             ${isWinner ? `<span class="sidebar-prize-badge">WINNER</span>` : (isMe ? `<span class="current-user-tag">YOU</span>` : '')}
           </div>
-          <span class="sidebar-lb-time">${formatTime(entry.elapsed_ms || 0)}</span>
-        </div>
+        </td>
+        <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isWinner?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
+        <td class="lb-location">
+          <span class="status-loc-badge ${locationClass}">${locationLabel}</span>
+        </td>
       `;
-    }).join('');
-
-    const winnerItem = els.sidebarLbList.querySelector('.sidebar-lb-winner');
-    if (winnerItem) {
-      winnerItem.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openWinnerShowcase('all');
-      });
-    }
+      tbody.appendChild(tr);
+    });
 
     if (window.lucide) window.lucide.createIcons();
   }
@@ -1495,9 +1516,24 @@
   }
 
   function openLeaderboard() {
-    openModal(els.leaderboardModal);
-    renderLeaderboard(currentLbLocation);
-    if (window.lucide) window.lucide.createIcons();
+    const sidebarLbToggleBtn = $('#sidebarLbToggleBtn');
+    const sidebarLbContent = $('#sidebarLbContent');
+    if (sidebarLbContent && sidebarLbContent.classList.contains('collapsed')) {
+      sidebarLbContent.classList.remove('collapsed');
+      if (sidebarLbToggleBtn) {
+        sidebarLbToggleBtn.classList.add('active');
+        sidebarLbToggleBtn.setAttribute('aria-expanded', 'true');
+      }
+    }
+    const sidebar = document.querySelector('.game-sidebar') || document.querySelector('.sidebar-card');
+    if (sidebar) {
+      sidebar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const card = sidebar.querySelector('.sidebar-card') || sidebar;
+      card.classList.remove('pulse-highlight');
+      void card.offsetWidth;
+      card.classList.add('pulse-highlight');
+      setTimeout(() => card.classList.remove('pulse-highlight'), 2000);
+    }
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -1883,6 +1919,18 @@
         const isCollapsed = sidebarLbContent.classList.toggle('collapsed');
         sidebarLbToggleBtn.classList.toggle('active', !isCollapsed);
         sidebarLbToggleBtn.setAttribute('aria-expanded', String(!isCollapsed));
+      });
+    }
+
+    // Sidebar Leaderboard Location Tabs
+    const sidebarLbTabs = $('#sidebarLbTabs');
+    if (sidebarLbTabs) {
+      sidebarLbTabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.lb-filter-tab');
+        if (!tab) return;
+        sidebarLbTabs.querySelectorAll('.lb-filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        loadSidebarLeaderboard(tab.dataset.lbLocation);
       });
     }
 

@@ -357,6 +357,20 @@ body.game-page::before {
   background: rgba(245, 158, 11, 0.2);
   color: var(--text-gold);
   border: 1px solid rgba(245, 158, 11, 0.35);
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-loc-badge.loc-danang {
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(2, 132, 199, 0.35);
+}
+
+.status-loc-badge.loc-hcmc {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 /* ─── ARENA GRID & SIDEBAR ─── */
@@ -2336,7 +2350,7 @@ body.game-page::before {
 }
 
 .sidebar-accordion-content {
-  max-height: 265px;
+  max-height: 550px;
   overflow: hidden;
   transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease;
   opacity: 1;
@@ -2351,10 +2365,44 @@ body.game-page::before {
   pointer-events: none;
 }
 
-.sidebar-lb-action-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.6rem;
+.sidebar-lb-tabs {
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.sidebar-lb-table-wrapper {
+  max-height: 280px;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.sidebar-lb-table-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-lb-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(11, 19, 43, 0.4);
+  border-radius: var(--radius-full);
+}
+
+.sidebar-lb-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.45);
+  border-radius: var(--radius-full);
+}
+
+.sidebar-lb-empty {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.sidebar-card.pulse-highlight {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245, 158, 11, 0.3) !important;
+  border-color: rgba(245, 158, 11, 0.8) !important;
+  transition: all 0.3s ease;
 }
 
 /* ─── Confirm Photo Submission Modal ─── */

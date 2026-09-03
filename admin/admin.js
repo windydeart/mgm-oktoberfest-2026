@@ -126,21 +126,57 @@ function renderStats(stats) {
     document.getElementById('statAvgTime').textContent = stats.avg_completion_time_ms ? formatTime(stats.avg_completion_time_ms) : '00:00.00';
 }
 
+let adminLbLocation = 'all';
+
+async function fetchAdminLeaderboard(location = 'all') {
+    try {
+        const response = await fetch(`${GAME_API_BASE}/leaderboard?location=${location}&_t=${Date.now()}`);
+        if (response.ok) {
+            const data = await response.json();
+            renderLeaderboard(data.leaderboard || []);
+        }
+    } catch (err) {
+        console.error('Failed to fetch admin leaderboard:', err);
+    }
+}
+
 function renderLeaderboard(entries) {
     const tbody = document.getElementById('leaderboardBody');
+    const emptyEl = document.getElementById('adminLbEmpty');
+    if (!tbody) return;
+
     if (!entries || entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data available</td></tr>';
+        tbody.innerHTML = '';
+        if (emptyEl) emptyEl.classList.remove('hidden');
         return;
     }
+    if (emptyEl) emptyEl.classList.add('hidden');
     
-    tbody.innerHTML = entries.map((entry, index) => `
-        <tr>
-            <td>${entry.rank || index + 1}</td>
-            <td style="color:var(--gold)">${escapeHTML(entry.player_name)}</td>
-            <td><span class="location-badge ${entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc'}">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span></td>
-            <td>${formatTime(entry.elapsed_ms)}</td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = entries.map((entry, index) => {
+        const rank = entry.rank || index + 1;
+        const isTop1 = rank === 1;
+        const medal = isTop1 ? '👑 #1' : `#${rank}`;
+        const locationClass = entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc';
+        const locationLabel = entry.location === 'danang' ? 'Da Nang' : 'HCMC';
+
+        return `
+            <tr class="${isTop1 ? 'lb-winner-row' : ''}">
+                <td class="lb-rank">
+                    ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
+                </td>
+                <td class="lb-name">
+                    <div class="lb-player-with-prize">
+                        <span style="font-weight:700; color:var(--gold);">${escapeHTML(entry.player_name)}</span>
+                        ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
+                    </div>
+                </td>
+                <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
+                <td class="lb-location">
+                    <span class="location-badge ${locationClass}">${locationLabel}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // Review Functions
@@ -416,9 +452,32 @@ function bindEvents() {
     });
     
     logoutBtn.addEventListener('click', logout);
+    document.getElementById('closeModalBtn')?.addEventListener('click', closePhotoPreview);
     
-    document.getElementById('closeModalBtn').addEventListener('click', closePhotoPreview);
-    
+    // Admin Leaderboard Accordion Toggle
+    const adminLbToggleBtn = document.getElementById('adminLbToggleBtn');
+    const adminLbContent = document.getElementById('adminLbContent');
+    if (adminLbToggleBtn && adminLbContent) {
+        adminLbToggleBtn.addEventListener('click', () => {
+            const isCollapsed = adminLbContent.classList.toggle('collapsed');
+            adminLbToggleBtn.classList.toggle('active', !isCollapsed);
+            adminLbToggleBtn.setAttribute('aria-expanded', String(!isCollapsed));
+        });
+    }
+
+    // Admin Leaderboard Location Tabs
+    const adminLbTabs = document.getElementById('adminLbTabs');
+    if (adminLbTabs) {
+        adminLbTabs.addEventListener('click', (e) => {
+            const tab = e.target.closest('.lb-filter-tab');
+            if (!tab) return;
+            adminLbTabs.querySelectorAll('.lb-filter-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            adminLbLocation = tab.dataset.lbLocation;
+            fetchAdminLeaderboard(adminLbLocation);
+        });
+    }
+
     // Status Tabs
     const tabs = document.querySelectorAll('.tab-btn');
     tabs.forEach(tab => {

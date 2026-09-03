@@ -124,26 +124,38 @@
             </section>
 
             <div class="main-grid">
-                <!-- Leaderboard Section -->
+                <!-- Leaderboard Section (Collapsible Accordion, Default Hidden) -->
                 <section class="leaderboard-section">
-                    <div class="section-card-header">
-                        <i data-lucide="trophy" class="header-icon-gold"></i>
-                        <h3>Top 10 Leaderboard</h3>
-                    </div>
-                    <div class="table-container">
-                        <table class="leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Player</th>
-                                    <th>Location</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboardBody">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
+                    <button type="button" class="admin-accordion-header" id="adminLbToggleBtn" aria-expanded="false">
+                        <div class="section-card-header">
+                            <i data-lucide="trophy" class="header-icon-gold"></i>
+                            <h3>Leaderboard</h3>
+                        </div>
+                        <i data-lucide="chevron-down" class="accordion-chevron" id="adminLbChevron"></i>
+                    </button>
+                    <div class="admin-accordion-content collapsed" id="adminLbContent">
+                        <!-- Office Filter Tabs -->
+                        <div class="lb-tabs-container admin-lb-tabs" id="adminLbTabs">
+                            <button type="button" class="lb-filter-tab active" data-lb-location="all">All Offices</button>
+                            <button type="button" class="lb-filter-tab" data-lb-location="danang">Da Nang</button>
+                            <button type="button" class="lb-filter-tab" data-lb-location="hcmc">HCMC</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="lb-ranking-table">
+                                <thead>
+                                    <tr>
+                                        <th>RANK</th>
+                                        <th>PLAYER</th>
+                                        <th>TIME</th>
+                                        <th>LOCATION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboardBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                            <div class="empty-msg hidden" id="adminLbEmpty" style="padding: 1.5rem;">No completions yet.</div>
+                        </div>
                     </div>
                 </section>
 

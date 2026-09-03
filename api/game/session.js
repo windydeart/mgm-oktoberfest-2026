@@ -153,6 +153,24 @@ module.exports = async (req, res) => {
               }
             } catch (e) {}
 
+            // If the start time is more than 24 hours old, it is from an old testing session days ago. Find today's earliest photo!
+            const sessionStartTs = new Date(sessionStartedAt).getTime();
+            if (isNaN(sessionStartTs) || Date.now() - sessionStartTs > 24 * 3600 * 1000) {
+              try {
+                const todayCutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+                const todayRes = await fetch(
+                  `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&created_at=gte.${encodeURIComponent(todayCutoff)}&order=created_at.asc&limit=1`,
+                  { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+                );
+                if (todayRes.ok) {
+                  const todayList = await todayRes.json();
+                  if (todayList && todayList.length > 0) {
+                    sessionStartedAt = todayList[0].created_at;
+                  }
+                }
+              } catch (e) {}
+            }
+
             session = {
               session_id: sid,
               player_name: playerName,
@@ -298,7 +316,7 @@ module.exports = async (req, res) => {
     }
 
     let startTimestamp = session.started_at ? new Date(session.started_at).getTime() : 0;
-    if (isNaN(startTimestamp) || startTimestamp <= 0) {
+    if (isNaN(startTimestamp) || startTimestamp <= 0 || Date.now() - startTimestamp > 24 * 3600 * 1000) {
       startTimestamp = Date.now() - (session.elapsed_ms || 60000);
       session.started_at = new Date(startTimestamp).toISOString();
     }

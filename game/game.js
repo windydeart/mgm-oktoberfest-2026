@@ -727,7 +727,7 @@
     /* ═══════════════════════════════════════════════════════
      PROMOTE CELL TO IN REVIEW (Organizers manual verify)
      ═══════════════════════════════════════════════════════ */
-  function promoteToPendingReview(targetIdx, dataUrl, challenge) {
+  function promoteToPendingReview(targetIdx, dataUrl, challenge, lockedElapsedMs) {
     const targetCell = $$('.bingo-cell')[targetIdx];
     if (!targetCell) return;
 
@@ -757,15 +757,17 @@
     renderBoard();
     showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
 
-    // Check if this newly promoted cell completes BINGO (even while in review)!
+    // Check if this newly promoted cell completes BINGO (now that AI checking is done)!
     const winningLine = checkBingo(gameState.completedCells);
     if (winningLine && gameState.status !== 'completed') {
+      const finalElapsed = lockedElapsedMs || gameState._potentialBingoElapsedMs || gameState.elapsedMs;
       gameState.status = 'completed';
       gameState.bingoLine = winningLine;
-      stopTimer(gameState.elapsedMs);
+      gameState.elapsedMs = finalElapsed;
+      stopTimer(finalElapsed);
       saveSession();
       renderBoard();
-      onBingo({ bingo_line: winningLine, elapsed_ms: gameState.elapsedMs });
+      onBingo({ bingo_line: winningLine, elapsed_ms: finalElapsed });
     }
 
     // Start polling for organizer decisions
@@ -792,6 +794,20 @@
       if (window.lucide) window.lucide.createIcons();
     }
 
+    // ─── 2b. Freeze Timer IMMEDIATELY if this photo completes BINGO ───
+    // Time stops flowing right now at the instant photo is taken!
+    const potentialCompleted = [...new Set([...(gameState.completedCells || []), targetIdx])];
+    const potentialBingo = checkBingo(potentialCompleted);
+    const isPotentialBingo = potentialBingo !== null;
+    const captureElapsedMs = gameState.elapsedMs || 1000;
+
+    if (isPotentialBingo) {
+      stopTimer(captureElapsedMs);
+      gameState.elapsedMs = captureElapsedMs;
+      gameState._potentialBingoLine = potentialBingo;
+      gameState._potentialBingoElapsedMs = captureElapsedMs;
+    }
+
     showToast('Photo submitted! AI is verifying in background...', 'info', 2200);
 
     let hasResolved = false;
@@ -800,7 +816,7 @@
     const fallbackTimer = setTimeout(() => {
       if (!hasResolved) {
         hasResolved = true;
-        promoteToPendingReview(targetIdx, dataUrl, challenge);
+        promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
       }
     }, 5500);
 
@@ -815,7 +831,7 @@
           location: gameState.location,
           cell_index: targetIdx,
           photo_base64: base64,
-          elapsed_ms: gameState.elapsedMs || 0
+          elapsed_ms: captureElapsedMs
         })
       });
 
@@ -831,9 +847,9 @@
 
       hasResolved = true;
 
-      if (typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) {
-        gameState.elapsedMs = data.elapsed_ms;
-      }
+      const finalElapsedMs = isPotentialBingo ? captureElapsedMs : ((typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) ? data.elapsed_ms : gameState.elapsedMs);
+      gameState.elapsedMs = finalElapsedMs;
+
       if (data.session_token) {
         gameState.sessionToken = data.session_token;
       }
@@ -842,7 +858,7 @@
       gameState.cellAiReasons[targetIdx] = data.ai_reason || data.reason || (data.pending_review ? 'Photo queued for manual review.' : 'Challenge approved!');
 
       if (data.pending_review) {
-        promoteToPendingReview(targetIdx, data.photo_url || dataUrl, challenge);
+        promoteToPendingReview(targetIdx, data.photo_url || dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
       } else {
         // AI Approved directly
         if (!gameState.completedCells.includes(targetIdx)) {
@@ -863,13 +879,17 @@
           if (window.lucide) window.lucide.createIcons();
         }
 
-        if (data.is_bingo) {
+        const winningLine = checkBingo(gameState.completedCells);
+        if (winningLine || data.is_bingo) {
+          const finalLine = winningLine || data.bingo_line;
           gameState.status = 'completed';
-          gameState.elapsedMs = data.elapsed_ms;
-          gameState.bingoLine = data.bingo_line;
+          gameState.elapsedMs = finalElapsedMs;
+          gameState.bingoLine = finalLine;
           gameState.rank = data.rank || 1;
+          stopTimer(finalElapsedMs);
           saveSession();
-          onBingo(data);
+          renderBoard();
+          onBingo({ bingo_line: finalLine, elapsed_ms: finalElapsedMs, rank: gameState.rank });
         } else {
           saveSession();
           showToast(`Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
@@ -880,7 +900,7 @@
       if (!hasResolved) {
         clearTimeout(fallbackTimer);
         hasResolved = true;
-        promoteToPendingReview(targetIdx, dataUrl, challenge);
+        promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
       }
     }
   }

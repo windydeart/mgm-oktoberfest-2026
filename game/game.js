@@ -1633,37 +1633,44 @@
     /* ═══════════════════════════════════════════════════════
      CONTINUOUS FIREWORKS CELEBRATION
      ═══════════════════════════════════════════════════════ */
-  function fireFireworks(duration = 2400) {
+  function fireFireworks() {
     if (!window.confetti) return;
-    const end = Date.now() + duration;
-    const colors = ['#f59e0b', '#fbbf24', '#ffffff', '#0284c7', '#ec4899', '#10b981'];
 
-    (function frame() {
+    // 1. Initial gentle center burst (subtle & elegant)
+    confetti({
+      particleCount: 32,
+      spread: 50,
+      origin: { y: 0.65 },
+      colors: ['#f59e0b', '#fbbf24', '#ffffff', '#fed7aa'],
+      gravity: 0.8,
+      scalar: 0.85,
+      ticks: 170,
+      disableForReducedMotion: true
+    });
+
+    // 2. Soft, subtle secondary side accents
+    setTimeout(() => {
       confetti({
-        particleCount: 7,
+        particleCount: 14,
         angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.7 },
-        colors: colors
+        spread: 40,
+        origin: { x: 0.15, y: 0.7 },
+        colors: ['#f59e0b', '#fbbf24'],
+        gravity: 0.85,
+        scalar: 0.8,
+        ticks: 150
       });
       confetti({
-        particleCount: 7,
+        particleCount: 14,
         angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.7 },
-        colors: colors
+        spread: 40,
+        origin: { x: 0.85, y: 0.7 },
+        colors: ['#d97706', '#fbbf24'],
+        gravity: 0.85,
+        scalar: 0.8,
+        ticks: 150
       });
-      confetti({
-        particleCount: 10,
-        spread: 90,
-        origin: { x: 0.5, y: 0.3 },
-        colors: colors
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    })();
+    }, 350);
   }
 
   function fireConfetti() {

@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Game Stylesheet -->
-  <link rel="stylesheet" href="/game/game.css?v=350">
+  <link rel="stylesheet" href="/game/game.css?v=351">
 </head>
 <body class="dark-theme game-page">
 
@@ -520,18 +520,23 @@
       <h2 class="victory-huge-title gold-gradient-text">BINGO!</h2>
       <p class="victory-cheer">Congratulations! You completed a winning line!</p>
 
-      <div class="victory-metric-grid">
-        <div class="metric-card">
-          <span class="metric-label">TIME</span>
-          <span class="metric-val metric-time" id="victoryTime">00:00.00</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-label">RANK</span>
+      <div class="victory-metric-container">
+        <!-- Rank Card at the TOP (Prominent & Full Width) -->
+        <div class="metric-card metric-card-rank">
+          <span class="metric-label">CURRENT RANK</span>
           <span class="metric-val rank-highlight" id="victoryRank">#1</span>
         </div>
-        <div class="metric-card">
-          <span class="metric-label">WINNING LINE</span>
-          <span class="metric-val metric-line" id="victoryLine">Diagonal ↘</span>
+
+        <!-- 2 Columns Below: TIME & WINNING LINE -->
+        <div class="victory-metric-subgrid">
+          <div class="metric-card">
+            <span class="metric-label">TIME</span>
+            <span class="metric-val metric-time" id="victoryTime">00:00.00</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">WINNING LINE</span>
+            <span class="metric-val metric-line" id="victoryLine">Diagonal ↘</span>
+          </div>
         </div>
       </div>
 
@@ -681,6 +686,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=350"></script>
+  <script src="/game/game.js?v=351"></script>
 </body>
 </html>

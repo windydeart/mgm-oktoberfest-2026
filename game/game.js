@@ -201,6 +201,7 @@
      TIMER ENGINE
      ═══════════════════════════════════════════════════════ */
   function startTimer(resumeFromMs) {
+    console.log('[TIMER] startTimer called with resumeFromMs=', resumeFromMs, 'gameState.elapsedMs=', gameState.elapsedMs, 'gameState.startedAt=', gameState.startedAt);
     let baseMs = 0;
     if (typeof resumeFromMs === 'number' && !isNaN(resumeFromMs) && resumeFromMs > 0) {
       baseMs = resumeFromMs;
@@ -1687,9 +1688,12 @@
       els.bingoBoard.style.display = 'grid';
       renderBoard();
 
+      console.log('[RECOVER] isCompleted=', isCompleted, 'bingoLine=', bingoLine, 'completedCells=', completedCells, 'resolvedElapsed=', resolvedElapsed, 'data.elapsed_ms=', data.elapsed_ms, 'data.status=', data.status);
       if (isCompleted) {
+        console.log('[RECOVER] -> stopTimer', gameState.elapsedMs);
         stopTimer(gameState.elapsedMs || 0);
       } else {
+        console.log('[RECOVER] -> startTimer', gameState.elapsedMs);
         startTimer(gameState.elapsedMs || 0);
       }
 

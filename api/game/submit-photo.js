@@ -427,10 +427,10 @@ Reply with ONLY a JSON object:
     const reviewStatus = is_pending_review ? 'pending' : 'approved';
     const reviewerNote = is_pending_review ? null : 'Approved by AI ✓';
 
-    // 1. Clean up any old review record for this cell (whether rejected, pending, or approved)
+    // 1. Only clean up unreviewed 'pending' drafts for this cell, KEEP 'rejected' records so rejection audit log is never lost!
     const delUrl = session.player_name
-      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}`
-      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}`;
+      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}&status=eq.pending`
+      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}&status=eq.pending`;
 
     await fetch(delUrl, {
       method: 'DELETE',

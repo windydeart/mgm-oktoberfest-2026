@@ -20,8 +20,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Query all non-pending reviews for this session
-    const queryUrl = `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(sessionId)}&status=neq.pending&select=id,cell_index,status,reviewer_note,reviewed_at`;
+    // Query all non-pending reviews for this session in chronological order
+    const queryUrl = `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(sessionId)}&status=neq.pending&select=id,cell_index,status,reviewer_note,reviewed_at&order=created_at.asc`;
 
     const sbRes = await fetch(queryUrl, {
       headers: {

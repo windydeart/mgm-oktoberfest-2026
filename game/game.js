@@ -179,24 +179,69 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     TOAST NOTIFICATIONS (100% English)
+     TOAST NOTIFICATIONS (Max 3, Anti-Duplicate, Max 2s)
      ═══════════════════════════════════════════════════════ */
-  function showToast(message, type = 'info', duration = 3500) {
+  function showToast(message, type = 'info', duration = 2000) {
+    if (!els.toastContainer || !message) return;
+
+    const rawMsg = String(message).trim();
+
+    // 1. Anti-Duplicate: "nếu giống nhau chỉ xuất hiện 1 lần"
+    const existingToasts = Array.from(els.toastContainer.querySelectorAll('.toast-item:not(.toast-dismissing)'));
+    const isDuplicate = existingToasts.some(t => {
+      const msgSpan = t.querySelector('.toast-msg');
+      return msgSpan && msgSpan.textContent.trim() === rawMsg;
+    });
+    if (isDuplicate) {
+      return;
+    }
+
+    // 2. Max 3 toasts: "tối đa xuất hiện 3 cái, nếu 3 cái khác nhau thì đủ 3 cái sẽ mất cái thứ 1 đầu tiên"
+    while (existingToasts.length >= 3) {
+      const oldest = existingToasts.shift();
+      if (oldest) {
+        oldest.classList.add('toast-dismissing');
+        oldest.classList.remove('show');
+        setTimeout(() => {
+          if (oldest.parentElement) oldest.remove();
+        }, 250);
+      }
+    }
+
+    // 3. Max duration: "Thời gian xuất hiện tối đa 2s => Tránh spam UI"
+    const effectiveDuration = Math.min(typeof duration === 'number' && duration > 0 ? duration : 2000, 2000);
+
     const toast = document.createElement('div');
     toast.className = `toast-item toast-${type}`;
-    toast.innerHTML = `
-      <span class="toast-msg">${message}</span>
-      <button class="toast-close" aria-label="Close">&times;</button>
-    `;
+
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'toast-msg';
+    msgSpan.textContent = rawMsg;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.innerHTML = '&times;';
+
+    toast.appendChild(msgSpan);
+    toast.appendChild(closeBtn);
     els.toastContainer.appendChild(toast);
+
     requestAnimationFrame(() => toast.classList.add('show'));
 
+    let isDismissed = false;
     const dismiss = () => {
+      if (isDismissed) return;
+      isDismissed = true;
+      toast.classList.add('toast-dismissing');
       toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 250);
     };
-    toast.querySelector('.toast-close').addEventListener('click', dismiss);
-    setTimeout(dismiss, duration);
+
+    closeBtn.addEventListener('click', dismiss);
+    setTimeout(dismiss, effectiveDuration);
   }
 
   /* ═══════════════════════════════════════════════════════

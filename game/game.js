@@ -1968,8 +1968,11 @@
   /* ═══════════════════════════════════════════════════════
      ADMIN REVIEW POLLING — Check for organizer decisions
      ═══════════════════════════════════════════════════════ */
-  let reviewPollInterval = null;
-  let processedReviewDecisions = new Set(); // Track already-processed decision IDs
+  let processedReviewDecisions = new Set();
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('processed_review_decisions') || '[]');
+    if (Array.isArray(saved)) processedReviewDecisions = new Set(saved);
+  } catch (e) {}
 
   function startReviewPolling() {
     if (reviewPollInterval) return;
@@ -2004,6 +2007,14 @@
         const decisionKey = `${decision.id}-${decision.status}`;
         if (processedReviewDecisions.has(decisionKey)) continue;
         processedReviewDecisions.add(decisionKey);
+        try {
+          sessionStorage.setItem('processed_review_decisions', JSON.stringify([...processedReviewDecisions]));
+        } catch (e) {}
+
+        // Safety check: Only apply decision if this cell is currently pending review
+        if (!gameState.pendingReviewCells || !gameState.pendingReviewCells.includes(decision.cell_index)) {
+          continue;
+        }
 
         if (decision.status === 'approved') {
           handleReviewApproved(decision);

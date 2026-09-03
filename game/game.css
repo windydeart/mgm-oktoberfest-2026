@@ -289,30 +289,37 @@ body.game-page::before {
   margin: 0 auto 1.1rem;
 }
 
-/* ─── LIVE STATUS BAR ─── */
+/* ─── LIVE STATUS BAR (Single Row Enforced) ─── */
 .game-status-bar {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: rgba(11, 19, 43, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 12px;
+  background: rgba(11, 19, 43, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--radius-full);
-  padding: 6px 16px;
+  padding: 5px 14px;
+  max-width: 98vw;
+  box-sizing: border-box;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
+  gap: 5px;
+  font-size: 0.8rem;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.status-pill i {
-  width: 14px;
-  height: 14px;
+.status-pill i,
+.status-pill svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 .status-pill.rank-pill { color: var(--text-gold); }
@@ -321,8 +328,21 @@ body.game-page::before {
 .status-pill.progress-pill { color: #38bdf8; }
 .status-pill.progress-pill i { color: #38bdf8; }
 
-.status-pill.goal-pill { color: var(--text-gold); font-weight: 700; }
+.status-pill.goal-pill {
+  color: var(--text-gold);
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  animation: goalPulse 1.5s ease-in-out infinite alternate;
+}
 .status-pill.goal-pill i { color: var(--text-gold); }
+
+@keyframes goalPulse {
+  0% { transform: scale(0.96); box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); }
+  100% { transform: scale(1.03); box-shadow: 0 0 10px rgba(245, 158, 11, 0.45); }
+}
 
 .status-loc-badge {
   font-size: 0.7rem;
@@ -2054,6 +2074,34 @@ body.game-page::before {
 
   .game-main-content {
     padding: 1rem 0.8rem 2.5rem;
+  }
+
+  /* Force 3 status elements on a single row on mobile */
+  .game-status-bar {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important;
+    gap: 7px !important;
+    padding: 4px 10px !important;
+    max-width: 98vw;
+    border-radius: var(--radius-full);
+  }
+
+  .status-pill {
+    gap: 3px !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0;
+  }
+
+  .status-pill i,
+  .status-pill svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .status-pill.goal-pill {
+    padding: 1.5px 6px !important;
+    font-size: 0.7rem !important;
   }
   
   .game-arena-title {

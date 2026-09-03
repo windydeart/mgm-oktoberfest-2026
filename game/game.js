@@ -359,7 +359,7 @@
       if (els.gameStatusBar) els.gameStatusBar.style.display = 'inline-flex';
       if (els.statusPlayerName) els.statusPlayerName.textContent = gameState.playerName || 'Player';
       if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
-      if (els.statusProgress) els.statusProgress.textContent = `${gameState.completedCells.length} / 9 Completed`;
+      if (els.statusProgress) els.statusProgress.textContent = `${gameState.completedCells.length}/9 Completed`;
 
       const rankStr = (gameState.status === 'completed' && gameState.rank) ? `#${gameState.rank}` : '#--';
       if (els.statusRankText) els.statusRankText.textContent = `Rank ${rankStr}`;
@@ -367,7 +367,7 @@
       if (els.statusGoalPill) {
         if (gameState.status === 'completed') {
           els.statusGoalPill.style.display = 'inline-flex';
-          if (els.statusGoalText) els.statusGoalText.textContent = 'BINGO Achieved!';
+          if (els.statusGoalText) els.statusGoalText.textContent = 'BINGO!';
         } else {
           els.statusGoalPill.style.display = 'none';
         }

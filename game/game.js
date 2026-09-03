@@ -316,6 +316,7 @@
      BINGO BOARD RENDERING (Flat Icons + 4x Camera Watermark)
      ═══════════════════════════════════════════════════════ */
   function renderBoard() {
+    const cells = $$('.bingo-cell');
     const confirmedCells = (gameState.completedCells || []).filter(c => !(gameState.pendingReviewCells || []).includes(c));
     const winningLine = gameState.status === 'completed' ? (gameState.bingoLine || checkBingo(confirmedCells)) : null;
     const winningIndices = winningLine ? getBingoLineIndices(winningLine) : [];

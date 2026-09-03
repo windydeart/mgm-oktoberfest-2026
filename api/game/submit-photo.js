@@ -271,15 +271,15 @@ module.exports = async (req, res) => {
 
   // ─── AI Verification with 4.5s Timeout -> Fallback to IN REVIEW ───
   const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
-  const fallbackKey = Buffer.from('QVEuQWI4Uk42Skl5NldlWHZyMmJGSk9PUnE2UUR0c1VPN2hDaXpmRHRMa3VWSF9fQ1QzV2c=', 'base64').toString('utf-8');
+  const fallbackKey = Buffer.from('QVEuQWI4Uk42SVFpR3h4VHJGN2gtamFkckJSM2VnUDhLb3BiamtfaFEtWDZPU1VMWF9MRmc=', 'base64').toString('utf-8');
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
 
   const candidateModels = [
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
     'gemini-3.5-flash-lite',
     'gemini-2.5-flash-lite',
-    'gemini-3.1-flash-lite',
-    'gemini-flash-lite-latest',
-    'gemini-3.5-flash'
+    'gemini-flash-lite-latest'
   ];
 
   let ai_decision_made = false;

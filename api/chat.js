@@ -256,7 +256,7 @@ module.exports = async function handler(req, res) {
   });
 
   // Call Gemini API — prefer environment variable, with server-side fallback
-  const fallbackKey = Buffer.from('QVEuQWI4Uk42Skl5NldlWHZyMmJGSk9PUnE2UUR0c1VPN2hDaXpmRHRMa3VWSF9fQ1QzV2c=', 'base64').toString('utf-8');
+  const fallbackKey = Buffer.from('QVEuQWI4Uk42SVFpR3h4VHJGN2gtamFkckJSM2VnUDhLb3BiamtfaFEtWDZPU1VMWF9MRmc=', 'base64').toString('utf-8');
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
   if (!apiKey) {
     console.error('GEMINI_API_KEY environment variable is not set');
@@ -264,13 +264,11 @@ module.exports = async function handler(req, res) {
   }
 
   const candidateModels = [
+    'gemini-3.6-flash',
     'gemini-3.5-flash',
     'gemini-3.5-flash-lite',
-    'gemini-3.6-flash',
-    'gemini-3.7-flash',
     'gemini-flash-latest',
-    'gemini-flash-lite-latest',
-    'gemini-pro-latest'
+    'gemini-flash-lite-latest'
   ];
 
   let reply = null;

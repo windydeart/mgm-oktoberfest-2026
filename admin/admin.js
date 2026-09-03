@@ -315,10 +315,54 @@ async function approveReview(reviewId) {
     await submitReviewAction(reviewId, 'approve');
 }
 
-async function rejectReview(reviewId) {
-    const reason = prompt('Lý do từ chối (Rejection reason):', 'Ảnh không khớp với yêu cầu của thử thách.');
-    if (reason === null) return; // User cancelled
-    await submitReviewAction(reviewId, 'reject', reason.trim() || 'Ảnh không khớp với yêu cầu của thử thách.');
+let pendingRejectReviewId = null;
+
+function openRejectModal(reviewId) {
+    pendingRejectReviewId = reviewId;
+    const rejectModal = document.getElementById('rejectModal');
+    const input = document.getElementById('rejectReasonInput');
+    if (input) {
+        input.value = 'Photo does not match challenge requirement.';
+    }
+    if (rejectModal) {
+        rejectModal.classList.remove('hidden');
+        setTimeout(() => {
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }, 60);
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+function closeRejectModal() {
+    pendingRejectReviewId = null;
+    const rejectModal = document.getElementById('rejectModal');
+    if (rejectModal) {
+        rejectModal.classList.add('hidden');
+    }
+}
+
+function setRejectReason(reason) {
+    const input = document.getElementById('rejectReasonInput');
+    if (input) {
+        input.value = reason;
+        input.focus();
+    }
+}
+
+async function confirmRejection() {
+    if (!pendingRejectReviewId) return;
+    const input = document.getElementById('rejectReasonInput');
+    const reason = (input && input.value.trim()) || 'Photo does not match challenge requirement.';
+    const reviewId = pendingRejectReviewId;
+    closeRejectModal();
+    await submitReviewAction(reviewId, 'reject', reason);
+}
+
+function rejectReview(reviewId) {
+    openRejectModal(reviewId);
 }
 
 async function submitReviewAction(reviewId, action, note = '') {
@@ -357,6 +401,10 @@ function openPhotoPreview(url, challenge) {
 
 window.approveReview = approveReview;
 window.rejectReview = rejectReview;
+window.openRejectModal = openRejectModal;
+window.closeRejectModal = closeRejectModal;
+window.setRejectReason = setRejectReason;
+window.confirmRejection = confirmRejection;
 window.openPhotoPreview = openPhotoPreview;
 window.closePhotoPreview = closePhotoPreview;
 
@@ -397,6 +445,25 @@ function bindEvents() {
     
     // Close modal on outside click
     modal.querySelector('.modal-overlay').addEventListener('click', closePhotoPreview);
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closePhotoPreview();
+            closeRejectModal();
+        }
+    });
+
+    // Ctrl+Enter / Cmd+Enter to confirm rejection
+    const rejectTextarea = document.getElementById('rejectReasonInput');
+    if (rejectTextarea) {
+        rejectTextarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                confirmRejection();
+            }
+        });
+    }
 }
 
 // Auto Refresh (Every 2 seconds)

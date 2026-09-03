@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=11">
+    <link rel="stylesheet" href="/admin/admin.css?v=12">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -190,10 +190,45 @@
         </div>
     </div>
 
+    <!-- Rejection Confirmation Modal (100% English, Center Screen) -->
+    <div id="rejectModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeRejectModal()"></div>
+        <div class="modal-content reject-modal-card">
+            <button type="button" class="close-btn" onclick="closeRejectModal()"><i data-lucide="x"></i></button>
+            <div class="reject-modal-header">
+                <div class="reject-icon-badge">
+                    <i data-lucide="alert-triangle"></i>
+                </div>
+                <div>
+                    <h3>Reject Submission</h3>
+                    <p class="reject-modal-subtitle">Provide a reason for rejecting this challenge photo:</p>
+                </div>
+            </div>
+
+            <div class="reject-quick-chips">
+                <button type="button" class="quick-chip" onclick="setRejectReason('Photo does not match challenge requirement.')">Does not match</button>
+                <button type="button" class="quick-chip" onclick="setRejectReason('Photo is blurry or unidentifiable.')">Blurry photo</button>
+                <button type="button" class="quick-chip" onclick="setRejectReason('Missing required people or items.')">Missing items</button>
+            </div>
+
+            <div class="reject-input-group">
+                <label for="rejectReasonInput">Reason</label>
+                <textarea id="rejectReasonInput" rows="3" placeholder="Enter reason for rejection..."></textarea>
+            </div>
+
+            <div class="reject-modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="closeRejectModal()">Cancel</button>
+                <button type="button" class="btn-modal-confirm-reject" id="confirmRejectBtn" onclick="confirmRejection()">
+                    <i data-lucide="x-circle"></i> <span>Confirm Rejection</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=11"></script>
+    <script src="/admin/admin.js?v=12"></script>
     <script>
         lucide.createIcons();
     </script>

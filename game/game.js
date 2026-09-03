@@ -612,6 +612,19 @@
       gameState.sessionToken = data.session_token;
       gameState.playerName = name;
       gameState.challenges = data.challenges;
+
+      // Double-check guaranteed pinned Marketing challenge at random position
+      const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));
+      if (!hasA12 && gameState.challenges && gameState.challenges.length === 9) {
+        const randSlot = Math.floor(Math.random() * 9);
+        gameState.challenges[randSlot] = {
+          id: 41,
+          category: 'Marketing',
+          icon: '📸',
+          challenge: 'Selfie with "A12 open source" banner',
+          pinned: true
+        };
+      }
       gameState.startedAt = data.started_at;
       gameState.completedCells = [];
       gameState.status = 'playing';
@@ -1719,7 +1732,7 @@
       // player_name lookup syncs directly with the database every time.
       let queryUrl = '';
       if (savedPlayerName) {
-        queryUrl = `${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}`;
+        queryUrl = `${API_BASE}/session?player_name=${encodeURIComponent(savedPlayerName)}&location=${encodeURIComponent(savedLocation)}${savedToken ? `&token=${encodeURIComponent(savedToken)}` : ''}`;
       } else if (savedToken) {
         queryUrl = `${API_BASE}/session?token=${encodeURIComponent(savedToken)}`;
       }
@@ -1749,6 +1762,22 @@
       gameState.playerName = data.player_name || savedPlayerName || '';
       gameState.location = data.location || savedLocation;
       gameState.challenges = data.challenges;
+
+      // Double-check guaranteed pinned Marketing challenge on recovered session
+      const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));
+      if (!hasA12 && gameState.challenges && gameState.challenges.length === 9) {
+        const uncompletedIndices = [0,1,2,3,4,5,6,7,8].filter(idx => !completedCells.includes(idx));
+        const targetIdx = uncompletedIndices.length > 0 
+          ? uncompletedIndices[Math.floor(Math.random() * uncompletedIndices.length)]
+          : Math.floor(Math.random() * 9);
+        gameState.challenges[targetIdx] = {
+          id: 41,
+          category: 'Marketing',
+          icon: '📸',
+          challenge: 'Selfie with "A12 open source" banner',
+          pinned: true
+        };
+      }
       gameState.completedCells = completedCells;
       gameState.pendingReviewCells = pendingReviewCells;
       gameState.cellPhotos = data.cell_photo_urls || {};

@@ -53,16 +53,34 @@ function getDefaultChallenges() {
     ? challengesPool
     : (challengesPool && challengesPool.challenges ? challengesPool.challenges : []);
   if (pool.length >= 9) {
+    // 1. Always guarantee all pinned challenges (e.g. ID 41: Selfie with "A12 open source" banner)
+    const pinned = pool.filter(c => c.pinned === true);
+    const unpinned = pool.filter(c => c.pinned !== true);
+
+    const picked = [...pinned];
     const specificIds = [39, 36, 9, 24, 10, 33, 7, 15, 31];
-    const picked = specificIds.map(id => pool.find(c => c.id === id)).filter(Boolean);
-    if (picked.length === 9) return picked;
-    return pool.slice(0, 9);
+    for (const id of specificIds) {
+      if (picked.length >= 9) break;
+      const c = pool.find(ch => ch.id === id);
+      if (c && !picked.find(p => p.id === c.id)) picked.push(c);
+    }
+    for (const c of unpinned) {
+      if (picked.length >= 9) break;
+      if (!picked.find(p => p.id === c.id)) picked.push(c);
+    }
+    const final9 = picked.slice(0, 9);
+    // Shuffle the final 9 so the pinned challenge lands at a random position (0-8)
+    for (let i = final9.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [final9[i], final9[j]] = [final9[j], final9[i]];
+    }
+    return final9;
   }
   return Array.from({ length: 9 }, (_, i) => ({
     id: i + 1,
-    category: 'Funny',
-    icon: '😂',
-    challenge: `Challenge #${i + 1}`
+    category: 'Marketing',
+    icon: '📸',
+    challenge: i === 0 ? 'Selfie with "A12 open source" banner' : `Challenge #${i + 1}`
   }));
 }
 

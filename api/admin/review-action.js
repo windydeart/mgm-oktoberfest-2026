@@ -67,6 +67,10 @@ module.exports = async (req, res) => {
     }
     const review = reviews[0];
 
+    if (review.status === 'rejected') {
+      return res.status(400).json({ error: 'Once rejected, a submission cannot be re-approved. Rejections are final.' });
+    }
+
     if (review.status === action) {
       return res.status(400).json({ error: `Review already ${review.status}.` });
     }

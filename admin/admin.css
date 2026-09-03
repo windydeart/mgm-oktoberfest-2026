@@ -946,31 +946,23 @@ body {
     height: 12px;
 }
 
-.btn-review-reapprove {
+.log-status-tag {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 10px;
-    background: rgba(34, 197, 94, 0.16);
-    border: 1px solid rgba(34, 197, 94, 0.4);
+    padding: 2.5px 8px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
     border-radius: 5px;
-    color: #4ade80;
-    font-size: 0.75rem;
+    color: #f87171;
+    font-size: 0.72rem;
     font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
-.btn-review-reapprove:hover {
-    background: rgba(34, 197, 94, 0.32);
-    border-color: #22c55e;
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
-}
-
-.btn-review-reapprove i,
-.btn-review-reapprove svg {
+.log-status-tag i,
+.log-status-tag svg {
     width: 12px;
     height: 12px;
 }

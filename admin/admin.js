@@ -253,9 +253,7 @@ function renderReviews(reviews) {
 
                         <div class="log-card-footer">
                             <span class="log-time-text"><i data-lucide="clock"></i> Rejected ${timeStr}</span>
-                            <button type="button" class="btn-review-reapprove" onclick="approveReview(${review.id})" title="Overturn and Approve">
-                                <i data-lucide="check"></i> <span>Re-approve</span>
-                            </button>
+                            <span class="log-status-tag"><i data-lucide="x-circle"></i> Rejected</span>
                         </div>
                     </div>
                 </div>

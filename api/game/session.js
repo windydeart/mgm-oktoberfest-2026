@@ -220,11 +220,11 @@ module.exports = async (req, res) => {
   // 2. Re-calculate BINGO strictly based on active valid completed cells
   const calculatedBingoLine = checkBingo(completedCells);
   let isCompleted = calculatedBingoLine !== null;
-  let rank = session.rank || null;
+  let rank = null;
   let elapsed_ms = 0;
 
   if (isCompleted) {
-    // If completed, verify score in DB
+    // If completed, verify score in DB and compute true leaderboard rank
     try {
       const scoreRes = await fetch(
         `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,
@@ -240,6 +240,32 @@ module.exports = async (req, res) => {
       console.warn('Score lookup note:', e.message);
     }
     if (!elapsed_ms) elapsed_ms = session.elapsed_ms || 155590;
+
+    // Calculate authoritative real rank
+    try {
+      const allScoresRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&select=player_name,duration_seconds&order=duration_seconds.asc`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (allScoresRes.ok) {
+        const allScores = await allScoresRes.json();
+        const bestByPlayer = new Map();
+        for (const s of (allScores || [])) {
+          const key = (s.player_name || '').trim().toLowerCase();
+          if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
+            bestByPlayer.set(key, s);
+          }
+        }
+        const myDuration = elapsed_ms / 1000;
+        const fasterCount = Array.from(bestByPlayer.values()).filter(s => {
+          if ((s.player_name || '').trim().toLowerCase() === (session.player_name || '').trim().toLowerCase()) return false;
+          return s.duration_seconds < myDuration;
+        }).length;
+        rank = fasterCount + 1;
+      }
+    } catch (rErr) {
+      console.warn('Session rank compute error:', rErr.message);
+    }
   } else {
     // If NOT completed, invalidate any stale score in database
     try {

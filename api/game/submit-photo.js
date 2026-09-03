@@ -464,12 +464,23 @@ Reply with ONLY a JSON object:
         })
       });
 
-      const rankRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&office=eq.${session.location}&duration_seconds=lte.${duration_seconds}&select=id`, {
+      const allScoresRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&select=player_name,duration_seconds&order=duration_seconds.asc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
-      if (rankRes.ok) {
-        const ranks = await rankRes.json();
-        rank = ranks.length || 1;
+      if (allScoresRes.ok) {
+        const allScores = await allScoresRes.json();
+        const bestByPlayer = new Map();
+        for (const s of (allScores || [])) {
+          const key = (s.player_name || '').trim().toLowerCase();
+          if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
+            bestByPlayer.set(key, s);
+          }
+        }
+        const fasterCount = Array.from(bestByPlayer.values()).filter(s => {
+          if ((s.player_name || '').trim().toLowerCase() === (session.player_name || '').trim().toLowerCase()) return false;
+          return s.duration_seconds < duration_seconds;
+        }).length;
+        rank = fasterCount + 1;
       }
       session.rank = rank;
     } catch (e) {

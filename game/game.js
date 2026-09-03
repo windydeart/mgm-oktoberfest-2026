@@ -361,7 +361,7 @@
       if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
       if (els.statusProgress) els.statusProgress.textContent = `${gameState.completedCells.length} / 9 Completed`;
 
-      const rankStr = gameState.rank ? `#${gameState.rank}` : (gameState.status === 'completed' ? '#1' : '#--');
+      const rankStr = (gameState.status === 'completed' && gameState.rank) ? `#${gameState.rank}` : '#--';
       if (els.statusRankText) els.statusRankText.textContent = `Rank ${rankStr}`;
 
       if (els.statusGoalPill) {
@@ -732,7 +732,7 @@
         is_bingo: true,
         bingo_line: bingoLine,
         elapsed_ms: elapsedMs,
-        rank: gameState.rank || 1,
+        rank: gameState.rank || null,
         pending_review: true
       };
       saveSession();
@@ -1073,7 +1073,31 @@
 
     gameState.elapsedMs = resolvedElapsed;
     gameState.bingoLine = (data && data.bingo_line) || checkBingo(gameState.completedCells);
-    gameState.rank = (data && data.rank) || gameState.rank || 1;
+
+    // Resolve authoritative real rank against current live leaderboard
+    let initialRank = (data && typeof data.rank === 'number' && data.rank > 0) ? data.rank : gameState.rank;
+    gameState.rank = initialRank;
+
+    (async () => {
+      try {
+        const lbRes = await fetch(`${API_BASE}/leaderboard?location=all`);
+        if (lbRes.ok) {
+          const lbData = await lbRes.json();
+          const entries = lbData.leaderboard || [];
+          const fasterCount = entries.filter(e => {
+            if ((e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase()) return false;
+            return (e.elapsed_ms || 0) < resolvedElapsed;
+          }).length;
+          gameState.rank = fasterCount + 1;
+          if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
+          if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
+          saveSession();
+        }
+      } catch (lbErr) {
+        console.warn('Real rank query note:', lbErr);
+      }
+    })();
+
     saveSession();
     recordBingoScore();
 
@@ -1082,7 +1106,7 @@
     renderBoard();
 
     els.victoryTime.textContent = formatTime(gameState.elapsedMs);
-    els.victoryRank.textContent = `#${gameState.rank || 1}`;
+    els.victoryRank.textContent = gameState.rank ? `#${gameState.rank}` : '#--';
     els.victoryLine.textContent = BINGO_LINE_NAMES[gameState.bingoLine] || gameState.bingoLine;
 
     // ─── 1. Precision Dynamic Laser Cut Slice (A to B) ───
@@ -1272,12 +1296,13 @@
       return;
     }
 
-    // Update live rank for current user if found in leaderboard
-    if (gameState.playerName) {
-      const myIdx = entries.findIndex(e => e.player_name === gameState.playerName && e.location === gameState.location);
+    // Update live rank for current user if found in leaderboard and completed
+    if (gameState.playerName && gameState.status === 'completed') {
+      const myIdx = entries.findIndex(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase());
       if (myIdx !== -1) {
         gameState.rank = myIdx + 1;
         if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
+        if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
       }
     }
 
@@ -1601,7 +1626,7 @@
       gameState.status = isCompleted ? 'completed' : 'playing';
       gameState.elapsedMs = (typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) ? data.elapsed_ms : (gameState.elapsedMs || 116290);
       gameState.bingoLine = isCompleted ? bingoLine : null;
-      gameState.rank = data.rank || 1;
+      gameState.rank = isCompleted ? (data.rank || null) : null;
 
       saveSession(); // Only persists player_name, location, and session_token
 

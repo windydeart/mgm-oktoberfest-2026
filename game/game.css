@@ -708,20 +708,39 @@ body.game-page::before {
   opacity: 0 !important;
 }
 
+.bingo-cell.verifying .cell-cat-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.bingo-cell.verifying .cell-cat-icon i,
+.bingo-cell.verifying .cell-cat-icon svg {
+  width: 10px;
+  height: 10px;
+}
+
 .cell-verifying-badge {
   display: none;
   align-items: center;
-  gap: 4px;
-  font-size: 0.62rem;
+  gap: 3px;
+  font-size: 0.52rem;
   font-weight: 800;
-  letter-spacing: 0.3px;
-  padding: 2px 7px;
+  letter-spacing: 0.2px;
+  padding: 1.5px 5px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.6);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.6);
   z-index: 5;
+  white-space: nowrap;
   animation: verifyingPulse 1.4s ease-in-out infinite;
+}
+
+.cell-verifying-badge svg,
+.cell-verifying-badge i {
+  width: 9px;
+  height: 9px;
 }
 
 .bingo-cell.verifying .cell-verifying-badge {

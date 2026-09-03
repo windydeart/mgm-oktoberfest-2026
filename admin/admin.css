@@ -764,9 +764,9 @@ body {
 }
 
 .location-badge.loc-hcmc {
-    background: rgba(225, 29, 72, 0.18);
-    border: 1px solid rgba(225, 29, 72, 0.35);
-    color: #fb7185;
+    background: rgba(245, 158, 11, 0.18);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
 }
 
 .review-challenge-box {
@@ -824,15 +824,57 @@ body {
 .reviewer-note-box {
     background: rgba(0, 0, 0, 0.25);
     border-radius: 6px;
-    padding: 0.5rem 0.7rem;
+    padding: 0.42rem 0.65rem;
     font-size: 0.78rem;
     color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.reviewer-note-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .note-label {
     font-weight: 700;
     color: var(--text-muted);
     margin-right: 4px;
+}
+
+.btn-note-reject {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2.5px 8px;
+    background: rgba(239, 68, 68, 0.16);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 5px;
+    color: #f87185;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.btn-note-reject:hover {
+    background: rgba(239, 68, 68, 0.35);
+    border-color: #ef4444;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+}
+
+.btn-note-reject i,
+.btn-note-reject svg {
+    width: 12px;
+    height: 12px;
 }
 
 /* ─── 13. ACTION BUTTONS (Refined & Compact) ─── */

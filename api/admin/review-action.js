@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
     }
     const review = reviews[0];
 
-    if (review.status !== 'pending') {
+    if (review.status === action) {
       return res.status(400).json({ error: `Review already ${review.status}.` });
     }
 

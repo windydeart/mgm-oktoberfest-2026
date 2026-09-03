@@ -137,7 +137,7 @@ function renderLeaderboard(entries) {
         <tr>
             <td>${entry.rank || index + 1}</td>
             <td style="color:var(--gold)">${escapeHTML(entry.player_name)}</td>
-            <td><span class="location-badge">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span></td>
+            <td><span class="location-badge ${entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc'}">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span></td>
             <td>${formatTime(entry.elapsed_ms)}</td>
         </tr>
     `).join('');
@@ -246,10 +246,17 @@ function renderReviews(reviews) {
                             <div class="ai-reason-text">${escapeHTML(review.ai_reason)}</div>
                         </div>
                     ` : ''}
-                    ${review.reviewer_note && review.status !== 'pending' ? `
+                    ${(review.reviewer_note || review.status === 'approved') && review.status !== 'pending' ? `
                         <div class="reviewer-note-box">
-                            <span class="note-label">Organizer Note:</span>
-                            <span class="note-text">${escapeHTML(review.reviewer_note)}</span>
+                            <div class="reviewer-note-content">
+                                <span class="note-label">Organizer Note:</span>
+                                <span class="note-text">${escapeHTML(review.reviewer_note || 'Approved by AI ✓')}</span>
+                            </div>
+                            ${review.status === 'approved' ? `
+                                <button type="button" class="btn-note-reject" onclick="rejectReview(${review.id})" title="Overturn approval and Reject">
+                                    <i data-lucide="x"></i> <span>Reject</span>
+                                </button>
+                            ` : ''}
                         </div>
                     ` : ''}
                     ${actionHTML}

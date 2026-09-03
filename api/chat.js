@@ -276,6 +276,7 @@ module.exports = async function handler(req, res) {
   let reply = null;
   let lastError = null;
   let isRateLimitedByGoogle = false;
+  let vertexError = null;
 
   // ─── 1. Primary: Google Cloud Vertex AI (Singapore / US) ───
   try {
@@ -294,8 +295,11 @@ module.exports = async function handler(req, res) {
     if (vertexResult.ok && vertexResult.text) {
       reply = vertexResult.text.trim();
       console.log(`[Vertex AI Chat] Replied via ${vertexResult.model} (${vertexResult.location})`);
+    } else {
+      vertexError = vertexResult?.error || 'Vertex AI returned not ok';
     }
   } catch (vErr) {
+    vertexError = vErr.message;
     console.warn('[Vertex AI Chat] Error:', vErr.message);
   }
 
@@ -342,6 +346,16 @@ module.exports = async function handler(req, res) {
         lastError = err.message;
       }
     }
+  }
+
+  if (req.url && req.url.includes('debug=1')) {
+    return res.status(reply ? 200 : 500).json({
+      vertex_ok: !!reply,
+      vertex_error: vertexError,
+      has_gcp_env: !!(process.env.GCP_SERVICE_ACCOUNT_KEY || process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GCP_CREDENTIALS),
+      last_ai_studio_error: lastError ? lastError.slice(0, 200) : null,
+      reply
+    });
   }
 
   if (reply) {

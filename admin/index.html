@@ -247,15 +247,24 @@
     <!-- Photo Preview Modal -->
     <div id="photoModal" class="modal hidden">
         <div class="modal-overlay" onclick="closePhotoPreview()"></div>
-        <div class="modal-content">
-            <button id="closeModalBtn" class="close-btn" onclick="closePhotoPreview()" aria-label="Close Preview"><i data-lucide="x"></i></button>
+        <div class="modal-content photo-preview-modal-card">
             <div class="modal-header">
-                <h3 id="modalChallengeText">Challenge</h3>
-                <button type="button" class="btn-modal-rotate" onclick="rotateModalPhoto()" title="Rotate 90°">
-                    <i data-lucide="rotate-cw"></i> Rotate 90°
-                </button>
+                <div class="modal-header-info">
+                    <span class="modal-challenge-label">Challenge</span>
+                    <h3 id="modalChallengeText" class="modal-challenge-title">Challenge</h3>
+                </div>
+                <div class="modal-header-actions">
+                    <button type="button" class="btn-modal-rotate" onclick="rotateModalPhoto()" title="Rotate 90° clockwise">
+                        <i data-lucide="rotate-cw"></i> <span>Rotate 90°</span>
+                    </button>
+                    <button id="closeModalBtn" class="close-btn modal-close-btn" onclick="closePhotoPreview()" aria-label="Close Preview">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
             </div>
-            <img id="modalImage" src="" alt="Photo Preview">
+            <div class="modal-image-viewport" id="modalImageViewport">
+                <img id="modalImage" src="" alt="Photo Preview">
+            </div>
         </div>
     </div>
 

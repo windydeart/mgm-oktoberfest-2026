@@ -512,23 +512,74 @@ function quickRotateReviewCard(btn) {
 }
 window.quickRotateReviewCard = quickRotateReviewCard;
 
-function rotateModalPhoto() {
+let currentModalRot = 0;
+
+function applyModalImageRotation(rot) {
+    currentModalRot = (rot || 0) % 360;
     if (!modalImage) return;
-    let currentRot = parseInt(modalImage.getAttribute('data-rot') || 0, 10);
-    currentRot = (currentRot + 90) % 360;
-    modalImage.setAttribute('data-rot', currentRot);
-    modalImage.className = currentRot > 0 ? `rot-${currentRot}` : '';
-    modalImage.style.transform = currentRot > 0 ? `rotate(${currentRot}deg)` : '';
+
+    const viewport = document.getElementById('modalImageViewport');
+    const nw = modalImage.naturalWidth || 640;
+    const nh = modalImage.naturalHeight || 480;
+
+    const maxViewportW = Math.min(window.innerWidth * 0.85, 620);
+    const maxViewportH = Math.min(window.innerHeight * 0.68, 560);
+
+    const isPerpendicular = (currentModalRot === 90 || currentModalRot === 270);
+
+    if (!isPerpendicular) {
+        // 0 or 180 degrees
+        const scale = Math.min(maxViewportW / nw, maxViewportH / nh, 1);
+        const w = Math.round(nw * scale);
+        const h = Math.round(nh * scale);
+
+        modalImage.style.width = `${w}px`;
+        modalImage.style.height = `${h}px`;
+        modalImage.style.transform = currentModalRot === 180 ? 'rotate(180deg)' : 'none';
+
+        if (viewport) {
+            viewport.style.width = `${w}px`;
+            viewport.style.height = `${h}px`;
+        }
+    } else {
+        // 90 or 270 degrees: visual width is nh, visual height is nw
+        const scale = Math.min(maxViewportW / nh, maxViewportH / nw, 1);
+        const visualW = Math.round(nh * scale);
+        const visualH = Math.round(nw * scale);
+
+        // Set element size to visualH x visualW, so rotated 90deg its bounds become visualW x visualH!
+        modalImage.style.width = `${visualH}px`;
+        modalImage.style.height = `${visualW}px`;
+        modalImage.style.transform = `rotate(${currentModalRot}deg)`;
+
+        if (viewport) {
+            viewport.style.width = `${visualW}px`;
+            viewport.style.height = `${visualH}px`;
+        }
+    }
+}
+window.applyModalImageRotation = applyModalImageRotation;
+
+function rotateModalPhoto() {
+    currentModalRot = (currentModalRot + 90) % 360;
+    applyModalImageRotation(currentModalRot);
 }
 window.rotateModalPhoto = rotateModalPhoto;
 
 function openPhotoPreview(url, challenge) {
     const rot = getRotationFromUrl(url);
-    modalImage.setAttribute('data-rot', rot);
-    modalImage.className = rot > 0 ? `rot-${rot}` : '';
-    modalImage.style.transform = rot > 0 ? `rotate(${rot}deg)` : '';
+    currentModalRot = rot;
+
+    modalChallenge.textContent = challenge || 'Challenge Photo';
     modalImage.src = url;
-    modalChallenge.textContent = challenge;
+
+    modalImage.onload = () => {
+        applyModalImageRotation(currentModalRot);
+    };
+    if (modalImage.complete && modalImage.naturalWidth) {
+        applyModalImageRotation(currentModalRot);
+    }
+
     modal.classList.remove('hidden');
     if (window.lucide) {
         lucide.createIcons();
@@ -547,9 +598,15 @@ window.closePhotoPreview = closePhotoPreview;
 function closePhotoPreview() {
     modal.classList.add('hidden');
     modalImage.src = '';
-    modalImage.className = '';
+    modalImage.style.width = '';
+    modalImage.style.height = '';
     modalImage.style.transform = '';
-    modalImage.removeAttribute('data-rot');
+    const viewport = document.getElementById('modalImageViewport');
+    if (viewport) {
+        viewport.style.width = '';
+        viewport.style.height = '';
+    }
+    currentModalRot = 0;
 }
 
 // Event Listeners

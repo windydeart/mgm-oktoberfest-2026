@@ -166,16 +166,37 @@ module.exports = async (req, res) => {
 
   // Fallback recovery if token expired/missing but player_name provided
   if (!session && player_name) {
+    let recoveredChallenges = null;
+    let sessionStartedAt = new Date().toISOString();
+    let recoveredSessionId = `session-${player_name}-${location || 'danang'}`;
+    try {
+      const snapRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo_session&player_name=eq.${encodeURIComponent(player_name)}&order=created_at.desc&limit=1`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (snapRes.ok) {
+        const snaps = await snapRes.json();
+        if (snaps && snaps.length > 0) {
+          const snapObj = JSON.parse(snaps[0].player_email || '{}');
+          if (snapObj.challenges && Array.isArray(snapObj.challenges) && snapObj.challenges.length === 9) {
+            recoveredChallenges = snapObj.challenges;
+            recoveredSessionId = snapObj.session_id || recoveredSessionId;
+            sessionStartedAt = snapObj.started_at || snaps[0].created_at;
+          }
+        }
+      }
+    } catch (e) {}
+
     session = {
-      session_id: `session-${player_name}-${location || 'danang'}`,
+      session_id: recoveredSessionId,
       player_name: player_name,
       location: location || 'danang',
-      challenges: getDefaultChallenges(),
+      challenges: recoveredChallenges || getDefaultChallenges(),
       completed_cells: [],
       pending_review_cells: [],
       cell_photo_urls: {},
       cell_ai_reasons: {},
-      started_at: new Date().toISOString(),
+      started_at: sessionStartedAt,
       status: 'playing'
     };
   }
@@ -189,7 +210,26 @@ module.exports = async (req, res) => {
   }
 
   if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9) {
-    session.challenges = getDefaultChallenges();
+    if (session.player_name) {
+      try {
+        const snapRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo_session&player_name=eq.${encodeURIComponent(session.player_name)}&order=created_at.desc&limit=1`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (snapRes.ok) {
+          const snaps = await snapRes.json();
+          if (snaps && snaps.length > 0) {
+            const snapObj = JSON.parse(snaps[0].player_email || '{}');
+            if (snapObj.challenges && Array.isArray(snapObj.challenges) && snapObj.challenges.length === 9) {
+              session.challenges = snapObj.challenges;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+    if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9) {
+      session.challenges = getDefaultChallenges();
+    }
   }
 
   let completedCells = [...(session.completed_cells || [])];

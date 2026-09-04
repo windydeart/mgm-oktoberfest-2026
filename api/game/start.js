@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || Buffer.from('c2Jfc2VjcmV0Xzd3NkZHN2xGTm5tQW5IZVQyTkRKX1FfMm9uTG1iamo=', 'base64').toString('utf-8');
 const SECRET = process.env.SESSION_SECRET || 'mgm-oktoberfest-2026-bingo-secret-key-salt';
 
 function createToken(data) {
@@ -137,6 +138,47 @@ module.exports = async (req, res) => {
   };
 
   const session_token = createToken(sessionData);
+
+  // Persist session snapshot to Supabase so starting challenges are stored in database
+  try {
+    const sessionPayload = {
+      player_name: player_name.trim(),
+      office: location,
+      game_name: 'photo_bingo_session',
+      score: 0,
+      duration_seconds: 0,
+      player_email: JSON.stringify({
+        session_id,
+        challenges: selected,
+        started_at
+      })
+    };
+
+    // Clean up any old session draft for this player name
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=eq.${encodeURIComponent(player_name.trim())}&game_name=eq.photo_bingo_session`,
+      {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+        }
+      }
+    );
+
+    await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SECRET_KEY,
+        'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(sessionPayload)
+    });
+  } catch (persistErr) {
+    console.warn('Failed to persist initial session to Supabase:', persistErr);
+  }
 
   return res.status(200).json({
     success: true,

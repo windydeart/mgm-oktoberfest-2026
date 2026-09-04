@@ -135,7 +135,36 @@ module.exports = async (req, res) => {
         }
       }
 
-      // 2. If not found in scores, check bingo_photo_reviews for the latest active session
+      // 2. If not found in completed scores, check photo_bingo_session for the starting snapshot (active or invalidated game)
+      if (!session) {
+        const sessionRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo_session&player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.desc&limit=1`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (sessionRes.ok) {
+          const sessions = await sessionRes.json();
+          if (sessions && sessions.length > 0) {
+            let sessionSnap = {};
+            try { sessionSnap = JSON.parse(sessions[0].player_email || '{}'); } catch (e) {}
+            if (sessionSnap.challenges && Array.isArray(sessionSnap.challenges) && sessionSnap.challenges.length === 9) {
+              session = {
+                session_id: sessionSnap.session_id || `session-${playerName}`,
+                player_name: sessions[0].player_name,
+                location: sessions[0].office,
+                challenges: sessionSnap.challenges,
+                completed_cells: [],
+                pending_review_cells: [],
+                cell_photo_urls: {},
+                cell_ai_reasons: {},
+                started_at: sessionSnap.started_at || sessions[0].created_at,
+                status: 'playing'
+              };
+            }
+          }
+        }
+      }
+
+      // 3. If still not found, check bingo_photo_reviews for the latest active session
       if (!session) {
         const latestRevLookup = await fetch(
           `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(playerName)}&office=eq.${encodeURIComponent(location)}&order=created_at.desc&limit=1`,
@@ -201,7 +230,26 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Session not found or expired' });
   }
 
-  // Ensure challenges is always a valid 9-element array with actual challenge names
+  // If session challenges are missing or invalid, try to restore from photo_bingo_session
+  if (session && (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9 || session.challenges.some(c => !c.challenge || c.challenge.startsWith('Challenge #'))) && session.player_name) {
+    try {
+      const snapRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo_session&player_name=eq.${encodeURIComponent(session.player_name)}&order=created_at.desc&limit=1`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (snapRes.ok) {
+        const snaps = await snapRes.json();
+        if (snaps && snaps.length > 0) {
+          const snapObj = JSON.parse(snaps[0].player_email || '{}');
+          if (snapObj.challenges && Array.isArray(snapObj.challenges) && snapObj.challenges.length === 9) {
+            session.challenges = snapObj.challenges;
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Fallback if still not a valid 9-element array
   if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9 || session.challenges.some(c => !c.challenge || c.challenge.startsWith('Challenge #'))) {
     session.challenges = getDefaultChallenges();
   }

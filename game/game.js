@@ -58,6 +58,7 @@
   const STORAGE_KEY_USER_NAME = 'bingo_player_name';
   const STORAGE_KEY_USER_LOC = 'bingo_player_location';
   const STORAGE_KEY_TOKEN = 'bingo_session_token';
+  const STORAGE_KEY_CHALLENGES = 'bingo_board_challenges';
 
   try {
     ['bingo_game_state', 'bingo_game_state_v2', 'bingo_game_state_v3', 'bingo_game_state_v4', 'bingo_session_token_v2', 'bingo_session_token_v3'].forEach(k => {
@@ -1682,6 +1683,9 @@
       if (gameState.sessionToken) {
         localStorage.setItem(STORAGE_KEY_TOKEN, gameState.sessionToken);
       }
+      if (gameState.challenges && Array.isArray(gameState.challenges) && gameState.challenges.length === 9) {
+        localStorage.setItem(STORAGE_KEY_CHALLENGES, JSON.stringify(gameState.challenges));
+      }
       // Purge all old local state blobs so client NEVER uses stale local data
       localStorage.removeItem('bingo_game_state_v4');
       localStorage.removeItem('bingo_game_state');
@@ -1693,6 +1697,7 @@
       localStorage.removeItem(STORAGE_KEY_USER_NAME);
       localStorage.removeItem(STORAGE_KEY_USER_LOC);
       localStorage.removeItem(STORAGE_KEY_TOKEN);
+      localStorage.removeItem(STORAGE_KEY_CHALLENGES);
       localStorage.removeItem('bingo_session_token_v4');
       localStorage.removeItem('bingo_game_state_v4');
     } catch (e) { /* ignore */ }
@@ -1724,6 +1729,17 @@
       const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN) || 
                           localStorage.getItem('bingo_session_token_v4') ||
                           localStorage.getItem('bingo_session_token');
+
+      let localSavedChallenges = null;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_CHALLENGES);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length === 9) {
+            localSavedChallenges = parsed;
+          }
+        }
+      } catch (e) {}
 
       if (!savedPlayerName && !savedToken) return false;
 
@@ -1762,6 +1778,19 @@
       gameState.playerName = data.player_name || savedPlayerName || '';
       gameState.location = data.location || savedLocation;
       gameState.challenges = data.challenges;
+
+      // Strictly retain original starting challenges for all uncompleted cells so they never randomize on reload
+      if (localSavedChallenges && localSavedChallenges.length === 9) {
+        if (!gameState.challenges || !Array.isArray(gameState.challenges) || gameState.challenges.length !== 9) {
+          gameState.challenges = localSavedChallenges;
+        } else {
+          for (let i = 0; i < 9; i++) {
+            if (!completedCells.includes(i) && localSavedChallenges[i]) {
+              gameState.challenges[i] = localSavedChallenges[i];
+            }
+          }
+        }
+      }
 
       // Double-check guaranteed pinned Marketing challenge on recovered session
       const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));

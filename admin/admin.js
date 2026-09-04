@@ -7,6 +7,7 @@ let adminToken = sessionStorage.getItem('admin_token') || null;
 let currentReviewFilter = 'pending';
 let currentLocationFilter = 'all';
 let refreshInterval = null;
+let currentGameControlState = 'active';
 
 // DOM Elements
 const loginScreen = document.getElementById('loginScreen');
@@ -16,6 +17,13 @@ const passwordInput = document.getElementById('passwordInput');
 const loginError = document.getElementById('loginError');
 const logoutBtn = document.getElementById('logoutBtn');
 const toastEl = document.getElementById('toast');
+const ctrlStatusDot = document.getElementById('ctrlStatusDot');
+const ctrlStatusText = document.getElementById('ctrlStatusText');
+const btnCtrlStart = document.getElementById('btnCtrlStart');
+const btnCtrlPause = document.getElementById('btnCtrlPause');
+const btnCtrlFinish = document.getElementById('btnCtrlFinish');
+const btnCtrlWaiting = document.getElementById('btnCtrlWaiting');
+const gameCtrlHint = document.getElementById('gameCtrlHint');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -80,6 +88,7 @@ function showDashboard() {
     dashboardScreen.classList.remove('hidden');
     fetchDashboardStats();
     fetchReviews();
+    fetchGameControlState();
     startAutoRefresh();
 }
 
@@ -633,6 +642,39 @@ function bindEvents() {
             }
         });
     }
+
+    // Game Controller buttons
+    if (btnCtrlStart) {
+        btnCtrlStart.addEventListener('click', () => {
+            if (confirm('Start / Resume the game? All player devices will be allowed to play.')) {
+                setGameControlState('start');
+            }
+        });
+    }
+
+    if (btnCtrlPause) {
+        btnCtrlPause.addEventListener('click', () => {
+            if (confirm('Pause the game? All player screens will be temporarily frozen.')) {
+                setGameControlState('pause');
+            }
+        });
+    }
+
+    if (btnCtrlFinish) {
+        btnCtrlFinish.addEventListener('click', () => {
+            if (confirm('FINISH the game? This will conclude the game for all players (all scores and reviews remain intact).')) {
+                setGameControlState('finish');
+            }
+        });
+    }
+
+    if (btnCtrlWaiting) {
+        btnCtrlWaiting.addEventListener('click', () => {
+            if (confirm('Set game to WAITING? Players will see "Game hasn\'t started yet" until you click Start.')) {
+                setGameControlState('waiting');
+            }
+        });
+    }
 }
 
 // Auto Refresh (Every 2 seconds)
@@ -641,6 +683,7 @@ function startAutoRefresh() {
     refreshInterval = setInterval(() => {
         fetchDashboardStats();
         fetchReviews();
+        fetchGameControlState();
     }, 2000);
 }
 
@@ -857,3 +900,130 @@ async function openWinnerShowcaseAdmin(location) {
         if (boardEl) boardEl.innerHTML = '<div style="grid-column: span 3; text-align:center; padding: 2rem; color:#ef4444;">Failed to load winner board.</div>';
     }
 }
+
+// ═══════════════════════════════════════════════════════
+// GAME REMOTE CONTROLLER FUNCTIONS
+// ═══════════════════════════════════════════════════════
+
+async function fetchGameControlState() {
+    if (!isAuthenticated()) return;
+    try {
+        const response = await fetch(`${GAME_API_BASE}/game-state?_t=${Date.now()}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.state) {
+                currentGameControlState = data.state;
+                updateGameControlUI(data.state);
+            }
+        }
+    } catch (err) {
+        console.error('Failed to fetch game control state:', err);
+    }
+}
+
+async function setGameControlState(action) {
+    if (!isAuthenticated()) return;
+    try {
+        // Optimistic UI disabling while waiting
+        if (btnCtrlStart) btnCtrlStart.disabled = true;
+        if (btnCtrlPause) btnCtrlPause.disabled = true;
+        if (btnCtrlFinish) btnCtrlFinish.disabled = true;
+        if (btnCtrlWaiting) btnCtrlWaiting.disabled = true;
+
+        const response = await fetch(`${API_BASE}/game-control`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            logout();
+            return;
+        }
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            currentGameControlState = data.state;
+            updateGameControlUI(data.state);
+            showToast(data.message || `Game status updated to: ${data.state}`, 'success');
+        } else {
+            showToast(data.error || 'Failed to update game control state', 'error');
+            updateGameControlUI(currentGameControlState);
+        }
+    } catch (err) {
+        console.error('Failed to set game control state:', err);
+        showToast('Connection error updating game control state', 'error');
+        updateGameControlUI(currentGameControlState);
+    }
+}
+
+function updateGameControlUI(state) {
+    if (!ctrlStatusDot || !ctrlStatusText) return;
+
+    // Reset classes
+    ctrlStatusDot.className = 'ctrl-status-dot';
+
+    switch (state) {
+        case 'waiting':
+            ctrlStatusDot.classList.add('dot-waiting');
+            ctrlStatusText.textContent = 'Waiting';
+            ctrlStatusText.style.color = '#eab308';
+            if (btnCtrlStart) {
+                btnCtrlStart.disabled = false;
+                btnCtrlStart.innerHTML = '<i data-lucide="play"></i> <span>Start Game</span>';
+            }
+            if (btnCtrlPause) btnCtrlPause.disabled = true;
+            if (btnCtrlFinish) btnCtrlFinish.disabled = true;
+            if (btnCtrlWaiting) btnCtrlWaiting.disabled = true;
+            if (gameCtrlHint) gameCtrlHint.textContent = '● Game is waiting to start. Players see "Game hasn\'t started yet".';
+            break;
+
+        case 'paused':
+            ctrlStatusDot.classList.add('dot-paused');
+            ctrlStatusText.textContent = 'Paused';
+            ctrlStatusText.style.color = '#f97316';
+            if (btnCtrlStart) {
+                btnCtrlStart.disabled = false;
+                btnCtrlStart.innerHTML = '<i data-lucide="play"></i> <span>Resume Game</span>';
+            }
+            if (btnCtrlPause) btnCtrlPause.disabled = true;
+            if (btnCtrlFinish) btnCtrlFinish.disabled = false;
+            if (btnCtrlWaiting) btnCtrlWaiting.disabled = false;
+            if (gameCtrlHint) gameCtrlHint.textContent = '● Game is paused. Player screens are frozen with pause notification.';
+            break;
+
+        case 'finished':
+            ctrlStatusDot.classList.add('dot-finished');
+            ctrlStatusText.textContent = 'Finished';
+            ctrlStatusText.style.color = '#ef4444';
+            if (btnCtrlStart) {
+                btnCtrlStart.disabled = false;
+                btnCtrlStart.innerHTML = '<i data-lucide="rotate-ccw"></i> <span>Restart Game</span>';
+            }
+            if (btnCtrlPause) btnCtrlPause.disabled = true;
+            if (btnCtrlFinish) btnCtrlFinish.disabled = true;
+            if (btnCtrlWaiting) btnCtrlWaiting.disabled = false;
+            if (gameCtrlHint) gameCtrlHint.textContent = '● Game has concluded! Players see "Game finished!, thank you for joining!".';
+            break;
+
+        case 'active':
+        default:
+            ctrlStatusDot.classList.add('dot-active');
+            ctrlStatusText.textContent = 'Active';
+            ctrlStatusText.style.color = '#22c55e';
+            if (btnCtrlStart) {
+                btnCtrlStart.disabled = true;
+                btnCtrlStart.innerHTML = '<i data-lucide="play"></i> <span>Start Game</span>';
+            }
+            if (btnCtrlPause) btnCtrlPause.disabled = false;
+            if (btnCtrlFinish) btnCtrlFinish.disabled = false;
+            if (btnCtrlWaiting) btnCtrlWaiting.disabled = false;
+            if (gameCtrlHint) gameCtrlHint.textContent = '● Game is live! Players can connect and play freely.';
+            break;
+    }
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+

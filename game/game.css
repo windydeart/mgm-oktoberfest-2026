@@ -3249,3 +3249,128 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   border-color: #22c55e !important;
   box-shadow: 0 0 10px rgba(34, 197, 94, 0.25) !important;
 }
+
+/* ═══════════════════════════════════════════════════════
+   GAME REMOTE CONTROLLER OVERLAY (GLOBAL GATING)
+   ═══════════════════════════════════════════════════════ */
+.game-control-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-control-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.game-control-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(22, 32, 61, 0.94) 0%, rgba(11, 19, 43, 0.98) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.game-control-overlay-card {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(135deg, rgba(22, 32, 61, 0.92) 0%, rgba(15, 23, 42, 0.96) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85), 0 0 40px rgba(245, 158, 11, 0.15);
+  transform: translateY(16px) scale(0.96);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.game-control-overlay.active .game-control-overlay-card {
+  transform: translateY(0) scale(1);
+}
+
+.game-control-icon-circle {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.12) 100%);
+  border: 2px solid rgba(245, 158, 11, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
+  animation: ctrlIconPulse 2.5s infinite ease-in-out;
+}
+
+.game-control-icon-circle i,
+.game-control-icon-circle svg {
+  width: 36px;
+  height: 36px;
+  stroke-width: 2.2;
+}
+
+@keyframes ctrlIconPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(245, 158, 11, 0.3); }
+  50% { transform: scale(1.08); box-shadow: 0 0 35px rgba(245, 158, 11, 0.55); }
+}
+
+.game-control-title {
+  font-family: var(--font-heading, 'Roboto', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.25;
+}
+
+.game-control-desc {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  line-height: 1.55;
+  margin: 0 0 1.25rem 0;
+}
+
+.game-control-subhint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.75rem;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+}
+
+/* State-specific color variations */
+.game-control-overlay.state-waiting .game-control-icon-circle {
+  border-color: rgba(234, 179, 8, 0.5);
+  color: #eab308;
+}
+
+.game-control-overlay.state-paused .game-control-icon-circle {
+  border-color: rgba(249, 115, 22, 0.5);
+  color: #f97316;
+  animation: ctrlIconPulse 1.8s infinite ease-in-out;
+}
+
+.game-control-overlay.state-finished .game-control-icon-circle {
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #22c55e;
+  animation: none;
+}
+

@@ -46,6 +46,11 @@
     rank: null
   };
 
+  /* ─── GAME REMOTE CONTROLLER STATE ─── */
+  let gameControlState = 'active'; // 'active' | 'waiting' | 'paused' | 'finished'
+  let isGamePausedByAdmin = false;
+  let gameControlPollingInterval = null;
+
   /* ─── TIMER ─── */
   let timerInterval = null;
   let timerStartTime = null;
@@ -163,6 +168,14 @@
 
     // Toast Container
     els.toastContainer = $('#gameToastContainer');
+
+    // Game Controller Remote Overlay
+    els.gameControlOverlay = $('#gameControlOverlay');
+    els.gameControlIcon = $('#gameControlIcon');
+    els.gameControlTitle = $('#gameControlTitle');
+    els.gameControlDesc = $('#gameControlDesc');
+    els.gameControlSubhint = $('#gameControlSubhint');
+    els.gameControlActionBtn = $('#gameControlActionBtn');
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -556,6 +569,17 @@
      GAME FLOW
      ═══════════════════════════════════════════════════════ */
   function onStartGame() {
+    if (gameControlState !== 'active') {
+      if (gameControlState === 'waiting') {
+        showToast("Game hasn't started yet! Please wait for the organizer.", 'info');
+      } else if (gameControlState === 'paused') {
+        showToast("The game is temporarily paused by the organizer. Please stand by!", 'info');
+      } else if (gameControlState === 'finished') {
+        showToast("Game finished!, thank you for joining!", 'info');
+      }
+      return;
+    }
+
     isCurrentNameTaken = false;
     if (els.playerNameStatusHint) {
       els.playerNameStatusHint.style.display = 'none';
@@ -572,6 +596,18 @@
 
   async function onPlayerSubmit(e) {
     e.preventDefault();
+
+    if (gameControlState !== 'active') {
+      closeModal(els.playerModal);
+      if (gameControlState === 'waiting') {
+        showToast("Game hasn't started yet! Please wait for the organizer.", 'info');
+      } else if (gameControlState === 'paused') {
+        showToast("The game is temporarily paused by the organizer. Please stand by!", 'info');
+      } else if (gameControlState === 'finished') {
+        showToast("Game finished!, thank you for joining!", 'info');
+      }
+      return;
+    }
 
     const name = (els.playerName.value || '').trim();
     if (name.length < 2 || name.length > 30) {
@@ -1942,6 +1978,12 @@
      ═══════════════════════════════════════════════════════ */
   function bindEvents() {
     els.startGameBtn.addEventListener('click', onStartGame);
+    if (els.gameControlActionBtn) {
+      els.gameControlActionBtn.addEventListener('click', () => {
+        hideControlOverlay();
+        openLeaderboard();
+      });
+    }
     if (els.playerName) {
       els.playerName.addEventListener('input', (e) => {
         if (nameCheckDebounceTimer) clearTimeout(nameCheckDebounceTimer);
@@ -2311,6 +2353,123 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     GAME REMOTE CONTROLLER (ADMIN REMOTE GATING)
+     ═══════════════════════════════════════════════════════ */
+  function showControlOverlay(type, title, desc, subhint, iconName, showLeaderboardBtn = false) {
+    if (!els.gameControlOverlay) return;
+    els.gameControlOverlay.className = `game-control-overlay active state-${type}`;
+    els.gameControlOverlay.style.display = 'flex';
+    if (els.gameControlTitle) els.gameControlTitle.textContent = title;
+    if (els.gameControlDesc) els.gameControlDesc.textContent = desc;
+    if (els.gameControlSubhint) els.gameControlSubhint.textContent = subhint;
+    if (els.gameControlIcon && iconName) {
+      els.gameControlIcon.innerHTML = `<i data-lucide="${iconName}"></i>`;
+      if (window.lucide) lucide.createIcons();
+    }
+    if (els.gameControlActionBtn) {
+      els.gameControlActionBtn.style.display = showLeaderboardBtn ? 'inline-flex' : 'none';
+    }
+  }
+
+  function hideControlOverlay() {
+    if (!els.gameControlOverlay) return;
+    els.gameControlOverlay.classList.remove('active');
+    setTimeout(() => {
+      if (els.gameControlOverlay && !els.gameControlOverlay.classList.contains('active')) {
+        els.gameControlOverlay.style.display = 'none';
+      }
+    }, 350);
+  }
+
+  function applyGameControlState(newState) {
+    const prevState = gameControlState;
+    gameControlState = newState;
+
+    if (newState === 'paused') {
+      // 1. Pause active gameplay
+      if (gameState.status === 'playing' && !isGamePausedByAdmin) {
+        isGamePausedByAdmin = true;
+        // Freeze timer without losing elapsedMs
+        stopTimer(gameState.elapsedMs);
+      }
+      // Close camera if open
+      if (els.cameraOverlay && els.cameraOverlay.classList.contains('active')) {
+        closeCamera();
+      }
+      // Close player modal if open
+      if (els.playerModal && els.playerModal.classList.contains('active')) {
+        closeModal(els.playerModal);
+      }
+      showControlOverlay(
+        'paused',
+        'Game is Temporarily Paused',
+        'The game is temporarily paused by the organizer. Please stand by!',
+        'Your timer is frozen. The game will resume automatically.',
+        'pause',
+        false
+      );
+    } else if (newState === 'active') {
+      // If was previously paused by admin, resume timer
+      if (isGamePausedByAdmin) {
+        isGamePausedByAdmin = false;
+        if (gameState.status === 'playing') {
+          startTimer(gameState.elapsedMs);
+          showToast('Game resumed! Good luck!', 'success');
+        }
+      }
+      hideControlOverlay();
+    } else if (newState === 'waiting') {
+      hideControlOverlay();
+      if (els.playerModal && els.playerModal.classList.contains('active')) {
+        closeModal(els.playerModal);
+      }
+    } else if (newState === 'finished') {
+      // Stop timer if running
+      if (timerInterval) {
+        stopTimer(gameState.elapsedMs);
+      }
+      if (els.cameraOverlay && els.cameraOverlay.classList.contains('active')) {
+        closeCamera();
+      }
+      if (els.playerModal && els.playerModal.classList.contains('active')) {
+        closeModal(els.playerModal);
+      }
+      // If game was not finished by player, return to welcome view
+      if (gameState.status !== 'completed') {
+        if (els.bingoBoard) els.bingoBoard.style.display = 'none';
+        if (els.gameWelcome) els.gameWelcome.style.display = '';
+        if (els.gameStatusBar) els.gameStatusBar.style.display = 'none';
+      }
+      showControlOverlay(
+        'finished',
+        'Game Finished!',
+        'Game finished!, thank you for joining!',
+        'Check the leaderboard to see all Bavarian Champions!',
+        'trophy',
+        true
+      );
+    }
+  }
+
+  async function pollGameControlState() {
+    try {
+      const res = await fetch(`/api/game/game-state?_t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.state && data.state !== gameControlState) {
+        applyGameControlState(data.state);
+      }
+    } catch (e) {
+      // Non-blocking fail-open
+    }
+  }
+
+  function startGameControlPolling() {
+    if (gameControlPollingInterval) clearInterval(gameControlPollingInterval);
+    gameControlPollingInterval = setInterval(pollGameControlState, 3000);
+  }
+
+  /* ═══════════════════════════════════════════════════════
      INITIALIZATION
      ═══════════════════════════════════════════════════════ */
   async function init() {
@@ -2326,6 +2485,10 @@
 
     startLeaderboardPolling();
 
+    // Check remote game control state immediately and start polling
+    await pollGameControlState();
+    startGameControlPolling();
+
     const recovered = await tryRecoverSession();
     if (!recovered && !localStorage.getItem(STORAGE_KEY_USER_NAME) && !localStorage.getItem(STORAGE_KEY_TOKEN)) {
       resetTimer();
@@ -2336,10 +2499,13 @@
       startReviewPolling();
     }
 
-    // Immediately check reviews when user switches back to this tab
+    // Immediately check reviews & control state when user switches back to this tab
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && gameState.status !== 'idle') {
-        pollReviewDecisions();
+      if (document.visibilityState === 'visible') {
+        pollGameControlState();
+        if (gameState.status !== 'idle') {
+          pollReviewDecisions();
+        }
       }
     });
   }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=19">
+    <link rel="stylesheet" href="/admin/admin.css?v=20">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -54,6 +54,44 @@
                 </h1>
                 <p class="admin-hero-subtitle">Live real-time monitoring & photo verification center</p>
             </div>
+
+            <!-- Game Controller Remote Control -->
+            <section class="game-controller-section" id="gameControllerSection">
+                <div class="game-controller-card">
+                    <div class="game-controller-header">
+                        <div class="game-controller-title-wrap">
+                            <div class="game-controller-icon"><i data-lucide="gamepad-2"></i></div>
+                            <div>
+                                <h3 class="game-controller-title">Game Remote Controller</h3>
+                                <p class="game-controller-subtitle">Control game state across all player devices in real-time</p>
+                            </div>
+                        </div>
+                        <div class="game-controller-status" id="gameCtrlStatusBadge">
+                            <span class="ctrl-status-dot dot-active" id="ctrlStatusDot"></span>
+                            <span class="ctrl-status-text" id="ctrlStatusText">Active</span>
+                        </div>
+                    </div>
+                    <div class="game-controller-body">
+                        <div class="game-controller-buttons">
+                            <button type="button" class="btn-ctrl btn-ctrl-start" id="btnCtrlStart" title="Start/Resume the game for all players">
+                                <i data-lucide="play"></i> <span>Start Game</span>
+                            </button>
+                            <button type="button" class="btn-ctrl btn-ctrl-pause" id="btnCtrlPause" title="Pause the game on all player screens">
+                                <i data-lucide="pause"></i> <span>Pause Game</span>
+                            </button>
+                            <button type="button" class="btn-ctrl btn-ctrl-finish" id="btnCtrlFinish" title="Finish and conclude the game for all players">
+                                <i data-lucide="square"></i> <span>Finish Game</span>
+                            </button>
+                        </div>
+                        <div class="game-controller-footer">
+                            <span class="game-controller-hint" id="gameCtrlHint">● Players can currently play freely</span>
+                            <button type="button" class="btn-ctrl-link" id="btnCtrlWaiting" title="Reset game state to Waiting (before event start)">
+                                <i data-lucide="rotate-ccw"></i> <span>Set to Waiting</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- Single Compact Unified Stats Container -->
             <section class="stats-container" id="statsCards">
@@ -281,7 +319,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=19"></script>
+    <script src="/admin/admin.js?v=20"></script>
     <script>
         lucide.createIcons();
     </script>

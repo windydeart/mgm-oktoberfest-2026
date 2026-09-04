@@ -695,10 +695,27 @@
     </div>
   </div>
 
+  <!-- Global Game Controller Remote Overlay (Waiting / Paused / Finished) -->
+  <div id="gameControlOverlay" class="game-control-overlay" style="display:none;" aria-live="assertive" role="alert">
+    <div class="game-control-overlay-backdrop"></div>
+    <div class="game-control-overlay-card">
+      <div class="game-control-icon-glow" id="gameControlGlow"></div>
+      <div class="game-control-icon-circle" id="gameControlIcon">
+        <i data-lucide="clock"></i>
+      </div>
+      <h2 class="game-control-title" id="gameControlTitle">Game Hasn't Started Yet</h2>
+      <p class="game-control-desc" id="gameControlDesc">Please wait for the organizer to start the game.</p>
+      <div class="game-control-subhint" id="gameControlSubhint">Connecting to organizer...</div>
+      <button type="button" class="btn-primary" id="gameControlActionBtn" style="display:none; margin-top: 1.25rem; width: 100%; justify-content: center;">
+        <i data-lucide="trophy"></i> <span>View Leaderboard</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Global Toast Notification Container -->
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=388"></script>
+  <script src="/game/game.js?v=389"></script>
 </body>
 </html>

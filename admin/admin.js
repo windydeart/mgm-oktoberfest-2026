@@ -536,54 +536,75 @@ function bindEvents() {
         });
     });
     
-    // Photo Review Player Name Filter
+    // Expandable Photo Review Player Name Search
+    const headerSearchExpand = document.getElementById('headerSearchExpand');
+    const btnSearchToggle = document.getElementById('btnSearchToggle');
+    const btnCloseExpand = document.getElementById('btnCloseExpand');
     const playerFilterInput = document.getElementById('playerFilterInput');
     const clearPlayerFilterBtn = document.getElementById('clearPlayerFilterBtn');
+    const searchActiveDot = document.getElementById('searchActiveDot');
+
+    if (btnSearchToggle && headerSearchExpand) {
+        btnSearchToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            headerSearchExpand.classList.add('open');
+            if (playerFilterInput) {
+                playerFilterInput.focus();
+            }
+        });
+    }
+
+    if (btnCloseExpand && headerSearchExpand) {
+        btnCloseExpand.addEventListener('click', (e) => {
+            e.stopPropagation();
+            headerSearchExpand.classList.remove('open');
+            if (searchActiveDot) {
+                searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
+            }
+        });
+    }
+
     if (playerFilterInput) {
         playerFilterInput.addEventListener('input', (e) => {
             currentPlayerSearchQuery = e.target.value;
             if (clearPlayerFilterBtn) {
                 clearPlayerFilterBtn.classList.toggle('hidden', !currentPlayerSearchQuery);
             }
+            if (searchActiveDot) {
+                searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
+            }
             isMobileReviewsExpanded = false;
             renderReviews(currentAllReviews);
         });
     }
+
     if (clearPlayerFilterBtn) {
-        clearPlayerFilterBtn.addEventListener('click', () => {
+        clearPlayerFilterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (playerFilterInput) {
                 playerFilterInput.value = '';
             }
             currentPlayerSearchQuery = '';
             clearPlayerFilterBtn.classList.add('hidden');
+            if (searchActiveDot) {
+                searchActiveDot.classList.add('hidden');
+            }
             renderReviews(currentAllReviews);
             if (playerFilterInput) playerFilterInput.focus();
         });
     }
 
-    // Leaderboard Player Name Filter
-    const adminLbSearchInput = document.getElementById('adminLbSearchInput');
-    const clearAdminLbSearchBtn = document.getElementById('clearAdminLbSearchBtn');
-    if (adminLbSearchInput) {
-        adminLbSearchInput.addEventListener('input', (e) => {
-            currentLbSearchQuery = e.target.value;
-            if (clearAdminLbSearchBtn) {
-                clearAdminLbSearchBtn.classList.toggle('hidden', !currentLbSearchQuery);
+    // Close expandable search on outside click
+    document.addEventListener('click', (e) => {
+        if (headerSearchExpand && headerSearchExpand.classList.contains('open')) {
+            if (!headerSearchExpand.contains(e.target)) {
+                headerSearchExpand.classList.remove('open');
+                if (searchActiveDot) {
+                    searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
+                }
             }
-            renderLeaderboard(currentAllLeaderboardEntries);
-        });
-    }
-    if (clearAdminLbSearchBtn) {
-        clearAdminLbSearchBtn.addEventListener('click', () => {
-            if (adminLbSearchInput) {
-                adminLbSearchInput.value = '';
-            }
-            currentLbSearchQuery = '';
-            clearAdminLbSearchBtn.classList.add('hidden');
-            renderLeaderboard(currentAllLeaderboardEntries);
-            if (adminLbSearchInput) adminLbSearchInput.focus();
-        });
-    }
+        }
+    });
 
     // Location Filter
     document.getElementById('locationFilter').addEventListener('change', (e) => {
@@ -610,7 +631,12 @@ function bindEvents() {
             const rejectModal = document.getElementById('rejectModal');
             const winnerModal = document.getElementById('winnerShowcaseModal');
 
-            if (photoModal && !photoModal.classList.contains('hidden')) {
+            if (headerSearchExpand && headerSearchExpand.classList.contains('open')) {
+                headerSearchExpand.classList.remove('open');
+                if (searchActiveDot) {
+                    searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
+                }
+            } else if (photoModal && !photoModal.classList.contains('hidden')) {
                 closePhotoPreview();
             } else if (rejectModal && !rejectModal.classList.contains('hidden')) {
                 closeRejectModal();

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=17">
+    <link rel="stylesheet" href="/admin/admin.css?v=18">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -134,18 +134,11 @@
                         <i data-lucide="chevron-down" class="accordion-chevron" id="adminLbChevron"></i>
                     </button>
                     <div class="admin-accordion-content collapsed" id="adminLbContent">
-                        <div class="admin-lb-controls">
-                            <!-- Office Filter Tabs -->
-                            <div class="lb-tabs-container admin-lb-tabs" id="adminLbTabs">
-                                <button type="button" class="lb-filter-tab active" data-lb-location="all">All Offices</button>
-                                <button type="button" class="lb-filter-tab" data-lb-location="danang">Da Nang</button>
-                                <button type="button" class="lb-filter-tab" data-lb-location="hcmc">HCMC</button>
-                            </div>
-                            <div class="search-box-wrapper lb-search-wrapper">
-                                <i data-lucide="search" class="search-icon"></i>
-                                <input type="text" id="adminLbSearchInput" class="player-search-input" placeholder="Search player..." autocomplete="off">
-                                <button type="button" id="clearAdminLbSearchBtn" class="clear-search-btn hidden" title="Clear search">&times;</button>
-                            </div>
+                        <!-- Office Filter Tabs -->
+                        <div class="lb-tabs-container admin-lb-tabs" id="adminLbTabs">
+                            <button type="button" class="lb-filter-tab active" data-lb-location="all">All Offices</button>
+                            <button type="button" class="lb-filter-tab" data-lb-location="danang">Da Nang</button>
+                            <button type="button" class="lb-filter-tab" data-lb-location="hcmc">HCMC</button>
                         </div>
                         <div class="table-container">
                             <table class="lb-ranking-table">
@@ -169,17 +162,29 @@
                 <!-- Photo Review Queue Section -->
                 <section class="review-section">
                     <div class="review-header">
-                        <div class="section-card-header">
-                            <i data-lucide="camera" class="header-icon-gold"></i>
-                            <h3>Photo Review Queue</h3>
+                        <div class="review-title-row">
+                            <div class="section-card-header">
+                                <i data-lucide="camera" class="header-icon-gold"></i>
+                                <h3>Photo Review Queue</h3>
+                            </div>
+                            <!-- Expandable Magnifying Glass Search Button -->
+                            <div class="header-search-expand" id="headerSearchExpand">
+                                <button type="button" class="btn-search-icon" id="btnSearchToggle" aria-label="Search by player" title="Filter by player name">
+                                    <i data-lucide="search"></i>
+                                    <span class="search-active-dot hidden" id="searchActiveDot"></span>
+                                </button>
+                                <div class="search-expand-bar" id="searchExpandBar">
+                                    <i data-lucide="search" class="expand-input-icon"></i>
+                                    <input type="text" id="playerFilterInput" list="playerNamesList" class="player-search-input-expand" placeholder="Type player name..." autocomplete="off">
+                                    <datalist id="playerNamesList"></datalist>
+                                    <button type="button" id="clearPlayerFilterBtn" class="clear-search-btn hidden" title="Clear filter">&times;</button>
+                                    <button type="button" class="btn-close-expand" id="btnCloseExpand" title="Close search">
+                                        <i data-lucide="x"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="filters">
-                            <div class="search-box-wrapper review-search-wrapper">
-                                <i data-lucide="search" class="search-icon"></i>
-                                <input type="text" id="playerFilterInput" list="playerNamesList" class="player-search-input" placeholder="Filter by player name..." autocomplete="off">
-                                <datalist id="playerNamesList"></datalist>
-                                <button type="button" id="clearPlayerFilterBtn" class="clear-search-btn hidden" title="Clear filter">&times;</button>
-                            </div>
                             <select id="locationFilter" class="filter-select">
                                 <option value="all">All Offices</option>
                                 <option value="danang">Da Nang</option>
@@ -279,7 +284,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=17"></script>
+    <script src="/admin/admin.js?v=18"></script>
     <script>
         lucide.createIcons();
     </script>

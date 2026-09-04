@@ -140,19 +140,31 @@ async function fetchAdminLeaderboard(location = 'all') {
     }
 }
 
+let currentAllLeaderboardEntries = [];
+let currentLbSearchQuery = '';
+
 function renderLeaderboard(entries) {
+    if (entries) currentAllLeaderboardEntries = entries;
     const tbody = document.getElementById('leaderboardBody');
     const emptyEl = document.getElementById('adminLbEmpty');
     if (!tbody) return;
 
-    if (!entries || entries.length === 0) {
+    const query = (currentLbSearchQuery || '').trim().toLowerCase();
+    const filteredEntries = query
+        ? currentAllLeaderboardEntries.filter(e => (e.player_name || '').toLowerCase().includes(query))
+        : currentAllLeaderboardEntries;
+
+    if (!filteredEntries || filteredEntries.length === 0) {
         tbody.innerHTML = '';
-        if (emptyEl) emptyEl.classList.remove('hidden');
+        if (emptyEl) {
+            emptyEl.textContent = query ? `No player found matching "${escapeHTML(currentLbSearchQuery)}".` : 'No completions yet.';
+            emptyEl.classList.remove('hidden');
+        }
         return;
     }
     if (emptyEl) emptyEl.classList.add('hidden');
     
-    tbody.innerHTML = entries.map((entry, index) => {
+    tbody.innerHTML = filteredEntries.map((entry, index) => {
         const rank = entry.rank || index + 1;
         const isTop1 = rank === 1;
         const medal = isTop1 ? '👑 #1' : `#${rank}`;
@@ -182,6 +194,8 @@ function renderLeaderboard(entries) {
 // Review Functions
 let lastRenderedReviewsJson = '';
 
+let currentPlayerSearchQuery = '';
+
 async function fetchReviews() {
     if (!isAuthenticated()) return;
     try {
@@ -189,6 +203,9 @@ async function fetchReviews() {
             status: currentReviewFilter,
             location: currentLocationFilter
         });
+        if (currentPlayerSearchQuery.trim()) {
+            queryParams.set('player_name', currentPlayerSearchQuery.trim());
+        }
         
         const response = await fetch(`${API_BASE}/reviews?${queryParams}`, {
             headers: getAuthHeaders()
@@ -213,8 +230,23 @@ function renderReviews(reviews) {
     const emptyMsg = document.getElementById('emptyReviewMsg');
     const showMoreContainer = document.getElementById('showMoreContainer');
     
-    if (!reviews || reviews.length === 0) {
+    // Update player names datalist
+    const datalist = document.getElementById('playerNamesList');
+    if (datalist) {
+        const uniqueNames = Array.from(new Set(currentAllReviews.map(r => r.player_name).filter(Boolean))).sort();
+        datalist.innerHTML = uniqueNames.map(name => `<option value="${escapeHTML(name)}">`).join('');
+    }
+
+    const query = (currentPlayerSearchQuery || '').trim().toLowerCase();
+    const filteredReviews = query
+        ? currentAllReviews.filter(r => (r.player_name || '').toLowerCase().includes(query))
+        : currentAllReviews;
+
+    if (!filteredReviews || filteredReviews.length === 0) {
         grid.innerHTML = '';
+        emptyMsg.textContent = query
+            ? `No reviews found for player "${escapeHTML(currentPlayerSearchQuery)}".`
+            : 'No reviews found matching criteria.';
         emptyMsg.classList.remove('hidden');
         if (showMoreContainer) showMoreContainer.classList.add('hidden');
         lastRenderedReviewsJson = '[]';
@@ -224,11 +256,11 @@ function renderReviews(reviews) {
     emptyMsg.classList.add('hidden');
 
     const isMobile = window.innerWidth <= 768;
-    const shouldTruncate = isMobile && !isMobileReviewsExpanded && reviews.length > MOBILE_REVIEW_LIMIT;
-    const displayedReviews = shouldTruncate ? reviews.slice(0, MOBILE_REVIEW_LIMIT) : reviews;
+    const shouldTruncate = isMobile && !isMobileReviewsExpanded && filteredReviews.length > MOBILE_REVIEW_LIMIT;
+    const displayedReviews = shouldTruncate ? filteredReviews.slice(0, MOBILE_REVIEW_LIMIT) : filteredReviews;
 
     // Prevent DOM thrashing and image flickering if reviews data hasn't changed
-    const renderSignature = `${JSON.stringify(displayedReviews)}-${isMobile}-${isMobileReviewsExpanded}`;
+    const renderSignature = `${JSON.stringify(displayedReviews)}-${isMobile}-${isMobileReviewsExpanded}-${query}`;
     if (renderSignature === lastRenderedReviewsJson) {
         return;
     }
@@ -504,6 +536,55 @@ function bindEvents() {
         });
     });
     
+    // Photo Review Player Name Filter
+    const playerFilterInput = document.getElementById('playerFilterInput');
+    const clearPlayerFilterBtn = document.getElementById('clearPlayerFilterBtn');
+    if (playerFilterInput) {
+        playerFilterInput.addEventListener('input', (e) => {
+            currentPlayerSearchQuery = e.target.value;
+            if (clearPlayerFilterBtn) {
+                clearPlayerFilterBtn.classList.toggle('hidden', !currentPlayerSearchQuery);
+            }
+            isMobileReviewsExpanded = false;
+            renderReviews(currentAllReviews);
+        });
+    }
+    if (clearPlayerFilterBtn) {
+        clearPlayerFilterBtn.addEventListener('click', () => {
+            if (playerFilterInput) {
+                playerFilterInput.value = '';
+            }
+            currentPlayerSearchQuery = '';
+            clearPlayerFilterBtn.classList.add('hidden');
+            renderReviews(currentAllReviews);
+            if (playerFilterInput) playerFilterInput.focus();
+        });
+    }
+
+    // Leaderboard Player Name Filter
+    const adminLbSearchInput = document.getElementById('adminLbSearchInput');
+    const clearAdminLbSearchBtn = document.getElementById('clearAdminLbSearchBtn');
+    if (adminLbSearchInput) {
+        adminLbSearchInput.addEventListener('input', (e) => {
+            currentLbSearchQuery = e.target.value;
+            if (clearAdminLbSearchBtn) {
+                clearAdminLbSearchBtn.classList.toggle('hidden', !currentLbSearchQuery);
+            }
+            renderLeaderboard(currentAllLeaderboardEntries);
+        });
+    }
+    if (clearAdminLbSearchBtn) {
+        clearAdminLbSearchBtn.addEventListener('click', () => {
+            if (adminLbSearchInput) {
+                adminLbSearchInput.value = '';
+            }
+            currentLbSearchQuery = '';
+            clearAdminLbSearchBtn.classList.add('hidden');
+            renderLeaderboard(currentAllLeaderboardEntries);
+            if (adminLbSearchInput) adminLbSearchInput.focus();
+        });
+    }
+
     // Location Filter
     document.getElementById('locationFilter').addEventListener('change', (e) => {
         currentLocationFilter = e.target.value;

@@ -23,6 +23,7 @@ module.exports = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const status = url.searchParams.get('status') || 'pending';
   const location = url.searchParams.get('location') || 'all';
+  const playerName = url.searchParams.get('player_name') || '';
 
   try {
     let queryUrl = `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?select=id,session_id,player_name,office,cell_index,challenge_text,photo_url,ai_reason,status,reviewer_note,reviewed_at,created_at&order=created_at.desc`;
@@ -32,6 +33,9 @@ module.exports = async (req, res) => {
     }
     if (location === 'danang' || location === 'hcmc') {
       queryUrl += `&office=eq.${location}`;
+    }
+    if (playerName) {
+      queryUrl += `&player_name=ilike.*${encodeURIComponent(playerName.trim())}*`;
     }
 
     const headers = {

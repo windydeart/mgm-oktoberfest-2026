@@ -670,6 +670,86 @@ body {
     flex-wrap: wrap;
 }
 
+.admin-lb-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+
+.search-box-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 190px;
+}
+
+.search-box-wrapper.review-search-wrapper {
+    min-width: 200px;
+    flex: 1 1 200px;
+    max-width: 280px;
+}
+
+.search-box-wrapper.lb-search-wrapper {
+    min-width: 180px;
+    max-width: 240px;
+}
+
+.player-search-input {
+    width: 100%;
+    background: rgba(11, 19, 43, 0.85);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 0.45rem 1.8rem 0.45rem 2.2rem;
+    border-radius: var(--radius-btn);
+    outline: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.player-search-input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.player-search-input:focus {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.search-box-wrapper .search-icon {
+    position: absolute;
+    left: 0.65rem;
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.15s;
+}
+
+.clear-search-btn:hover {
+    color: #ffffff;
+}
+
 .filter-select {
     background: rgba(11, 19, 43, 0.85);
     color: var(--text-main);
@@ -1598,6 +1678,17 @@ body {
         padding: 0.85rem;
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .admin-lb-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .lb-search-wrapper,
+    .review-search-wrapper {
+        max-width: 100%;
+        width: 100%;
     }
 
     .filters {

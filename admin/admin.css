@@ -60,6 +60,9 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 .hidden,
@@ -286,6 +289,9 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* ─── 7. HERO HEADING ─── */
@@ -464,10 +470,19 @@ body {
     grid-template-columns: 1fr 2fr;
     gap: 1.75rem;
     align-items: start;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 @media (max-width: 1200px) {
-    .main-grid { grid-template-columns: 1fr; }
+    .main-grid {
+        grid-template-columns: minmax(0, 1fr);
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+    }
 }
 
 .section-card-header {
@@ -490,6 +505,10 @@ body {
     padding: 1.25rem;
     backdrop-filter: var(--blur);
     -webkit-backdrop-filter: var(--blur);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .leaderboard-section h3 {
@@ -666,6 +685,9 @@ body {
     flex-direction: column;
     gap: 1rem;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .review-header {
@@ -1854,7 +1876,12 @@ body {
 @media (max-width: 640px) {
     .dashboard-content {
         padding: 1rem 0.75rem;
-        gap: 1.25rem;
+        gap: 1.15rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     .top-bar {
@@ -1888,6 +1915,10 @@ body {
 
     .stats-container {
         padding: 0.75rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     .stats-grid {
@@ -1932,33 +1963,133 @@ body {
         font-size: 0.64rem;
     }
 
+    /* ─── Main Grid & Sections Containment (< 640px) ─── */
+    .main-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.15rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    /* Leaderboard Mobile Tuning */
+    .leaderboard-section {
+        padding: 0.75rem 0.85rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .admin-accordion-header {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .admin-accordion-content {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .lb-tabs-container {
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 4px;
+        padding: 3px;
+    }
+
+    .lb-filter-tab {
+        min-width: 0;
+        font-size: 0.72rem;
+        padding: 0 4px;
+        height: 30px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table-container {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .lb-ranking-table {
+        font-size: 0.8rem;
+    }
+
+    .lb-ranking-table th,
+    .lb-ranking-table td {
+        padding: 7px 6px;
+    }
+
+    .lb-ranking-table .lb-rank,
+    .lb-ranking-table th:first-child {
+        width: 42px;
+    }
+
+    .lb-ranking-table .lb-name {
+        min-width: 85px;
+    }
+
+    .lb-ranking-table .lb-time,
+    .lb-ranking-table th:nth-child(3) {
+        width: 72px;
+    }
+
+    .lb-ranking-table .lb-location,
+    .lb-ranking-table th:nth-child(4) {
+        width: 78px;
+    }
+
+    /* Review Section Mobile Tuning */
+    .review-section {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        gap: 0.85rem;
+    }
+
     .review-header {
-        padding: 0.85rem;
+        padding: 0.75rem 0.85rem;
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             "title search"
             "office office"
             "status status";
-        gap: 0.75rem;
+        gap: 0.65rem;
         align-items: center;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     .review-title-group {
         grid-area: title;
         align-self: center;
         min-width: 0;
+        overflow: hidden;
     }
 
     .review-title-group .section-card-header {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.45rem;
         margin: 0;
+        min-width: 0;
     }
 
     .review-title-group h3 {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1973,67 +2104,164 @@ body {
         grid-area: search;
         justify-self: end;
         align-self: center;
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
+    }
+
+    .btn-search-icon {
+        width: 34px;
+        height: 34px;
     }
 
     .header-search-expand.open {
-        width: 135px;
+        width: 130px;
     }
 
     .header-search-expand.open .search-expand-bar {
-        width: 135px;
-        max-width: 135px;
+        width: 130px;
+        max-width: 130px;
     }
 
     .filter-select {
         grid-area: office;
         width: 100%;
         box-sizing: border-box;
+        min-width: 0;
+        padding: 0.42rem 0.75rem;
+        font-size: 0.82rem;
     }
 
     .tabs {
         grid-area: status;
         width: 100%;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         box-sizing: border-box;
+        min-width: 0;
     }
 
     .tab-btn {
-        padding: 0.45rem 0.2rem;
+        padding: 0.42rem 2px;
         text-align: center;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
     }
 
     .review-grid {
-        grid-template-columns: 1fr;
-        gap: 1.85rem;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.15rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .review-card {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .review-img-container {
-        height: 155px;
+        height: 165px;
+        width: 100%;
+        max-width: 100%;
     }
 
     .review-content {
-        padding: 0.85rem 0.95rem;
+        padding: 0.75rem 0.85rem;
         gap: 0.65rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .review-meta {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.4rem;
+        flex-wrap: nowrap;
+    }
+
+    .player-rank-group {
+        min-width: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: baseline;
+        gap: 0.35rem;
+        flex: 1;
     }
 
     .player-name {
-        font-size: 1rem;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 135px;
+    }
+
+    .player-rank-text {
+        font-size: 0.8rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .location-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.55rem;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .review-challenge-box {
+        padding: 0.45rem 0.65rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .challenge-label {
+        font-size: 0.65rem;
     }
 
     .review-challenge {
         font-size: 0.82rem;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .ai-reason-box,
+    .reject-reason-box,
+    .reviewer-note-box {
+        width: 100%;
+        box-sizing: border-box;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .ai-reason-text,
+    .reject-reason-text {
+        font-size: 0.78rem;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
 
     .btn-review {
-        min-height: 35px;
+        min-height: 36px;
         font-size: 0.82rem;
         padding: 0.42rem 0.65rem;
         gap: 0.35rem;
+        flex: 1;
     }
 }
 
@@ -2491,12 +2719,28 @@ body {
 }
 
 @media (max-width: 640px) {
+    .game-controller-section {
+        margin-bottom: 1rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    .game-controller-card {
+        padding: 0.85rem 1rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
     .game-controller-buttons {
         grid-template-columns: 1fr;
+        gap: 0.6rem;
     }
     .game-controller-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.65rem;
     }
     .game-controller-footer {
         flex-direction: column;

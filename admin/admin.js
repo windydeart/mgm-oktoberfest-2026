@@ -438,6 +438,9 @@ function openPhotoPreview(url, challenge) {
     modalImage.src = url;
     modalChallenge.textContent = challenge;
     modal.classList.remove('hidden');
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 }
 
 window.approveReview = approveReview;
@@ -522,8 +525,17 @@ function bindEvents() {
     // Global keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            closePhotoPreview();
-            closeRejectModal();
+            const photoModal = document.getElementById('photoModal');
+            const rejectModal = document.getElementById('rejectModal');
+            const winnerModal = document.getElementById('winnerShowcaseModal');
+
+            if (photoModal && !photoModal.classList.contains('hidden')) {
+                closePhotoPreview();
+            } else if (rejectModal && !rejectModal.classList.contains('hidden')) {
+                closeRejectModal();
+            } else if (winnerModal && !winnerModal.classList.contains('hidden')) {
+                closeWinnerShowcaseAdmin();
+            }
         }
     });
 

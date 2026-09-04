@@ -1265,6 +1265,19 @@ body {
     z-index: 1000;
 }
 
+/* Modal Stacking Hierarchy (Photo zoom must be on top of Champion showcase) */
+#winnerShowcaseModal {
+    z-index: 2000;
+}
+
+#rejectModal {
+    z-index: 2100;
+}
+
+#photoModal {
+    z-index: 2200;
+}
+
 .modal-overlay {
     position: absolute;
     width: 100%;

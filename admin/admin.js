@@ -948,6 +948,11 @@ async function setGameControlState(action) {
             currentGameControlState = data.state;
             updateGameControlUI(data.state);
             showToast(data.message || `Game status updated to: ${data.state}`, 'success');
+            if (data.was_reset) {
+                // Immediately refresh stats and review queue to show clean 0s
+                fetchDashboardStats();
+                fetchReviews();
+            }
         } else {
             showToast(data.error || 'Failed to update game control state', 'error');
             updateGameControlUI(currentGameControlState);
@@ -1063,19 +1068,28 @@ function openGameCtrlModal(action) {
         }
     } else if (action === 'start') {
         const isResuming = (currentGameControlState === 'paused');
+        const isRestarting = (currentGameControlState === 'finished');
         if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-start');
         if (ctrlModalIconBadge) {
             ctrlModalIconBadge.classList.add('theme-start');
-            ctrlModalIconBadge.innerHTML = '<i data-lucide="play"></i>';
+            ctrlModalIconBadge.innerHTML = isRestarting ? '<i data-lucide="rotate-ccw"></i>' : '<i data-lucide="play"></i>';
         }
-        if (ctrlModalTitle) ctrlModalTitle.textContent = isResuming ? 'Resume the Game?' : 'Start the Game?';
-        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = isResuming ? 'Resume Active Gameplay' : 'Live Game Activation';
-        if (ctrlModalDesc) ctrlModalDesc.textContent = isResuming
-            ? 'All player screens will be unfrozen immediately and their game timers will resume.'
-            : 'All player devices will be allowed to click Start Game and begin playing their BINGO challenges.';
+        if (ctrlModalTitle) {
+            ctrlModalTitle.textContent = isRestarting ? 'Restart the Game from Beginning?' : (isResuming ? 'Resume the Game?' : 'Start the Game?');
+        }
+        if (ctrlModalSubtitle) {
+            ctrlModalSubtitle.textContent = isRestarting ? 'Fresh Round & Complete Data Reset' : (isResuming ? 'Resume Active Gameplay' : 'Live Game Activation');
+        }
+        if (ctrlModalDesc) {
+            ctrlModalDesc.textContent = isRestarting
+                ? 'Restarting after Finish will reset all player scores, photos, and review queue, starting a brand new game round. All player screens will return to the start screen. Are you sure?'
+                : (isResuming
+                    ? 'All player screens will be unfrozen immediately and their game timers will resume.'
+                    : 'All player devices will be allowed to click Start Game and begin playing their BINGO challenges.');
+        }
         if (confirmGameCtrlBtn) {
             confirmGameCtrlBtn.classList.add('btn-ctrl-confirm-start');
-            confirmGameCtrlBtn.innerHTML = `<i data-lucide="play"></i> <span>${isResuming ? 'Yes, Resume Game' : 'Yes, Start Game'}</span>`;
+            confirmGameCtrlBtn.innerHTML = `<i data-lucide="${isRestarting ? 'rotate-ccw' : 'play'}"></i> <span>${isRestarting ? 'Yes, Reset & Restart Game' : (isResuming ? 'Yes, Resume Game' : 'Yes, Start Game')}</span>`;
         }
     } else if (action === 'finish') {
         if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-finish');
@@ -1091,14 +1105,17 @@ function openGameCtrlModal(action) {
             confirmGameCtrlBtn.innerHTML = '<i data-lucide="square"></i> <span>Yes, Finish Game</span>';
         }
     } else if (action === 'waiting') {
+        const isRestarting = (currentGameControlState === 'finished');
         if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-waiting');
         if (ctrlModalIconBadge) {
             ctrlModalIconBadge.classList.add('theme-waiting');
             ctrlModalIconBadge.innerHTML = '<i data-lucide="rotate-ccw"></i>';
         }
-        if (ctrlModalTitle) ctrlModalTitle.textContent = 'Set Game to Waiting?';
-        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = 'Pre-Event Configuration';
-        if (ctrlModalDesc) ctrlModalDesc.textContent = 'Players can load the welcome page to review rules, but cannot start playing until you click Start Game.';
+        if (ctrlModalTitle) ctrlModalTitle.textContent = isRestarting ? 'Reset & Set Game to Waiting?' : 'Set Game to Waiting?';
+        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = isRestarting ? 'Fresh Round Setup & Data Reset' : 'Pre-Event Configuration';
+        if (ctrlModalDesc) ctrlModalDesc.textContent = isRestarting
+            ? 'This will reset all player scores, photos, and review queue, setting the game to waiting for the next round. Players cannot start until you click Start Game.'
+            : 'Players can load the welcome page to review rules, but cannot start playing until you click Start Game.';
         if (confirmGameCtrlBtn) {
             confirmGameCtrlBtn.classList.add('btn-ctrl-confirm-waiting');
             confirmGameCtrlBtn.innerHTML = '<i data-lucide="rotate-ccw"></i> <span>Set to Waiting</span>';

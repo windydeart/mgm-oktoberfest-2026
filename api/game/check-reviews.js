@@ -20,6 +20,7 @@ module.exports = async (req, res) => {
   try {
     // 1. Query remote game control state
     let gameState = 'active';
+    let roundId = 1;
     try {
       const ctrlRes = await fetch(
         `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control&select=player_email&limit=1`,
@@ -37,6 +38,9 @@ module.exports = async (req, res) => {
           if (snap.state && ['active', 'waiting', 'paused', 'finished'].includes(snap.state)) {
             gameState = snap.state;
           }
+          if (snap.round_id) {
+            roundId = snap.round_id;
+          }
         }
       }
     } catch (ctrlErr) {
@@ -49,7 +53,8 @@ module.exports = async (req, res) => {
       return res.status(200).json({
         success: true,
         decisions: [],
-        game_state: gameState
+        game_state: gameState,
+        round_id: roundId
       });
     }
 
@@ -68,7 +73,7 @@ module.exports = async (req, res) => {
       const errText = await sbRes.text();
       // If table doesn't exist yet, return empty array with game_state
       if (errText.includes('does not exist') || errText.includes('PGRST205')) {
-        return res.status(200).json({ success: true, decisions: [], game_state: gameState });
+        return res.status(200).json({ success: true, decisions: [], game_state: gameState, round_id: roundId });
       }
       console.error('Check reviews error:', errText);
       return res.status(500).json({ error: 'Failed to check review status.' });
@@ -101,7 +106,8 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       success: true,
       decisions,
-      game_state: gameState
+      game_state: gameState,
+      round_id: roundId
     });
   } catch (err) {
     console.error('Check reviews error:', err);

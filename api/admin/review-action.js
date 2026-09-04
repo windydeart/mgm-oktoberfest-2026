@@ -66,7 +66,73 @@ module.exports = async (req, res) => {
   if (action && GAME_CTRL_ACTIONS[action]) {
     const newState = GAME_CTRL_ACTIONS[action];
     try {
-      // 1. Delete previous control state row
+      // 1. Fetch current control state to inspect prevState and current round_id
+      let prevState = 'active';
+      let currentRoundId = Date.now();
+      try {
+        const currentCtrlRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control&select=player_email&limit=1`,
+          {
+            headers: {
+              'apikey': SUPABASE_SECRET_KEY,
+              'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+            }
+          }
+        );
+        if (currentCtrlRes.ok) {
+          const rows = await currentCtrlRes.json();
+          if (rows && rows.length > 0) {
+            const snap = JSON.parse(rows[0].player_email || '{}');
+            if (snap.state) prevState = snap.state;
+            if (snap.round_id) currentRoundId = snap.round_id;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read prev game control state:', e);
+      }
+
+      // Reset occurs if restarting from finished or if explicit reset requested
+      const shouldReset = (prevState === 'finished' && (newState === 'active' || newState === 'waiting')) || (body && body.reset_data === true);
+
+      let newRoundId = currentRoundId;
+      if (shouldReset) {
+        newRoundId = Date.now();
+        console.log(`Resetting all game data for fresh round ${newRoundId}...`);
+
+        // 1. Delete all photo_bingo and photo_bingo_session scores
+        try {
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=in.(photo_bingo,photo_bingo_session)`,
+            {
+              method: 'DELETE',
+              headers: {
+                'apikey': SUPABASE_SECRET_KEY,
+                'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+              }
+            }
+          );
+        } catch (delScoreErr) {
+          console.error('Failed to wipe game scores on reset:', delScoreErr);
+        }
+
+        // 2. Delete all photo review entries
+        try {
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?id=gt.0`,
+            {
+              method: 'DELETE',
+              headers: {
+                'apikey': SUPABASE_SECRET_KEY,
+                'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+              }
+            }
+          );
+        } catch (delRevErr) {
+          console.error('Failed to wipe photo reviews on reset:', delRevErr);
+        }
+      }
+
+      // 2. Delete previous control state row
       await fetch(
         `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control`,
         {
@@ -78,9 +144,11 @@ module.exports = async (req, res) => {
         }
       );
 
-      // 2. Insert new control state row
+      // 3. Insert new control state row
       const controlData = {
         state: newState,
+        round_id: newRoundId,
+        reset_at: shouldReset ? new Date().toISOString() : undefined,
         updated_at: new Date().toISOString(),
         updated_by: 'admin'
       };
@@ -109,15 +177,21 @@ module.exports = async (req, res) => {
       }
 
       const STATE_MESSAGES = {
-        'active': 'Game started — all players can now play!',
+        'active': shouldReset
+          ? 'Game restarted fresh! All previous data has been reset.'
+          : (prevState === 'paused' ? 'Game resumed — timers running again!' : 'Game started — all players can now play!'),
         'paused': 'Game paused — all player screens are frozen.',
         'finished': 'Game finished — all player screens show end message.',
-        'waiting': 'Game set to waiting — players cannot start until you press Start.'
+        'waiting': shouldReset
+          ? 'Game reset & set to waiting — all previous data reset.'
+          : 'Game set to waiting — players cannot start until you press Start.'
       };
 
       return res.status(200).json({
         success: true,
         state: newState,
+        round_id: newRoundId,
+        was_reset: shouldReset,
         message: STATE_MESSAGES[newState],
         updated_at: controlData.updated_at
       });

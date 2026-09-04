@@ -48,6 +48,7 @@
 
   /* ─── GAME REMOTE CONTROLLER STATE ─── */
   let gameControlState = 'active'; // 'active' | 'waiting' | 'paused' | 'finished'
+  let currentRoundId = null;
   let isGamePausedByAdmin = false;
   let gameControlPollingInterval = null;
 
@@ -64,6 +65,7 @@
   const STORAGE_KEY_USER_LOC = 'bingo_player_location';
   const STORAGE_KEY_TOKEN = 'bingo_session_token';
   const STORAGE_KEY_CHALLENGES = 'bingo_board_challenges';
+  const STORAGE_KEY_ROUND_ID = 'bingo_game_round_id';
 
   try {
     ['bingo_game_state', 'bingo_game_state_v2', 'bingo_game_state_v3', 'bingo_game_state_v4', 'bingo_session_token_v2', 'bingo_session_token_v3'].forEach(k => {
@@ -1722,6 +1724,9 @@
       if (gameState.challenges && Array.isArray(gameState.challenges) && gameState.challenges.length === 9) {
         localStorage.setItem(STORAGE_KEY_CHALLENGES, JSON.stringify(gameState.challenges));
       }
+      if (currentRoundId) {
+        localStorage.setItem(STORAGE_KEY_ROUND_ID, String(currentRoundId));
+      }
       // Purge all old local state blobs so client NEVER uses stale local data
       localStorage.removeItem('bingo_game_state_v4');
       localStorage.removeItem('bingo_game_state');
@@ -1736,6 +1741,8 @@
       localStorage.removeItem(STORAGE_KEY_CHALLENGES);
       localStorage.removeItem('bingo_session_token_v4');
       localStorage.removeItem('bingo_game_state_v4');
+      localStorage.removeItem('bingo_session_token');
+      localStorage.removeItem('bingo_game_state');
     } catch (e) { /* ignore */ }
   }
 
@@ -1751,11 +1758,66 @@
       cell.style.backgroundImage = '';
       const textP = cell.querySelector('.cell-challenge-text');
       if (textP) textP.textContent = 'Ready to play...';
+      const badge = cell.querySelector('.cell-badge');
+      if (badge) badge.textContent = '';
+      const photoOverlay = cell.querySelector('.cell-photo');
+      if (photoOverlay) photoOverlay.remove();
     });
     if (els.gameWelcome) els.gameWelcome.style.display = '';
     if (els.bingoBoard) els.bingoBoard.style.display = 'none';
     if (els.gameStatusBar) els.gameStatusBar.style.display = 'none';
     resetTimer();
+  }
+
+  function resetAllGameClientData(newRoundId) {
+    console.log('Resetting all game client data for round:', newRoundId);
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    isGamePausedByAdmin = false;
+    resetTimer();
+
+    clearSession();
+    if (newRoundId) {
+      try {
+        localStorage.setItem(STORAGE_KEY_ROUND_ID, String(newRoundId));
+      } catch (e) {}
+      currentRoundId = newRoundId;
+    }
+
+    gameState = {
+      sessionId: null,
+      sessionToken: null,
+      playerName: '',
+      location: gameState.location || 'danang',
+      challenges: [],
+      completedCells: [],
+      cellPhotos: {},
+      status: 'idle',
+      startedAt: null,
+      elapsedMs: null,
+      bingoLine: null,
+      rank: null
+    };
+
+    $$('.bingo-cell').forEach(cell => {
+      cell.className = 'bingo-cell';
+      cell.style.backgroundImage = '';
+      const textP = cell.querySelector('.cell-challenge-text');
+      if (textP) textP.textContent = 'Ready to play...';
+      const badge = cell.querySelector('.cell-badge');
+      if (badge) badge.textContent = '';
+      const photoOverlay = cell.querySelector('.cell-photo');
+      if (photoOverlay) photoOverlay.remove();
+    });
+
+    if (els.bingoBoard) els.bingoBoard.style.display = 'none';
+    if (els.gameStatusBar) els.gameStatusBar.style.display = 'none';
+    if (els.gameWelcome) els.gameWelcome.style.display = '';
+
+    if (els.playerModal && els.playerModal.classList.contains('active')) closeModal(els.playerModal);
+    if (els.cameraOverlay && els.cameraOverlay.classList.contains('active')) closeCamera();
+    if (els.victoryModal && els.victoryModal.classList.contains('active')) closeModal(els.victoryModal);
+    hideControlOverlay();
   }
 
   async function tryRecoverSession() {
@@ -2384,9 +2446,10 @@
     }, 350);
   }
 
-  function applyGameControlState(newState) {
+  function applyGameControlState(newState, roundId) {
     const prevState = gameControlState;
     gameControlState = newState;
+    if (roundId) currentRoundId = roundId;
 
     if (newState === 'paused') {
       // 1. Pause active gameplay
@@ -2412,8 +2475,11 @@
         false
       );
     } else if (newState === 'active') {
-      // If was previously paused by admin, resume timer
-      if (isGamePausedByAdmin) {
+      if (prevState === 'finished') {
+        // Game was finished and now restarted -> wipe client data completely
+        resetAllGameClientData(roundId);
+        showToast('A new game round has started! Welcome!', 'info');
+      } else if (isGamePausedByAdmin) {
         isGamePausedByAdmin = false;
         if (gameState.status === 'playing') {
           startTimer(gameState.elapsedMs);
@@ -2422,6 +2488,9 @@
       }
       hideControlOverlay();
     } else if (newState === 'waiting') {
+      if (prevState === 'finished') {
+        resetAllGameClientData(roundId);
+      }
       hideControlOverlay();
       if (els.playerModal && els.playerModal.classList.contains('active')) {
         closeModal(els.playerModal);
@@ -2460,8 +2529,21 @@
       if (!res.ok) return;
       const data = await res.json();
       const newState = data && (data.game_state || data.state);
+      const roundId = data && data.round_id;
+
+      if (roundId) {
+        const savedRoundId = localStorage.getItem(STORAGE_KEY_ROUND_ID);
+        if (savedRoundId && String(roundId) !== String(savedRoundId)) {
+          console.log(`Detected new round ${roundId} (prev: ${savedRoundId}). Resetting client...`);
+          resetAllGameClientData(roundId);
+          showToast('A new game round has started! Welcome!', 'info');
+        } else if (!savedRoundId) {
+          currentRoundId = roundId;
+        }
+      }
+
       if (newState && newState !== gameControlState) {
-        applyGameControlState(newState);
+        applyGameControlState(newState, roundId);
       }
     } catch (e) {
       // Non-blocking fail-open
@@ -2492,6 +2574,19 @@
     // Check remote game control state immediately and start polling
     await pollGameControlState();
     startGameControlPolling();
+
+    // Verify round ownership before trying to recover session
+    const savedRoundId = localStorage.getItem(STORAGE_KEY_ROUND_ID);
+    if (currentRoundId && savedRoundId && String(currentRoundId) !== String(savedRoundId)) {
+      resetAllGameClientData(currentRoundId);
+    } else if (currentRoundId && !savedRoundId) {
+      if (localStorage.getItem(STORAGE_KEY_USER_NAME) || localStorage.getItem(STORAGE_KEY_TOKEN)) {
+        // Stale session from old un-tracked round -> wipe
+        resetAllGameClientData(currentRoundId);
+      } else {
+        try { localStorage.setItem(STORAGE_KEY_ROUND_ID, String(currentRoundId)); } catch (e) {}
+      }
+    }
 
     const recovered = await tryRecoverSession();
     if (!recovered && !localStorage.getItem(STORAGE_KEY_USER_NAME) && !localStorage.getItem(STORAGE_KEY_TOKEN)) {

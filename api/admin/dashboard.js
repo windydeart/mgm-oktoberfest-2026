@@ -51,11 +51,15 @@ module.exports = async (req, res) => {
     ]);
 
     let gameState = 'active';
+    let roundId = 1;
     if (gameControlRow && gameControlRow.length > 0) {
       try {
         const snap = JSON.parse(gameControlRow[0].player_email || '{}');
         if (snap.state && ['active', 'waiting', 'paused', 'finished'].includes(snap.state)) {
           gameState = snap.state;
+        }
+        if (snap.round_id) {
+          roundId = snap.round_id;
         }
       } catch (e) {}
     }
@@ -103,7 +107,8 @@ module.exports = async (req, res) => {
         rejected_count: reviewsRejected.length,
         avg_completion_time_ms: Math.round(avgTime * 1000),
         champion: champion ? { player_name: champion.player_name, location: champion.office, elapsed_ms: Math.round(champion.duration_seconds * 1000) } : null,
-        game_state: gameState
+        game_state: gameState,
+        round_id: roundId
       },
       leaderboard
     });

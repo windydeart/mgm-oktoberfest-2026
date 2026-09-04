@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
         body: JSON.stringify({
           player_name: '__game_control__',
           game_name: 'game_control',
-          office: 'system',
+          office: 'danang',
           score: 0,
           duration_seconds: 0,
           player_email: JSON.stringify(controlData)

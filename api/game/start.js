@@ -82,9 +82,19 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to load challenge library.' });
   }
 
+  // Filter pool by player office/location:
+  // Challenges specific to HCMC (e.g. ID 20 "Selfie with Trinh Tran", ID 27 "Selfie with someone wearing Dirndl")
+  // are ONLY eligible when location === 'hcmc'. If location is 'danang', they are strictly excluded.
+  const isHCMC = location === 'hcmc';
+  const availableChallenges = allChallenges.filter(c => {
+    if (c.office && c.office !== location) return false;
+    if ((c.id === 20 || c.id === 27) && !isHCMC) return false;
+    return true;
+  });
+
   // Separate pinned (must-include) challenges from the regular pool
-  const pinnedChallenges = allChallenges.filter(c => c.pinned === true);
-  const regularChallenges = allChallenges.filter(c => c.pinned !== true);
+  const pinnedChallenges = availableChallenges.filter(c => c.pinned === true);
+  const regularChallenges = availableChallenges.filter(c => c.pinned !== true);
 
   // Start with all pinned challenges guaranteed
   const selected = [...pinnedChallenges];

@@ -48,20 +48,26 @@ function checkBingo(cells) {
   return null;
 }
 
-function getDefaultChallenges() {
+function getDefaultChallenges(location = 'danang') {
   const pool = Array.isArray(challengesPool)
     ? challengesPool
     : (challengesPool && challengesPool.challenges ? challengesPool.challenges : []);
   if (pool.length >= 9) {
+    const isHCMC = location === 'hcmc';
+    const eligiblePool = pool.filter(c => {
+      if (c.office && c.office !== location) return false;
+      if ((c.id === 20 || c.id === 27) && !isHCMC) return false;
+      return true;
+    });
     // 1. Always guarantee all pinned challenges (e.g. ID 41: Selfie with "A12 open source" banner)
-    const pinned = pool.filter(c => c.pinned === true);
-    const unpinned = pool.filter(c => c.pinned !== true);
+    const pinned = eligiblePool.filter(c => c.pinned === true);
+    const unpinned = eligiblePool.filter(c => c.pinned !== true);
 
     const picked = [...pinned];
     const specificIds = [39, 36, 9, 24, 10, 33, 7, 15, 31];
     for (const id of specificIds) {
       if (picked.length >= 9) break;
-      const c = pool.find(ch => ch.id === id);
+      const c = eligiblePool.find(ch => ch.id === id);
       if (c && !picked.find(p => p.id === c.id)) picked.push(c);
     }
     for (const c of unpinned) {
@@ -191,7 +197,7 @@ module.exports = async (req, res) => {
       session_id: recoveredSessionId,
       player_name: player_name,
       location: location || 'danang',
-      challenges: recoveredChallenges || getDefaultChallenges(),
+      challenges: recoveredChallenges || getDefaultChallenges(location || 'danang'),
       completed_cells: [],
       pending_review_cells: [],
       cell_photo_urls: {},
@@ -228,7 +234,7 @@ module.exports = async (req, res) => {
       } catch (e) {}
     }
     if (!session.challenges || !Array.isArray(session.challenges) || session.challenges.length !== 9) {
-      session.challenges = getDefaultChallenges();
+      session.challenges = getDefaultChallenges(session.location || location || 'danang');
     }
   }
 

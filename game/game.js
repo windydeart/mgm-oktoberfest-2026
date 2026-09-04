@@ -667,6 +667,16 @@
           pinned: true
         };
       }
+
+      // Safeguard: Ensure Da Nang never contains HCMC-only challenges (Trinh Tran #20 or Dirndl #27)
+      if (gameState.location === 'danang' && gameState.challenges) {
+        for (let i = 0; i < gameState.challenges.length; i++) {
+          const c = gameState.challenges[i];
+          if (c && (c.id === 20 || c.id === 27 || (c.challenge && (c.challenge.includes('Trinh Tran') || c.challenge.includes('Dirndl'))))) {
+            gameState.challenges[i] = { id: 19, category: 'People', icon: '👤', challenge: 'Selfie with MC' };
+          }
+        }
+      }
       gameState.startedAt = data.started_at;
       gameState.completedCells = [];
       gameState.status = 'playing';
@@ -1908,6 +1918,20 @@
           challenge: 'Selfie with "A12 open source" banner',
           pinned: true
         };
+      }
+
+      // Safeguard: Ensure Da Nang office never restores legacy cached HCMC-only challenges
+      if (gameState.location === 'danang' && gameState.challenges) {
+        for (let i = 0; i < gameState.challenges.length; i++) {
+          const c = gameState.challenges[i];
+          if (c && (c.id === 20 || c.id === 27 || (c.challenge && (c.challenge.includes('Trinh Tran') || c.challenge.includes('Dirndl'))))) {
+            if (data.challenges && data.challenges[i] && data.challenges[i].id !== 20 && data.challenges[i].id !== 27) {
+              gameState.challenges[i] = data.challenges[i];
+            } else {
+              gameState.challenges[i] = { id: 19, category: 'People', icon: '👤', challenge: 'Selfie with MC' };
+            }
+          }
+        }
       }
       gameState.completedCells = completedCells;
       gameState.pendingReviewCells = pendingReviewCells;

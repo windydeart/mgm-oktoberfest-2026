@@ -940,8 +940,50 @@ body {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.review-img-container:hover .review-img {
+.review-img-container:hover .review-img:not(.rot-90):not(.rot-180):not(.rot-270) {
     transform: scale(1.05);
+}
+
+.review-img.rot-90 {
+    transform-origin: center center;
+    transform: rotate(90deg) scale(1.38);
+}
+.review-img.rot-180 {
+    transform-origin: center center;
+    transform: rotate(180deg);
+}
+.review-img.rot-270 {
+    transform-origin: center center;
+    transform: rotate(270deg) scale(1.38);
+}
+
+.img-quick-rot-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(11, 19, 43, 0.85);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+}
+.img-quick-rot-btn:hover {
+    background: #f59e0b;
+    color: #0b132b;
+    transform: scale(1.12);
+}
+.img-quick-rot-btn i,
+.img-quick-rot-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 .img-zoom-hint {
@@ -1485,6 +1527,51 @@ body {
     max-height: 70vh;
     object-fit: contain;
     border-radius: 8px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center center;
+}
+
+.modal-content img.rot-90 {
+    transform: rotate(90deg);
+}
+.modal-content img.rot-180 {
+    transform: rotate(180deg);
+}
+.modal-content img.rot-270 {
+    transform: rotate(270deg);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-right: 48px;
+}
+
+.btn-modal-rotate {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.btn-modal-rotate:hover {
+    background: #f59e0b;
+    color: #0b132b;
+    transform: scale(1.03);
+}
+.btn-modal-rotate i,
+.btn-modal-rotate svg {
+    width: 14px;
+    height: 14px;
 }
 
 .close-btn {

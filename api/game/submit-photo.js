@@ -328,21 +328,34 @@ module.exports = async (req, res) => {
   let ai_decision_made = false;
   let ai_verified = false;
   let is_pending_review = false;
+  let ai_rotation = 0;
   let ai_reason = "AI could not automatically verify your photo. Submitted for manual review by organizers.";
 
   // Run AI check and photo upload concurrently for speed
   const photoUploadPromise = uploadPhotoToStorage(base64Data, session.session_id, cell_index);
 
-  // ─── 1. Primary Evaluation via Google Cloud Vertex AI (Singapore / US) ───
-  try {
-    const vertexResult = await callVertexGemini({
-      systemInstruction: `You are an AI photo challenge evaluator for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
+  const orientationInstruction = `You are an AI photo challenge evaluator for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
 Evaluate the submitted photo objectively.
 - APPROVE if the photo reasonably matches or demonstrates a genuine attempt at the challenge (subject, people, beer, festive atmosphere, props, food).
 - REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
 CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
+
+ORIENTATION:
+Analyze the visual orientation of the subject (especially people, heads/faces, horizon, ceiling/floor).
+An upright photo has head/face/ceiling/sky at the TOP, and body/legs/floor/ground at the BOTTOM.
+Determine the degrees CLOCKWISE required to make the image upright:
+- 0: Already upright (head/top is up).
+- 90: Head is on the left edge (needs 90° clockwise rotation).
+- 180: Upside-down / head is at the bottom (needs 180° rotation).
+- 270: Head is on the right edge (needs 270° clockwise rotation).
+
 Reply with ONLY a JSON object:
-{"approved": true/false, "reason": "1-2 concise objective sentences explaining the visual assessment without asking to retry"}`,
+{"approved": true/false, "reason": "1-2 concise objective sentences", "rotation": 0|90|180|270}`;
+
+  // ─── 1. Primary Evaluation via Google Cloud Vertex AI (Singapore / US) ───
+  try {
+    const vertexResult = await callVertexGemini({
+      systemInstruction: orientationInstruction,
       contents: [{
         role: 'user',
         parts: [
@@ -365,7 +378,10 @@ Reply with ONLY a JSON object:
         ai_verified = result.approved === true;
         const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
         ai_reason = sanitizeAiReason(rawReason);
-        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}`);
+        if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
+          ai_rotation = result.rotation;
+        }
+        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, rotation=${ai_rotation}`);
       }
     }
   } catch (vertexErr) {
@@ -376,57 +392,54 @@ Reply with ONLY a JSON object:
   if (!ai_decision_made) {
     for (const model of candidateModels) {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      const geminiRes = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{
-              text: `You are an AI photo challenge evaluator for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
-Evaluate the submitted photo objectively.
-- APPROVE if the photo reasonably matches or demonstrates a genuine attempt at the challenge (subject, people, beer, festive atmosphere, props, food).
-- REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
-CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
-Reply with ONLY a JSON object:
-{"approved": true/false, "reason": "1-2 concise objective sentences explaining the visual assessment without asking to retry"}`
-            }]
-          },
-          contents: [{
-            role: 'user',
-            parts: [
-              { inline_data: { mime_type: 'image/jpeg', data: base64Data } },
-              { text: `Match "${challenge.challenge}"?` }
-            ]
-          }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 256,
-            responseMimeType: "application/json"
+        const geminiRes = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            system_instruction: {
+              parts: [{
+                text: orientationInstruction
+              }]
+            },
+            contents: [{
+              role: 'user',
+              parts: [
+                { inline_data: { mime_type: 'image/jpeg', data: base64Data } },
+                { text: `Match "${challenge.challenge}"?` }
+              ]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 256,
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        clearTimeout(timeoutId);
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const result = extractJson(rawText);
+            if (result && typeof result.approved === 'boolean') {
+              ai_decision_made = true;
+              ai_verified = result.approved === true;
+              const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+              ai_reason = sanitizeAiReason(rawReason);
+              if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
+                ai_rotation = result.rotation;
+              }
+              break; // Clear AI verdict obtained!
+            }
           }
-        })
-      });
-
-      clearTimeout(timeoutId);
-
-      if (geminiRes.ok) {
-        const geminiData = await geminiRes.json();
-        const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const result = extractJson(rawText);
-          if (result && typeof result.approved === 'boolean') {
-            ai_decision_made = true;
-            ai_verified = result.approved === true;
-            const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
-            ai_reason = sanitizeAiReason(rawReason);
-            break; // Clear AI verdict obtained!
-          }
-        }
-      } else {
+        } else {
           const errText = await geminiRes.text();
           console.warn(`Model ${model} returned status ${geminiRes.status}:`, errText);
         }
@@ -438,6 +451,7 @@ Reply with ONLY a JSON object:
 
   // Wait for photo upload to complete
   const photoUrl = await photoUploadPromise;
+  const finalPhotoUrl = (photoUrl && ai_rotation > 0) ? `${photoUrl}#rot=${ai_rotation}` : (photoUrl || null);
 
   // ─── If AI approved with confidence -> DONE. Otherwise -> IN REVIEW ───
   if (ai_decision_made && ai_verified) {
@@ -498,20 +512,20 @@ Reply with ONLY a JSON object:
         office: session.location || 'danang',
         cell_index: cell_index,
         challenge_text: challengeText,
-        photo_url: photoUrl || null,
+        photo_url: finalPhotoUrl,
         ai_reason: ai_reason,
         status: reviewStatus,
         reviewer_note: reviewerNote
       })
     });
   } catch (reviewInsertErr) {
-    console.error('Failed to sync photo review record in database:', reviewInsertErr.message);
+    console.warn('Failed to upsert bingo_photo_reviews:', reviewInsertErr.message);
   }
 
   // Save photo URL and AI reason in session token for persistence
   session.cell_photo_urls = session.cell_photo_urls || {};
-  if (photoUrl) {
-    session.cell_photo_urls[cell_index] = photoUrl;
+  if (finalPhotoUrl) {
+    session.cell_photo_urls[cell_index] = finalPhotoUrl;
   }
 
   session.cell_ai_reasons = session.cell_ai_reasons || {};
@@ -583,7 +597,8 @@ Reply with ONLY a JSON object:
     pending_review: is_pending_review,
     reason: ai_reason,
     ai_reason: ai_reason,
-    photo_url: photoUrl || null,
+    photo_url: finalPhotoUrl,
+    rotation: ai_rotation,
     cell_index,
     session_token: new_token,
     is_bingo,

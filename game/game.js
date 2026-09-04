@@ -122,6 +122,7 @@
     els.cameraPreview = $('#cameraPreview');
     els.previewImage = $('#previewImage');
     els.retakeBtn = $('#retakeBtn');
+    els.rotatePhotoBtn = $('#rotatePhotoBtn');
     els.submitPhotoBtn = $('#submitPhotoBtn');
     els.cameraConfirmOverlay = $('#cameraConfirmOverlay');
     els.cancelSubmitPhotoBtn = $('#cancelSubmitPhotoBtn');
@@ -813,6 +814,52 @@
     });
   }
 
+  let currentPreviewRotation = 0;
+
+  function rotatePreviewPhoto() {
+    const currentSrc = els.previewImage ? els.previewImage.src : null;
+    if (!currentSrc) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const rotCanvas = document.createElement('canvas');
+      // Rotating 90 deg clockwise swaps width and height
+      rotCanvas.width = img.height;
+      rotCanvas.height = img.width;
+      const ctx = rotCanvas.getContext('2d');
+      ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+      ctx.rotate((90 * Math.PI) / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+      currentPreviewRotation = (currentPreviewRotation + 90) % 360;
+      const rotatedDataUrl = rotCanvas.toDataURL('image/jpeg', 0.70);
+      if (els.previewImage) {
+        els.previewImage.src = rotatedDataUrl;
+      }
+    };
+    img.src = currentSrc;
+  }
+
+  function rotateDataUrl(srcUrl, degrees) {
+    return new Promise((resolve) => {
+      if (!degrees || degrees === 0 || !srcUrl) return resolve(srcUrl);
+      const img = new Image();
+      img.onload = () => {
+        const isPerpendicular = (degrees === 90 || degrees === 270);
+        const rotCanvas = document.createElement('canvas');
+        rotCanvas.width = isPerpendicular ? img.height : img.width;
+        rotCanvas.height = isPerpendicular ? img.width : img.height;
+        const ctx = rotCanvas.getContext('2d');
+        ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+        ctx.rotate((degrees * Math.PI) / 180);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        resolve(rotCanvas.toDataURL('image/jpeg', 0.70));
+      };
+      img.onerror = () => resolve(srcUrl);
+      img.src = srcUrl;
+    });
+  }
+
   function capturePhoto() {
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
@@ -826,6 +873,7 @@
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    currentPreviewRotation = 0;
     // High speed compact JPEG (~25KB for instant transmission)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
     els.previewImage.src = dataUrl;
@@ -966,6 +1014,19 @@
       saveSession();
       if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
       gameState.cellAiReasons[targetIdx] = data.ai_reason || data.reason || (data.pending_review ? 'Photo queued for manual review.' : 'Challenge approved!');
+
+      // AI Orientation Auto-Correction: If Gemini detected that the photo needs rotation, adjust local cell photo
+      if (data.rotation && data.rotation > 0) {
+        rotateDataUrl(dataUrl, data.rotation).then(uprightUrl => {
+          if (!gameState.cellPhotos) gameState.cellPhotos = {};
+          gameState.cellPhotos[targetIdx] = uprightUrl;
+          const currentCell = $$('.bingo-cell')[targetIdx];
+          if (currentCell) {
+            currentCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${uprightUrl}')`;
+          }
+          saveSession();
+        });
+      }
 
       if (data.pending_review) {
         promoteToPendingReview(targetIdx, data.photo_url || dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
@@ -2108,6 +2169,9 @@
       els.cameraResult.style.display = 'none';
       els.cameraControls.style.display = 'flex';
     });
+    if (els.rotatePhotoBtn) {
+      els.rotatePhotoBtn.addEventListener('click', rotatePreviewPhoto);
+    }
     els.submitPhotoBtn.addEventListener('click', () => {
       if (els.cameraConfirmOverlay) {
         els.cameraConfirmOverlay.style.display = 'flex';

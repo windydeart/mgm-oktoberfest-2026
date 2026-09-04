@@ -1491,8 +1491,8 @@ body.game-page::before {
   left: 20px;
   right: 20px;
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 12px;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 10px;
   z-index: 25;
 }
 
@@ -1502,13 +1502,42 @@ body.game-page::before {
   background: rgba(11, 19, 43, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.btn-retake-photo:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.02);
+}
+
+.btn-rotate-photo {
+  height: 50px;
+  border-radius: var(--radius-full);
+  background: rgba(22, 32, 61, 0.92);
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  color: var(--text-gold);
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-rotate-photo:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #fbbf24;
+  transform: scale(1.03);
 }
 
 .btn-confirm-photo {
@@ -1517,14 +1546,19 @@ body.game-page::before {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
   border: none;
   color: #0b132b;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  transition: transform var(--transition-fast);
+}
+
+.btn-confirm-photo:hover {
+  transform: scale(1.02);
 }
 
 /* ─── AI Verification Loading ─── */

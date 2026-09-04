@@ -472,11 +472,14 @@
     <div class="camera-preview-stage" id="cameraPreview" style="display:none;">
       <img class="preview-snapshot" id="previewImage" alt="Captured Challenge Photo">
       <div class="preview-action-bar">
-        <button type="button" class="btn-retake-photo" id="retakeBtn">
+        <button type="button" class="btn-retake-photo" id="retakeBtn" title="Retake Photo">
           <i data-lucide="rotate-ccw"></i> Retake
         </button>
-        <button type="button" class="btn-confirm-photo" id="submitPhotoBtn">
-          <i data-lucide="check"></i> Submit Photo
+        <button type="button" class="btn-rotate-photo" id="rotatePhotoBtn" title="Rotate image 90°">
+          <i data-lucide="rotate-cw"></i> Rotate
+        </button>
+        <button type="button" class="btn-confirm-photo" id="submitPhotoBtn" title="Submit Photo">
+          <i data-lucide="check"></i> Submit
         </button>
       </div>
     </div>

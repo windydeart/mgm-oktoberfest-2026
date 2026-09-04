@@ -305,8 +305,12 @@ function renderReviews(reviews) {
         const locationClass = review.office === 'danang' ? 'loc-danang' : 'loc-hcmc';
         const locationLabel = review.office === 'danang' ? 'Da Nang' : 'HCMC';
         const photoSrc = review.photo_url || '';
+        const rot = getRotationFromUrl(photoSrc);
+        const rotClass = rot > 0 ? `rot-${rot}` : '';
+        const rotStyle = rot > 0 ? `style="transform: rotate(${rot}deg);"` : '';
+
         const imgTag = photoSrc 
-            ? `<img src="${escapeHTML(photoSrc)}" alt="Challenge Photo" class="review-img" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
+            ? `<img src="${escapeHTML(photoSrc)}" alt="Challenge Photo" class="review-img ${rotClass}" ${rotStyle} loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
             : `<div class="review-img-placeholder"><i data-lucide="image-off"></i><span>No Image</span></div>`;
 
         const rankTextHTML = review.rank ? `<span class="player-rank-text">Rank #${review.rank}</span>` : '';
@@ -326,6 +330,7 @@ function renderReviews(reviews) {
             <div class="review-card ${review.status}">
                 <div class="review-img-container ${review.status === 'rejected' ? 'img-rejected' : ''}" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
                     ${imgTag}
+                    ${photoSrc ? `<button type="button" class="img-quick-rot-btn" onclick="event.stopPropagation(); quickRotateReviewCard(this)" title="Rotate image 90°"><i data-lucide="rotate-cw"></i></button>` : ''}
                     <div class="img-zoom-hint"><i data-lucide="maximize-2"></i></div>
                     <span class="img-time-badge">${timeAgo(review.reviewed_at || review.created_at)}</span>
                     ${statusTagHTML}
@@ -482,12 +487,46 @@ async function submitReviewAction(reviewId, action, note = '') {
     }
 }
 
-// Modal Functions
+// ─── PHOTO ORIENTATION & MODAL FUNCTIONS ───
 const modal = document.getElementById('photoModal');
 const modalImage = document.getElementById('modalImage');
 const modalChallenge = document.getElementById('modalChallengeText');
 
+function getRotationFromUrl(url) {
+    if (!url || typeof url !== 'string') return 0;
+    const match = url.match(/[#?&]rot=(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+}
+window.getRotationFromUrl = getRotationFromUrl;
+
+function quickRotateReviewCard(btn) {
+    const container = btn.closest('.review-img-container');
+    if (!container) return;
+    const img = container.querySelector('.review-img');
+    if (!img) return;
+    let currentRot = parseInt(img.getAttribute('data-manual-rot') || getRotationFromUrl(img.src) || 0, 10);
+    currentRot = (currentRot + 90) % 360;
+    img.setAttribute('data-manual-rot', currentRot);
+    img.className = 'review-img' + (currentRot > 0 ? ` rot-${currentRot}` : '');
+    img.style.transform = currentRot > 0 ? `rotate(${currentRot}deg)` : '';
+}
+window.quickRotateReviewCard = quickRotateReviewCard;
+
+function rotateModalPhoto() {
+    if (!modalImage) return;
+    let currentRot = parseInt(modalImage.getAttribute('data-rot') || 0, 10);
+    currentRot = (currentRot + 90) % 360;
+    modalImage.setAttribute('data-rot', currentRot);
+    modalImage.className = currentRot > 0 ? `rot-${currentRot}` : '';
+    modalImage.style.transform = currentRot > 0 ? `rotate(${currentRot}deg)` : '';
+}
+window.rotateModalPhoto = rotateModalPhoto;
+
 function openPhotoPreview(url, challenge) {
+    const rot = getRotationFromUrl(url);
+    modalImage.setAttribute('data-rot', rot);
+    modalImage.className = rot > 0 ? `rot-${rot}` : '';
+    modalImage.style.transform = rot > 0 ? `rotate(${rot}deg)` : '';
     modalImage.src = url;
     modalChallenge.textContent = challenge;
     modal.classList.remove('hidden');
@@ -508,6 +547,9 @@ window.closePhotoPreview = closePhotoPreview;
 function closePhotoPreview() {
     modal.classList.add('hidden');
     modalImage.src = '';
+    modalImage.className = '';
+    modalImage.style.transform = '';
+    modalImage.removeAttribute('data-rot');
 }
 
 // Event Listeners

@@ -114,7 +114,11 @@ async function fetchDashboardStats() {
         if (response.ok) {
             const data = await response.json();
             renderStats(data.stats);
-            renderLeaderboard(data.leaderboard);
+            if (adminLbLocation === 'all') {
+                renderLeaderboard(data.leaderboard);
+            } else {
+                fetchAdminLeaderboard(adminLbLocation);
+            }
         }
     } catch (err) {
         console.error('Failed to fetch stats:', err);
@@ -166,15 +170,22 @@ function renderLeaderboard(entries) {
     const emptyEl = document.getElementById('adminLbEmpty');
     if (!tbody) return;
 
+    let locFiltered = currentAllLeaderboardEntries;
+    if (adminLbLocation && adminLbLocation !== 'all') {
+        locFiltered = locFiltered.filter(e => (e.location || '').toLowerCase() === adminLbLocation.toLowerCase());
+    }
+
     const query = (currentLbSearchQuery || '').trim().toLowerCase();
     const filteredEntries = query
-        ? currentAllLeaderboardEntries.filter(e => (e.player_name || '').toLowerCase().includes(query))
-        : currentAllLeaderboardEntries;
+        ? locFiltered.filter(e => (e.player_name || '').toLowerCase().includes(query))
+        : locFiltered;
 
     if (!filteredEntries || filteredEntries.length === 0) {
         tbody.innerHTML = '';
         if (emptyEl) {
-            emptyEl.textContent = query ? `No player found matching "${escapeHTML(currentLbSearchQuery)}".` : 'No completions yet.';
+            emptyEl.textContent = query
+                ? `No player found matching "${escapeHTML(currentLbSearchQuery)}".`
+                : (adminLbLocation !== 'all' ? `No completions yet for ${adminLbLocation === 'hcmc' ? 'HCMC' : 'Da Nang'}.` : 'No completions yet.');
             emptyEl.classList.remove('hidden');
         }
         return;
@@ -182,11 +193,11 @@ function renderLeaderboard(entries) {
     if (emptyEl) emptyEl.classList.add('hidden');
     
     tbody.innerHTML = filteredEntries.map((entry, index) => {
-        const rank = entry.rank || index + 1;
+        const rank = index + 1;
         const isTop1 = rank === 1;
         const medal = isTop1 ? '👑 #1' : `#${rank}`;
-        const locationClass = entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc';
-        const locationLabel = entry.location === 'danang' ? 'Da Nang' : 'HCMC';
+        const locationClass = (entry.location || '').toLowerCase() === 'danang' ? 'loc-danang' : 'loc-hcmc';
+        const locationLabel = (entry.location || '').toLowerCase() === 'danang' ? 'Da Nang' : 'HCMC';
 
         return `
             <tr class="${isTop1 ? 'lb-winner-row' : ''}" ${isTop1 ? `onclick="openWinnerShowcaseAdmin('${adminLbLocation || 'all'}')"` : ''} title="${isTop1 ? 'Click to view Winner Showcase & 3x3 Board' : ''}">
@@ -528,7 +539,8 @@ function bindEvents() {
             if (!tab) return;
             adminLbTabs.querySelectorAll('.lb-filter-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            adminLbLocation = tab.dataset.lbLocation;
+            adminLbLocation = tab.dataset.lbLocation || 'all';
+            renderLeaderboard();
             fetchAdminLeaderboard(adminLbLocation);
         });
     }

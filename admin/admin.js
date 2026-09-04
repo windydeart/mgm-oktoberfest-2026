@@ -1022,7 +1022,7 @@ function updateGameControlUI(state) {
             if (btnCtrlPause) btnCtrlPause.disabled = true;
             if (btnCtrlFinish) btnCtrlFinish.disabled = true;
             if (btnCtrlWaiting) btnCtrlWaiting.disabled = false;
-            if (gameCtrlHint) gameCtrlHint.textContent = '● Game has concluded! Players see "Game finished!, thank you for joining!".';
+            if (gameCtrlHint) gameCtrlHint.textContent = '● Game has concluded! Players see "Thank you for joining!".';
             break;
 
         case 'active':

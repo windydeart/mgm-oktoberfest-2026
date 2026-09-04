@@ -580,7 +580,7 @@
       } else if (gameControlState === 'paused') {
         showToast("The game is temporarily paused by the organizer. Please stand by!", 'info');
       } else if (gameControlState === 'finished') {
-        showToast("Game finished!, thank you for joining!", 'info');
+        showToast("Game finished! Thank you for joining!", 'info');
       }
       return;
     }
@@ -609,7 +609,7 @@
       } else if (gameControlState === 'paused') {
         showToast("The game is temporarily paused by the organizer. Please stand by!", 'info');
       } else if (gameControlState === 'finished') {
-        showToast("Game finished!, thank you for joining!", 'info');
+        showToast("Game finished! Thank you for joining!", 'info');
       }
       return;
     }
@@ -2534,7 +2534,7 @@
       showControlOverlay(
         'finished',
         'Game Finished!',
-        'Game finished!, thank you for joining!',
+        'Thank you for joining!',
         'Check the leaderboard to see all Bavarian Champions!',
         'bingo',
         true

@@ -192,6 +192,9 @@
     if (!modalEl) return;
     modalEl.classList.remove('active');
     document.body.style.overflow = '';
+    if (modalEl === els.leaderboardModal && gameControlState === 'finished') {
+      applyGameControlState('finished');
+    }
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -2517,7 +2520,7 @@
         'Game Finished!',
         'Game finished!, thank you for joining!',
         'Check the leaderboard to see all Bavarian Champions!',
-        'trophy',
+        'camera',
         true
       );
     }

@@ -3346,14 +3346,17 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 .game-control-subhint {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 1rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 0.75rem;
-  color: #94a3b8;
-  letter-spacing: 0.3px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  letter-spacing: 0.2px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* State-specific color variations */
@@ -3369,8 +3372,78 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 }
 
 .game-control-overlay.state-finished .game-control-icon-circle {
-  border-color: rgba(34, 197, 94, 0.5);
-  color: #22c55e;
-  animation: none;
+  border-color: rgba(245, 158, 11, 0.55);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.12) 100%);
+  color: #fbbf24;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.45);
+  animation: ctrlIconPulse 2.8s infinite ease-in-out;
+}
+
+.game-control-action-btn {
+  width: 100%;
+  height: 52px;
+  margin-top: 1.5rem;
+  border-radius: var(--radius-full, 9999px);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  border: none;
+  color: #0b132b !important;
+  font-family: var(--font-body, 'Roboto', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.5), 0 4px 15px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast, 0.2s cubic-bezier(0.4, 0, 0.2, 1));
+  letter-spacing: 0.3px;
+  text-transform: none;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.game-control-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-25deg);
+  animation: btnLightningSweep 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.game-control-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.75), 0 6px 20px rgba(0, 0, 0, 0.5);
+  color: #0b132b !important;
+}
+
+.game-control-action-btn:active {
+  transform: translateY(0);
+}
+
+.game-control-action-btn i,
+.game-control-action-btn svg {
+  width: 22px;
+  height: 22px;
+  color: #0b132b !important;
+  stroke: #0b132b !important;
+  stroke-width: 2.4;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.game-control-action-btn span {
+  color: #0b132b !important;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
 }
 

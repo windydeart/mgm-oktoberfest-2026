@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=18">
+    <link rel="stylesheet" href="/admin/admin.css?v=19">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -171,14 +171,11 @@
                             <div class="header-search-expand" id="headerSearchExpand">
                                 <button type="button" class="btn-search-icon" id="btnSearchToggle" aria-label="Search by player" title="Filter by player name">
                                     <i data-lucide="search"></i>
-                                    <span class="search-active-dot hidden" id="searchActiveDot"></span>
                                 </button>
                                 <div class="search-expand-bar" id="searchExpandBar">
                                     <i data-lucide="search" class="expand-input-icon"></i>
-                                    <input type="text" id="playerFilterInput" list="playerNamesList" class="player-search-input-expand" placeholder="Type player name..." autocomplete="off">
-                                    <datalist id="playerNamesList"></datalist>
-                                    <button type="button" id="clearPlayerFilterBtn" class="clear-search-btn hidden" title="Clear filter">&times;</button>
-                                    <button type="button" class="btn-close-expand" id="btnCloseExpand" title="Close search">
+                                    <input type="text" id="playerFilterInput" class="player-search-input-expand" placeholder="Player..." autocomplete="off">
+                                    <button type="button" class="btn-close-expand" id="btnCloseExpand" aria-label="Close and reset filter" title="Close filter">
                                         <i data-lucide="x"></i>
                                     </button>
                                 </div>
@@ -284,7 +281,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=18"></script>
+    <script src="/admin/admin.js?v=19"></script>
     <script>
         lucide.createIcons();
     </script>

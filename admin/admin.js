@@ -230,13 +230,6 @@ function renderReviews(reviews) {
     const emptyMsg = document.getElementById('emptyReviewMsg');
     const showMoreContainer = document.getElementById('showMoreContainer');
     
-    // Update player names datalist
-    const datalist = document.getElementById('playerNamesList');
-    if (datalist) {
-        const uniqueNames = Array.from(new Set(currentAllReviews.map(r => r.player_name).filter(Boolean))).sort();
-        datalist.innerHTML = uniqueNames.map(name => `<option value="${escapeHTML(name)}">`).join('');
-    }
-
     const query = (currentPlayerSearchQuery || '').trim().toLowerCase();
     const filteredReviews = query
         ? currentAllReviews.filter(r => (r.player_name || '').toLowerCase().includes(query))
@@ -541,56 +534,46 @@ function bindEvents() {
     const btnSearchToggle = document.getElementById('btnSearchToggle');
     const btnCloseExpand = document.getElementById('btnCloseExpand');
     const playerFilterInput = document.getElementById('playerFilterInput');
-    const clearPlayerFilterBtn = document.getElementById('clearPlayerFilterBtn');
-    const searchActiveDot = document.getElementById('searchActiveDot');
+
+    function closeAndResetPlayerSearch() {
+        if (!headerSearchExpand) return;
+        headerSearchExpand.classList.remove('open');
+        if (playerFilterInput) {
+            playerFilterInput.value = '';
+        }
+        if (currentPlayerSearchQuery !== '') {
+            currentPlayerSearchQuery = '';
+            lastRenderedReviewsJson = '';
+            renderReviews(currentAllReviews);
+        }
+    }
 
     if (btnSearchToggle && headerSearchExpand) {
         btnSearchToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            headerSearchExpand.classList.add('open');
-            if (playerFilterInput) {
-                playerFilterInput.focus();
+            if (headerSearchExpand.classList.contains('open')) {
+                closeAndResetPlayerSearch();
+            } else {
+                headerSearchExpand.classList.add('open');
+                if (playerFilterInput) {
+                    playerFilterInput.focus();
+                }
             }
         });
     }
 
-    if (btnCloseExpand && headerSearchExpand) {
+    if (btnCloseExpand) {
         btnCloseExpand.addEventListener('click', (e) => {
             e.stopPropagation();
-            headerSearchExpand.classList.remove('open');
-            if (searchActiveDot) {
-                searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
-            }
+            closeAndResetPlayerSearch();
         });
     }
 
     if (playerFilterInput) {
         playerFilterInput.addEventListener('input', (e) => {
             currentPlayerSearchQuery = e.target.value;
-            if (clearPlayerFilterBtn) {
-                clearPlayerFilterBtn.classList.toggle('hidden', !currentPlayerSearchQuery);
-            }
-            if (searchActiveDot) {
-                searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
-            }
             isMobileReviewsExpanded = false;
             renderReviews(currentAllReviews);
-        });
-    }
-
-    if (clearPlayerFilterBtn) {
-        clearPlayerFilterBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (playerFilterInput) {
-                playerFilterInput.value = '';
-            }
-            currentPlayerSearchQuery = '';
-            clearPlayerFilterBtn.classList.add('hidden');
-            if (searchActiveDot) {
-                searchActiveDot.classList.add('hidden');
-            }
-            renderReviews(currentAllReviews);
-            if (playerFilterInput) playerFilterInput.focus();
         });
     }
 
@@ -598,10 +581,7 @@ function bindEvents() {
     document.addEventListener('click', (e) => {
         if (headerSearchExpand && headerSearchExpand.classList.contains('open')) {
             if (!headerSearchExpand.contains(e.target)) {
-                headerSearchExpand.classList.remove('open');
-                if (searchActiveDot) {
-                    searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
-                }
+                closeAndResetPlayerSearch();
             }
         }
     });
@@ -632,10 +612,7 @@ function bindEvents() {
             const winnerModal = document.getElementById('winnerShowcaseModal');
 
             if (headerSearchExpand && headerSearchExpand.classList.contains('open')) {
-                headerSearchExpand.classList.remove('open');
-                if (searchActiveDot) {
-                    searchActiveDot.classList.toggle('hidden', !currentPlayerSearchQuery);
-                }
+                closeAndResetPlayerSearch();
             } else if (photoModal && !photoModal.classList.contains('hidden')) {
                 closePhotoPreview();
             } else if (rejectModal && !rejectModal.classList.contains('hidden')) {

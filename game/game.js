@@ -2423,6 +2423,17 @@
   /* ═══════════════════════════════════════════════════════
      GAME REMOTE CONTROLLER (ADMIN REMOTE GATING)
      ═══════════════════════════════════════════════════════ */
+  const BINGO_LOGO_SVG = `<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="game-control-bingo-logo-svg">
+    <rect x="3" y="3" width="18" height="18" rx="3.5" stroke="#fbbf24" stroke-width="1.8"/>
+    <line x1="9" y1="3" x2="9" y2="21" stroke="#fbbf24" stroke-opacity="0.38" stroke-width="1.3"/>
+    <line x1="15" y1="3" x2="15" y2="21" stroke="#fbbf24" stroke-opacity="0.38" stroke-width="1.3"/>
+    <line x1="3" y1="9" x2="21" y2="9" stroke="#fbbf24" stroke-opacity="0.38" stroke-width="1.3"/>
+    <line x1="3" y1="15" x2="21" y2="15" stroke="#fbbf24" stroke-opacity="0.38" stroke-width="1.3"/>
+    <circle cx="6" cy="6" r="2.2" fill="#fbbf24" stroke="none"/>
+    <circle cx="12" cy="12" r="2.2" fill="#fbbf24" stroke="none"/>
+    <circle cx="18" cy="18" r="2.2" fill="#fbbf24" stroke="none"/>
+  </svg>`;
+
   function showControlOverlay(type, title, desc, subhint, iconName, showLeaderboardBtn = false) {
     if (!els.gameControlOverlay) return;
     els.gameControlOverlay.className = `game-control-overlay active state-${type}`;
@@ -2430,12 +2441,17 @@
     if (els.gameControlTitle) els.gameControlTitle.textContent = title;
     if (els.gameControlDesc) els.gameControlDesc.textContent = desc;
     if (els.gameControlSubhint) els.gameControlSubhint.textContent = subhint;
-    if (els.gameControlIcon && iconName) {
-      els.gameControlIcon.innerHTML = `<i data-lucide="${iconName}"></i>`;
-      if (window.lucide) lucide.createIcons();
+    if (els.gameControlIcon) {
+      if (type === 'finished' || iconName === 'bingo') {
+        els.gameControlIcon.innerHTML = BINGO_LOGO_SVG;
+      } else if (iconName) {
+        els.gameControlIcon.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        if (window.lucide) lucide.createIcons();
+      }
     }
     if (els.gameControlActionBtn) {
       els.gameControlActionBtn.style.display = showLeaderboardBtn ? 'inline-flex' : 'none';
+      if (window.lucide) lucide.createIcons();
     }
   }
 
@@ -2520,7 +2536,7 @@
         'Game Finished!',
         'Game finished!, thank you for joining!',
         'Check the leaderboard to see all Bavarian Champions!',
-        'camera',
+        'bingo',
         true
       );
     }

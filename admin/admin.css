@@ -596,11 +596,36 @@ body {
     letter-spacing: 0.5px;
     padding: 8px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
 }
 
 .lb-ranking-table td {
     padding: 9px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.lb-ranking-table .lb-rank,
+.lb-ranking-table th:first-child {
+    width: 55px;
+    white-space: nowrap;
+}
+
+.lb-ranking-table .lb-name {
+    min-width: 110px;
+}
+
+.lb-ranking-table .lb-time,
+.lb-ranking-table th:nth-child(3) {
+    width: 85px;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.lb-ranking-table .lb-location,
+.lb-ranking-table th:nth-child(4) {
+    width: 90px;
+    white-space: nowrap;
+    text-align: right;
 }
 
 .lb-ranking-table tr.lb-winner-row {
@@ -1032,12 +1057,14 @@ body {
 
 .location-badge {
     display: inline-block;
-    padding: 0.2rem 0.6rem;
+    padding: 0.22rem 0.65rem;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.3px;
     flex-shrink: 0;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .location-badge.loc-danang {

@@ -908,12 +908,12 @@ async function openWinnerShowcaseAdmin(location) {
 async function fetchGameControlState() {
     if (!isAuthenticated()) return;
     try {
-        const response = await fetch(`${GAME_API_BASE}/game-state?_t=${Date.now()}`);
+        const response = await fetch(`${GAME_API_BASE}/check-reviews?_t=${Date.now()}`);
         if (response.ok) {
             const data = await response.json();
-            if (data && data.state) {
-                currentGameControlState = data.state;
-                updateGameControlUI(data.state);
+            if (data && data.game_state) {
+                currentGameControlState = data.game_state;
+                updateGameControlUI(data.game_state);
             }
         }
     } catch (err) {
@@ -930,7 +930,7 @@ async function setGameControlState(action) {
         if (btnCtrlFinish) btnCtrlFinish.disabled = true;
         if (btnCtrlWaiting) btnCtrlWaiting.disabled = true;
 
-        const response = await fetch(`${API_BASE}/game-control`, {
+        const response = await fetch(`${API_BASE}/review-action`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ action })

@@ -2200,6 +2200,9 @@
       if (!res.ok) return;
 
       const data = await res.json();
+      if (data && data.game_state && data.game_state !== gameControlState) {
+        applyGameControlState(data.game_state);
+      }
       if (!data.success || !data.decisions || data.decisions.length === 0) return;
 
       for (const decision of data.decisions) {
@@ -2453,11 +2456,12 @@
 
   async function pollGameControlState() {
     try {
-      const res = await fetch(`/api/game/game-state?_t=${Date.now()}`);
+      const res = await fetch(`/api/game/check-reviews?_t=${Date.now()}`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data && data.state && data.state !== gameControlState) {
-        applyGameControlState(data.state);
+      const newState = data && (data.game_state || data.state);
+      if (newState && newState !== gameControlState) {
+        applyGameControlState(newState);
       }
     } catch (e) {
       // Non-blocking fail-open

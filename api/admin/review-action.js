@@ -55,6 +55,78 @@ module.exports = async (req, res) => {
   }
   const { review_id, action, note } = body || {};
 
+  // Handle Game Controller remote commands (start / pause / finish / waiting)
+  const GAME_CTRL_ACTIONS = {
+    'start': 'active',
+    'pause': 'paused',
+    'finish': 'finished',
+    'waiting': 'waiting'
+  };
+
+  if (action && GAME_CTRL_ACTIONS[action]) {
+    const newState = GAME_CTRL_ACTIONS[action];
+    try {
+      // 1. Delete previous control state row
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_SECRET_KEY,
+            'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+          }
+        }
+      );
+
+      // 2. Insert new control state row
+      const controlData = {
+        state: newState,
+        updated_at: new Date().toISOString(),
+        updated_by: 'admin'
+      };
+
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          player_name: '__game_control__',
+          game_name: 'game_control',
+          office: 'system',
+          score: 0,
+          duration_seconds: 0,
+          player_email: JSON.stringify(controlData)
+        })
+      });
+
+      if (!insertRes.ok) {
+        console.error('Failed to set game control in review-action:', await insertRes.text());
+        return res.status(500).json({ error: 'Failed to update game control state.' });
+      }
+
+      const STATE_MESSAGES = {
+        'active': 'Game started — all players can now play!',
+        'paused': 'Game paused — all player screens are frozen.',
+        'finished': 'Game finished — all player screens show end message.',
+        'waiting': 'Game set to waiting — players cannot start until you press Start.'
+      };
+
+      return res.status(200).json({
+        success: true,
+        state: newState,
+        message: STATE_MESSAGES[newState],
+        updated_at: controlData.updated_at
+      });
+    } catch (ctrlErr) {
+      console.error('Game control execution error:', ctrlErr);
+      return res.status(500).json({ error: 'Failed to set game control state.' });
+    }
+  }
+
   if (!review_id || !action || !['approve', 'reject'].includes(action)) {
     return res.status(400).json({ error: 'Missing review_id or invalid action (approve|reject).' });
   }

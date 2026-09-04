@@ -41,13 +41,24 @@ module.exports = async (req, res) => {
 
   try {
     // Fetch all data in parallel
-    const [scores, reviews, reviewsPending, reviewsApproved, reviewsRejected] = await Promise.all([
+    const [scores, reviews, reviewsPending, reviewsApproved, reviewsRejected, gameControlRow] = await Promise.all([
       supabaseGet('oktoberfest_game_scores?game_name=eq.photo_bingo&select=id,player_name,office,duration_seconds,created_at&order=duration_seconds.asc'),
       supabaseGet('bingo_photo_reviews?select=id,status'),
       supabaseGet('bingo_photo_reviews?status=eq.pending&select=id'),
       supabaseGet('bingo_photo_reviews?status=eq.approved&select=id'),
       supabaseGet('bingo_photo_reviews?status=eq.rejected&select=id'),
+      supabaseGet('oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control&select=player_email&limit=1')
     ]);
+
+    let gameState = 'active';
+    if (gameControlRow && gameControlRow.length > 0) {
+      try {
+        const snap = JSON.parse(gameControlRow[0].player_email || '{}');
+        if (snap.state && ['active', 'waiting', 'paused', 'finished'].includes(snap.state)) {
+          gameState = snap.state;
+        }
+      } catch (e) {}
+    }
 
     // Deduplicate scores: keep only the best (fastest) time per player
     const bestByPlayer = new Map();
@@ -91,7 +102,8 @@ module.exports = async (req, res) => {
         approved_count: reviewsApproved.length,
         rejected_count: reviewsRejected.length,
         avg_completion_time_ms: Math.round(avgTime * 1000),
-        champion: champion ? { player_name: champion.player_name, location: champion.office, elapsed_ms: Math.round(champion.duration_seconds * 1000) } : null
+        champion: champion ? { player_name: champion.player_name, location: champion.office, elapsed_ms: Math.round(champion.duration_seconds * 1000) } : null,
+        game_state: gameState
       },
       leaderboard
     });

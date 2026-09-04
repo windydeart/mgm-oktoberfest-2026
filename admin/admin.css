@@ -945,7 +945,7 @@ body {
 .review-img-container {
     position: relative;
     width: 100%;
-    height: 180px;
+    height: 225px;
     background: #070d1e;
     cursor: pointer;
     overflow: hidden;
@@ -960,15 +960,16 @@ body {
     object-fit: cover;
     display: block;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center center;
 }
 
 .review-img-container:hover .review-img:not(.rot-90):not(.rot-180):not(.rot-270) {
-    transform: scale(1.05);
+    transform: scale(1.04);
 }
 
 .review-img.rot-90 {
     transform-origin: center center;
-    transform: rotate(90deg) scale(1.38);
+    transform: rotate(90deg) scale(var(--rot-scale, 1.55));
 }
 .review-img.rot-180 {
     transform-origin: center center;
@@ -976,7 +977,7 @@ body {
 }
 .review-img.rot-270 {
     transform-origin: center center;
-    transform: rotate(270deg) scale(1.38);
+    transform: rotate(270deg) scale(var(--rot-scale, 1.55));
 }
 
 .img-quick-rot-btn {
@@ -1034,7 +1035,7 @@ body {
 .img-time-badge {
     position: absolute;
     bottom: 8px;
-    right: 8px;
+    left: 8px;
     background: rgba(0, 0, 0, 0.75);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 4px;
@@ -1043,6 +1044,7 @@ body {
     color: #cbd5e1;
     backdrop-filter: blur(4px);
     font-weight: 500;
+    z-index: 5;
 }
 
 .img-status-tag-rejected {
@@ -2168,7 +2170,7 @@ body {
     }
 
     .review-img-container {
-        height: 165px;
+        height: 235px;
         width: 100%;
         max-width: 100%;
     }

@@ -307,10 +307,9 @@ function renderReviews(reviews) {
         const photoSrc = review.photo_url || '';
         const rot = getRotationFromUrl(photoSrc);
         const rotClass = rot > 0 ? `rot-${rot}` : '';
-        const rotStyle = rot > 0 ? `style="transform: rotate(${rot}deg);"` : '';
 
         const imgTag = photoSrc 
-            ? `<img src="${escapeHTML(photoSrc)}" alt="Challenge Photo" class="review-img ${rotClass}" ${rotStyle} loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
+            ? `<img src="${escapeHTML(photoSrc)}" alt="Challenge Photo" class="review-img ${rotClass}" data-rot="${rot}" loading="lazy" onload="if(window.updateSingleCardRotation) updateSingleCardRotation(this)" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%231e293b%22 width=%22200%22 height=%22200%22/><text fill=%22%2394a3b8%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>No Image</text></svg>'">`
             : `<div class="review-img-placeholder"><i data-lucide="image-off"></i><span>No Image</span></div>`;
 
         const rankTextHTML = review.rank ? `<span class="player-rank-text">Rank #${review.rank}</span>` : '';
@@ -328,7 +327,7 @@ function renderReviews(reviews) {
 
         return `
             <div class="review-card ${review.status}">
-                <div class="review-img-container ${review.status === 'rejected' ? 'img-rejected' : ''}" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}')" title="Click to view full image">
+                <div class="review-img-container ${review.status === 'rejected' ? 'img-rejected' : ''}" onclick="openPhotoPreview('${escapeHTML(photoSrc)}', '${escapeHTML(review.challenge_text)}', this)" title="Click to view full image">
                     ${imgTag}
                     ${photoSrc ? `<button type="button" class="img-quick-rot-btn" onclick="event.stopPropagation(); quickRotateReviewCard(this)" title="Rotate image 90°"><i data-lucide="rotate-cw"></i></button>` : ''}
                     <div class="img-zoom-hint"><i data-lucide="maximize-2"></i></div>
@@ -408,6 +407,11 @@ function renderReviews(reviews) {
     if (window.lucide) {
         lucide.createIcons();
     }
+    requestAnimationFrame(() => {
+        if (typeof updateCardRotations === 'function') {
+            updateCardRotations();
+        }
+    });
 }
 
 async function approveReview(reviewId) {
@@ -499,16 +503,43 @@ function getRotationFromUrl(url) {
 }
 window.getRotationFromUrl = getRotationFromUrl;
 
+function updateSingleCardRotation(img) {
+    if (!img) return;
+    const container = img.closest('.review-img-container');
+    if (!container) return;
+    const rot = parseInt(img.getAttribute('data-rot') || getRotationFromUrl(img.src) || 0, 10);
+    const w = container.clientWidth || 320;
+    const h = container.clientHeight || 225;
+
+    if (rot === 90 || rot === 270) {
+        // Rotated 90/270: visual width is h * scale. To fill container width w completely without black bars:
+        const scale = Math.max(w / h, 1.25).toFixed(3);
+        img.style.transform = `rotate(${rot}deg) scale(${scale})`;
+    } else if (rot === 180) {
+        img.style.transform = 'rotate(180deg)';
+    } else {
+        img.style.transform = 'none';
+    }
+}
+window.updateSingleCardRotation = updateSingleCardRotation;
+
+function updateCardRotations() {
+    document.querySelectorAll('.review-img-container img.review-img').forEach(img => {
+        updateSingleCardRotation(img);
+    });
+}
+window.updateCardRotations = updateCardRotations;
+
 function quickRotateReviewCard(btn) {
     const container = btn.closest('.review-img-container');
     if (!container) return;
     const img = container.querySelector('.review-img');
     if (!img) return;
-    let currentRot = parseInt(img.getAttribute('data-manual-rot') || getRotationFromUrl(img.src) || 0, 10);
+    let currentRot = parseInt(img.getAttribute('data-rot') || getRotationFromUrl(img.src) || 0, 10);
     currentRot = (currentRot + 90) % 360;
-    img.setAttribute('data-manual-rot', currentRot);
+    img.setAttribute('data-rot', currentRot);
     img.className = 'review-img' + (currentRot > 0 ? ` rot-${currentRot}` : '');
-    img.style.transform = currentRot > 0 ? `rotate(${currentRot}deg)` : '';
+    updateSingleCardRotation(img);
 }
 window.quickRotateReviewCard = quickRotateReviewCard;
 
@@ -566,8 +597,17 @@ function rotateModalPhoto() {
 }
 window.rotateModalPhoto = rotateModalPhoto;
 
-function openPhotoPreview(url, challenge) {
-    const rot = getRotationFromUrl(url);
+function openPhotoPreview(url, challenge, triggerEl) {
+    let rot = getRotationFromUrl(url);
+    if (triggerEl) {
+        const container = triggerEl.closest ? triggerEl.closest('.review-img-container') : triggerEl;
+        if (container) {
+            const cardImg = container.querySelector('.review-img');
+            if (cardImg && cardImg.getAttribute('data-rot') !== null) {
+                rot = parseInt(cardImg.getAttribute('data-rot'), 10) || 0;
+            }
+        }
+    }
     currentModalRot = rot;
 
     modalChallenge.textContent = challenge || 'Challenge Photo';

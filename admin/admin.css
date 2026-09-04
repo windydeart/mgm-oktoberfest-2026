@@ -1068,15 +1068,15 @@ body {
 }
 
 .location-badge.loc-danang {
-    background: rgba(2, 132, 199, 0.2);
-    border: 1px solid rgba(2, 132, 199, 0.4);
-    color: #38bdf8;
-}
-
-.location-badge.loc-hcmc {
     background: rgba(245, 158, 11, 0.18);
     border: 1px solid rgba(245, 158, 11, 0.45);
     color: #fbbf24;
+}
+
+.location-badge.loc-hcmc {
+    background: rgba(2, 132, 199, 0.2);
+    border: 1px solid rgba(2, 132, 199, 0.4);
+    color: #38bdf8;
 }
 
 .review-challenge-box {

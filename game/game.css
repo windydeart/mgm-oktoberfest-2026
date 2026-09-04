@@ -362,15 +362,15 @@ body.game-page::before {
 }
 
 .status-loc-badge.loc-danang {
-  background: rgba(2, 132, 199, 0.2);
-  color: #38bdf8;
-  border: 1px solid rgba(2, 132, 199, 0.35);
-}
-
-.status-loc-badge.loc-hcmc {
   background: rgba(245, 158, 11, 0.2);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.status-loc-badge.loc-hcmc {
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(2, 132, 199, 0.35);
 }
 
 /* ─── ARENA GRID & SIDEBAR ─── */

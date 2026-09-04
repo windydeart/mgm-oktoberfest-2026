@@ -1425,7 +1425,7 @@
         </td>
         <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
         <td class="lb-location">
-          <span class="status-loc-badge">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span>
+          <span class="status-loc-badge ${entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc'}">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span>
         </td>
       `;
       tbody.appendChild(tr);
@@ -1586,6 +1586,7 @@
 
       els.winnerPlayerName.textContent = winner.player_name || 'Champion';
       els.winnerLocationBadge.textContent = winner.location === 'danang' ? 'Da Nang' : (winner.location === 'hcmc' ? 'HCMC' : 'All Offices');
+      els.winnerLocationBadge.className = `status-loc-badge ${winner.location === 'danang' ? 'loc-danang' : (winner.location === 'hcmc' ? 'loc-hcmc' : '')}`;
       els.winnerTimeBadge.innerHTML = `<i data-lucide="timer"></i> ${formatTime(winner.elapsed_ms || 0)}`;
       els.winnerLineBadge.innerHTML = `<i data-lucide="award"></i> ${BINGO_LINE_NAMES[winningLineKey] || winningLineKey || 'BINGO Line'}`;
 

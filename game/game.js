@@ -745,6 +745,12 @@
       .trim();
   }
 
+  function getRotationFromUrl(url) {
+    if (!url || typeof url !== 'string') return 0;
+    const match = url.match(/[#?&]rot=(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
   function openPhotoReview(cellIndex) {
     const challenge = gameState.challenges[cellIndex];
     if (!challenge) return;
@@ -761,10 +767,18 @@
     const challengeText = $('#photoReviewChallengeText');
     if (challengeText) challengeText.textContent = challenge.challenge;
 
+    const rot = getRotationFromUrl(photoUrl);
     const img = $('#photoReviewImg');
     if (img) {
       img.src = photoUrl || '';
       img.style.display = photoUrl ? 'block' : 'none';
+      if (rot === 90 || rot === 270) {
+        img.style.transform = `rotate(${rot}deg) scale(1.333)`;
+      } else if (rot === 180) {
+        img.style.transform = 'rotate(180deg)';
+      } else {
+        img.style.transform = 'none';
+      }
     }
 
     const pill = $('#photoReviewStatusPill');
@@ -1693,9 +1707,17 @@
             const pillEl = $('#photoReviewStatusPill');
             const catIconEl = $('#photoReviewCatIcon');
 
+            const rot = getRotationFromUrl(photoUrl);
             if (imgEl) {
               imgEl.src = photoUrl || '';
               imgEl.style.display = photoUrl ? 'block' : 'none';
+              if (rot === 90 || rot === 270) {
+                imgEl.style.transform = `rotate(${rot}deg) scale(1.333)`;
+              } else if (rot === 180) {
+                imgEl.style.transform = 'rotate(180deg)';
+              } else {
+                imgEl.style.transform = 'none';
+              }
             }
             if (txtEl) txtEl.textContent = ch.challenge;
             if (reasonEl) reasonEl.textContent = cellAiReasons[idx] || 'Verified winning challenge submission by Champion.';

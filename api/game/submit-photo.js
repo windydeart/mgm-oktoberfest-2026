@@ -340,17 +340,21 @@ Evaluate the submitted photo objectively.
 - REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
 CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
 
-ORIENTATION:
-Analyze the visual orientation of the subject (especially people, heads/faces, horizon, ceiling/floor).
-An upright photo has head/face/ceiling/sky at the TOP, and body/legs/floor/ground at the BOTTOM.
-Determine the degrees CLOCKWISE required to make the image upright:
-- 0: Already upright (head/top is up).
-- 90: Head is on the left edge (needs 90° clockwise rotation).
-- 180: Upside-down / head is at the bottom (needs 180° rotation).
-- 270: Head is on the right edge (needs 270° clockwise rotation).
+ORIENTATION DETECTION:
+Identify which edge of the photo the person's HEAD (or the CEILING/SKY/TOP of key subject) is currently pointing towards:
+- "top": The head/ceiling is already near the TOP edge (photo is upright).
+- "bottom": The head/ceiling is near the BOTTOM edge (photo is upside down).
+- "left": The head/ceiling is pointing towards the LEFT edge.
+- "right": The head/ceiling is pointing towards the RIGHT edge.
+
+ROTATION TO MAKE UPRIGHT (Degrees CLOCKWISE):
+- If head points to "top" -> rotation: 0
+- If head points to "left" -> rotation: 90 (rotating 90° CW brings left edge to top)
+- If head points to "bottom" -> rotation: 180 (rotating 180° CW brings bottom edge to top)
+- If head points to "right" -> rotation: 270 (rotating 270° CW brings right edge to top. WARNING: NEVER output 90 when head is at right edge, as 90 would rotate the head upside down to the bottom!)
 
 Reply with ONLY a JSON object:
-{"approved": true/false, "reason": "1-2 concise objective sentences", "rotation": 0|90|180|270}`;
+{"approved": true/false, "reason": "1-2 concise objective sentences", "head_points_to": "top"|"bottom"|"left"|"right", "rotation": 0|90|180|270}`;
 
   // ─── 1. Primary Evaluation via Google Cloud Vertex AI (Singapore / US) ───
   try {
@@ -378,10 +382,20 @@ Reply with ONLY a JSON object:
         ai_verified = result.approved === true;
         const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
         ai_reason = sanitizeAiReason(rawReason);
-        if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
+        
+        const headPos = String(result.head_points_to || '').toLowerCase().trim();
+        if (headPos === 'right') {
+          ai_rotation = 270;
+        } else if (headPos === 'left') {
+          ai_rotation = 90;
+        } else if (headPos === 'bottom') {
+          ai_rotation = 180;
+        } else if (headPos === 'top') {
+          ai_rotation = 0;
+        } else if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
           ai_rotation = result.rotation;
         }
-        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, rotation=${ai_rotation}`);
+        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, head_points_to=${headPos || 'n/a'}, rotation=${ai_rotation}`);
       }
     }
   } catch (vertexErr) {
@@ -433,9 +447,20 @@ Reply with ONLY a JSON object:
               ai_verified = result.approved === true;
               const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
               ai_reason = sanitizeAiReason(rawReason);
-              if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
+              
+              const headPos = String(result.head_points_to || '').toLowerCase().trim();
+              if (headPos === 'right') {
+                ai_rotation = 270;
+              } else if (headPos === 'left') {
+                ai_rotation = 90;
+              } else if (headPos === 'bottom') {
+                ai_rotation = 180;
+              } else if (headPos === 'top') {
+                ai_rotation = 0;
+              } else if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
                 ai_rotation = result.rotation;
               }
+              console.log(`[Gemini Studio] Photo verified via ${model}: approved=${ai_verified}, head_points_to=${headPos || 'n/a'}, rotation=${ai_rotation}`);
               break; // Clear AI verdict obtained!
             }
           }

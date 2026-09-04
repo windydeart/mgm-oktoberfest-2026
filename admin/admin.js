@@ -553,8 +553,18 @@ function applyModalImageRotation(rot) {
     const nw = modalImage.naturalWidth || 640;
     const nh = modalImage.naturalHeight || 480;
 
-    const maxViewportW = Math.min(window.innerWidth * 0.85, 620);
-    const maxViewportH = Math.min(window.innerHeight * 0.68, 560);
+    const modalCard = document.querySelector('.photo-preview-modal-card');
+    let maxViewportW = 580;
+    if (modalCard && modalCard.clientWidth > 80) {
+        const cs = window.getComputedStyle(modalCard);
+        const pl = parseFloat(cs.paddingLeft) || 16;
+        const pr = parseFloat(cs.paddingRight) || 16;
+        maxViewportW = Math.min(modalCard.clientWidth - pl - pr, 580);
+    } else {
+        maxViewportW = Math.min(window.innerWidth * 0.88 - 32, 580);
+    }
+    maxViewportW = Math.max(220, maxViewportW);
+    const maxViewportH = Math.min(window.innerHeight * 0.65, 520);
 
     const isPerpendicular = (currentModalRot === 90 || currentModalRot === 270);
 
@@ -578,7 +588,7 @@ function applyModalImageRotation(rot) {
         const visualW = Math.round(nh * scale);
         const visualH = Math.round(nw * scale);
 
-        // Set element size to visualH x visualW, so rotated 90deg its bounds become visualW x visualH!
+        // Set element size to visualH x visualW, so rotated 90/270deg its bounds become visualW x visualH!
         modalImage.style.width = `${visualH}px`;
         modalImage.style.height = `${visualW}px`;
         modalImage.style.transform = `rotate(${currentModalRot}deg)`;
@@ -613,14 +623,18 @@ function openPhotoPreview(url, challenge, triggerEl) {
     modalChallenge.textContent = challenge || 'Challenge Photo';
     modalImage.src = url;
 
+    modal.classList.remove('hidden');
+
     modalImage.onload = () => {
         applyModalImageRotation(currentModalRot);
     };
     if (modalImage.complete && modalImage.naturalWidth) {
         applyModalImageRotation(currentModalRot);
     }
+    requestAnimationFrame(() => {
+        applyModalImageRotation(currentModalRot);
+    });
 
-    modal.classList.remove('hidden');
     if (window.lucide) {
         lucide.createIcons();
     }
@@ -762,10 +776,13 @@ function bindEvents() {
         fetchReviews();
     });
 
-    // Window resize handler for mobile responsive limit
+    // Window resize handler for mobile responsive limit and active modal
     window.addEventListener('resize', () => {
         if (currentAllReviews && currentAllReviews.length > 0) {
             renderReviews(currentAllReviews);
+        }
+        if (modal && !modal.classList.contains('hidden')) {
+            applyModalImageRotation(currentModalRot);
         }
     });
     

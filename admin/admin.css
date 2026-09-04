@@ -2253,4 +2253,185 @@ body {
     }
 }
 
+/* ═══════════════════════════════════════════════════════
+   GAME CONTROLLER CONFIRMATION MODAL (CUSTOM STYLED)
+   ═══════════════════════════════════════════════════════ */
+.ctrl-confirm-modal-card {
+    width: 460px;
+    max-width: 92vw;
+    background: rgba(14, 22, 48, 0.98);
+    border: 1.5px solid rgba(245, 158, 11, 0.4);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(245, 158, 11, 0.15);
+    border-radius: 14px;
+    padding: 1.65rem;
+    gap: 1.15rem;
+    animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.ctrl-confirm-modal-card.border-pause {
+    border-color: rgba(249, 115, 22, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(249, 115, 22, 0.2);
+}
+
+.ctrl-confirm-modal-card.border-start {
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(34, 197, 94, 0.2);
+}
+
+.ctrl-confirm-modal-card.border-finish {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(239, 68, 68, 0.2);
+}
+
+.ctrl-confirm-modal-card.border-waiting {
+    border-color: rgba(234, 179, 8, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(234, 179, 8, 0.2);
+}
+
+.ctrl-modal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding-right: 2.2rem;
+}
+
+.ctrl-modal-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.ctrl-modal-icon-badge i,
+.ctrl-modal-icon-badge svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Badge Variants */
+.ctrl-modal-icon-badge.theme-pause {
+    background: rgba(249, 115, 22, 0.16);
+    border: 1.5px solid rgba(249, 115, 22, 0.45);
+    color: #f97316;
+}
+
+.ctrl-modal-icon-badge.theme-start {
+    background: rgba(34, 197, 94, 0.16);
+    border: 1.5px solid rgba(34, 197, 94, 0.45);
+    color: #22c55e;
+}
+
+.ctrl-modal-icon-badge.theme-finish {
+    background: rgba(239, 68, 68, 0.16);
+    border: 1.5px solid rgba(239, 68, 68, 0.45);
+    color: #ef4444;
+}
+
+.ctrl-modal-icon-badge.theme-waiting {
+    background: rgba(234, 179, 8, 0.16);
+    border: 1.5px solid rgba(234, 179, 8, 0.45);
+    color: #eab308;
+}
+
+.ctrl-modal-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+}
+
+.ctrl-modal-subtitle {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.ctrl-modal-desc {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    line-height: 1.55;
+    background: rgba(8, 14, 32, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+}
+
+.ctrl-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 0.25rem;
+}
+
+.btn-modal-confirm-action {
+    border: none;
+    border-radius: 8px;
+    padding: 0.58rem 1.35rem;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    font-family: inherit;
+    user-select: none;
+}
+
+.btn-modal-confirm-action:hover {
+    transform: translateY(-1px);
+}
+
+.btn-modal-confirm-action i,
+.btn-modal-confirm-action svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Button Variants */
+.btn-ctrl-confirm-pause {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.45);
+}
+.btn-ctrl-confirm-pause:hover {
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.6);
+}
+
+.btn-ctrl-confirm-start {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.45);
+}
+.btn-ctrl-confirm-start:hover {
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.6);
+}
+
+.btn-ctrl-confirm-finish {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+}
+.btn-ctrl-confirm-finish:hover {
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+}
+
+.btn-ctrl-confirm-waiting {
+    background: linear-gradient(135deg, #eab308, #ca8a04);
+    box-shadow: 0 4px 14px rgba(202, 138, 4, 0.45);
+}
+.btn-ctrl-confirm-waiting:hover {
+    box-shadow: 0 6px 20px rgba(202, 138, 4, 0.6);
+}
+
+
 

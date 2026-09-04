@@ -24,6 +24,14 @@ const btnCtrlPause = document.getElementById('btnCtrlPause');
 const btnCtrlFinish = document.getElementById('btnCtrlFinish');
 const btnCtrlWaiting = document.getElementById('btnCtrlWaiting');
 const gameCtrlHint = document.getElementById('gameCtrlHint');
+let pendingGameCtrlAction = null;
+const gameCtrlModal = document.getElementById('gameCtrlModal');
+const ctrlConfirmModalCard = document.getElementById('ctrlConfirmModalCard');
+const ctrlModalIconBadge = document.getElementById('ctrlModalIconBadge');
+const ctrlModalTitle = document.getElementById('ctrlModalTitle');
+const ctrlModalSubtitle = document.getElementById('ctrlModalSubtitle');
+const ctrlModalDesc = document.getElementById('ctrlModalDesc');
+const confirmGameCtrlBtn = document.getElementById('confirmGameCtrlBtn');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -628,6 +636,8 @@ function bindEvents() {
                 closeRejectModal();
             } else if (winnerModal && !winnerModal.classList.contains('hidden')) {
                 closeWinnerShowcaseAdmin();
+            } else if (gameCtrlModal && !gameCtrlModal.classList.contains('hidden')) {
+                closeGameCtrlModal();
             }
         }
     });
@@ -643,36 +653,28 @@ function bindEvents() {
         });
     }
 
-    // Game Controller buttons
+    // Game Controller buttons — trigger custom themed confirmation modal
     if (btnCtrlStart) {
         btnCtrlStart.addEventListener('click', () => {
-            if (confirm('Start / Resume the game? All player devices will be allowed to play.')) {
-                setGameControlState('start');
-            }
+            openGameCtrlModal('start');
         });
     }
 
     if (btnCtrlPause) {
         btnCtrlPause.addEventListener('click', () => {
-            if (confirm('Pause the game? All player screens will be temporarily frozen.')) {
-                setGameControlState('pause');
-            }
+            openGameCtrlModal('pause');
         });
     }
 
     if (btnCtrlFinish) {
         btnCtrlFinish.addEventListener('click', () => {
-            if (confirm('FINISH the game? This will conclude the game for all players (all scores and reviews remain intact).')) {
-                setGameControlState('finish');
-            }
+            openGameCtrlModal('finish');
         });
     }
 
     if (btnCtrlWaiting) {
         btnCtrlWaiting.addEventListener('click', () => {
-            if (confirm('Set game to WAITING? Players will see "Game hasn\'t started yet" until you click Start.')) {
-                setGameControlState('waiting');
-            }
+            openGameCtrlModal('waiting');
         });
     }
 }
@@ -1026,4 +1028,98 @@ function updateGameControlUI(state) {
         lucide.createIcons();
     }
 }
+
+// ═══════════════════════════════════════════════════════
+// GAME CONTROLLER CUSTOM CONFIRMATION MODAL
+// ═══════════════════════════════════════════════════════
+
+function openGameCtrlModal(action) {
+    if (!gameCtrlModal) return;
+    pendingGameCtrlAction = action;
+
+    // Reset card dynamic border classes
+    if (ctrlConfirmModalCard) {
+        ctrlConfirmModalCard.classList.remove('border-pause', 'border-start', 'border-finish', 'border-waiting');
+    }
+    if (ctrlModalIconBadge) {
+        ctrlModalIconBadge.className = 'ctrl-modal-icon-badge';
+    }
+    if (confirmGameCtrlBtn) {
+        confirmGameCtrlBtn.className = 'btn-modal-confirm-action';
+    }
+
+    if (action === 'pause') {
+        if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-pause');
+        if (ctrlModalIconBadge) {
+            ctrlModalIconBadge.classList.add('theme-pause');
+            ctrlModalIconBadge.innerHTML = '<i data-lucide="pause"></i>';
+        }
+        if (ctrlModalTitle) ctrlModalTitle.textContent = 'Pause the Game?';
+        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = 'Temporary Organizer Halt';
+        if (ctrlModalDesc) ctrlModalDesc.textContent = 'All player screens will be temporarily frozen with a pause notification. Player timers are stopped safely without penalty and will resume when unpaused.';
+        if (confirmGameCtrlBtn) {
+            confirmGameCtrlBtn.classList.add('btn-ctrl-confirm-pause');
+            confirmGameCtrlBtn.innerHTML = '<i data-lucide="pause"></i> <span>Yes, Pause Game</span>';
+        }
+    } else if (action === 'start') {
+        const isResuming = (currentGameControlState === 'paused');
+        if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-start');
+        if (ctrlModalIconBadge) {
+            ctrlModalIconBadge.classList.add('theme-start');
+            ctrlModalIconBadge.innerHTML = '<i data-lucide="play"></i>';
+        }
+        if (ctrlModalTitle) ctrlModalTitle.textContent = isResuming ? 'Resume the Game?' : 'Start the Game?';
+        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = isResuming ? 'Resume Active Gameplay' : 'Live Game Activation';
+        if (ctrlModalDesc) ctrlModalDesc.textContent = isResuming
+            ? 'All player screens will be unfrozen immediately and their game timers will resume.'
+            : 'All player devices will be allowed to click Start Game and begin playing their BINGO challenges.';
+        if (confirmGameCtrlBtn) {
+            confirmGameCtrlBtn.classList.add('btn-ctrl-confirm-start');
+            confirmGameCtrlBtn.innerHTML = `<i data-lucide="play"></i> <span>${isResuming ? 'Yes, Resume Game' : 'Yes, Start Game'}</span>`;
+        }
+    } else if (action === 'finish') {
+        if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-finish');
+        if (ctrlModalIconBadge) {
+            ctrlModalIconBadge.classList.add('theme-finish');
+            ctrlModalIconBadge.innerHTML = '<i data-lucide="square"></i>';
+        }
+        if (ctrlModalTitle) ctrlModalTitle.textContent = 'Finish the Game?';
+        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = 'Official Event Conclusion';
+        if (ctrlModalDesc) ctrlModalDesc.textContent = 'This will conclude the game for all players and display the final celebration screen. All player scores and verified photos remain safely preserved in the leaderboard.';
+        if (confirmGameCtrlBtn) {
+            confirmGameCtrlBtn.classList.add('btn-ctrl-confirm-finish');
+            confirmGameCtrlBtn.innerHTML = '<i data-lucide="square"></i> <span>Yes, Finish Game</span>';
+        }
+    } else if (action === 'waiting') {
+        if (ctrlConfirmModalCard) ctrlConfirmModalCard.classList.add('border-waiting');
+        if (ctrlModalIconBadge) {
+            ctrlModalIconBadge.classList.add('theme-waiting');
+            ctrlModalIconBadge.innerHTML = '<i data-lucide="rotate-ccw"></i>';
+        }
+        if (ctrlModalTitle) ctrlModalTitle.textContent = 'Set Game to Waiting?';
+        if (ctrlModalSubtitle) ctrlModalSubtitle.textContent = 'Pre-Event Configuration';
+        if (ctrlModalDesc) ctrlModalDesc.textContent = 'Players can load the welcome page to review rules, but cannot start playing until you click Start Game.';
+        if (confirmGameCtrlBtn) {
+            confirmGameCtrlBtn.classList.add('btn-ctrl-confirm-waiting');
+            confirmGameCtrlBtn.innerHTML = '<i data-lucide="rotate-ccw"></i> <span>Set to Waiting</span>';
+        }
+    }
+
+    if (window.lucide) lucide.createIcons();
+    gameCtrlModal.classList.remove('hidden');
+}
+
+function closeGameCtrlModal() {
+    if (!gameCtrlModal) return;
+    gameCtrlModal.classList.add('hidden');
+    pendingGameCtrlAction = null;
+}
+
+function confirmGameControlAction() {
+    if (!pendingGameCtrlAction) return;
+    const actionToExecute = pendingGameCtrlAction;
+    closeGameCtrlModal();
+    setGameControlState(actionToExecute);
+}
+
 

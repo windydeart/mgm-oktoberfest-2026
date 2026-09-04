@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=21">
+    <link rel="stylesheet" href="/admin/admin.css?v=22">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -291,6 +291,34 @@
         </div>
     </div>
 
+    <!-- Game Controller Confirmation Modal (Custom styled) -->
+    <div id="gameCtrlModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeGameCtrlModal()"></div>
+        <div class="modal-content ctrl-confirm-modal-card" id="ctrlConfirmModalCard">
+            <button type="button" class="close-btn" onclick="closeGameCtrlModal()" aria-label="Close"><i data-lucide="x"></i></button>
+            <div class="ctrl-modal-header">
+                <div class="ctrl-modal-icon-badge" id="ctrlModalIconBadge">
+                    <i data-lucide="pause" id="ctrlModalIcon"></i>
+                </div>
+                <div>
+                    <h3 id="ctrlModalTitle">Pause Game?</h3>
+                    <p class="ctrl-modal-subtitle" id="ctrlModalSubtitle">Temporary organizer halt</p>
+                </div>
+            </div>
+
+            <p class="ctrl-modal-desc" id="ctrlModalDesc">
+                All player screens will be temporarily frozen with a pause notice.
+            </p>
+
+            <div class="ctrl-modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="closeGameCtrlModal()">Cancel</button>
+                <button type="button" class="btn-modal-confirm-action" id="confirmGameCtrlBtn" onclick="confirmGameControlAction()">
+                    <i data-lucide="check" id="ctrlModalConfirmIcon"></i> <span id="ctrlModalConfirmText">Confirm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Winner Showcase Modal (Admin Top 1 Board Preview) -->
     <div id="winnerShowcaseModal" class="modal hidden">
         <div class="modal-overlay" onclick="closeWinnerShowcaseAdmin()"></div>
@@ -319,7 +347,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=21"></script>
+    <script src="/admin/admin.js?v=22"></script>
     <script>
         lucide.createIcons();
     </script>

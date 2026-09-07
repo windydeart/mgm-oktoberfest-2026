@@ -1625,13 +1625,16 @@
     gameState.status = 'completed';
     gameState.hadAchievedBingo = true;
     gameState.isDisqualified = false;
-    try { localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1'); } catch (e) {}
     const liveElapsed = timerStartTime ? (Date.now() - timerStartTime) : (gameState.elapsedMs || 0);
     const resolvedElapsed = (data && typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
       ? data.elapsed_ms
       : ((typeof liveElapsed === 'number' && !isNaN(liveElapsed) && liveElapsed > 0) ? liveElapsed : (gameState.elapsedMs || 116290));
 
     gameState.elapsedMs = resolvedElapsed;
+    try { 
+      localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1'); 
+      localStorage.setItem('bingo_frozen_elapsed_ms', String(resolvedElapsed));
+    } catch (e) {}
     gameState.bingoLine = (data && data.bingo_line) || checkBingo(gameState.completedCells);
 
     // Resolve authoritative real rank against current live leaderboard
@@ -2255,6 +2258,7 @@
       localStorage.removeItem('bingo_game_state_v4');
       localStorage.removeItem('bingo_session_token');
       localStorage.removeItem('bingo_game_state');
+      localStorage.removeItem('bingo_frozen_elapsed_ms');
     } catch (e) { /* ignore */ }
   }
 
@@ -2475,6 +2479,12 @@
       renderBoard();
 
       if (isDisqualified) {
+        const localFrozen = parseInt(localStorage.getItem('bingo_frozen_elapsed_ms'), 10);
+        if (serverElapsed > 0 && serverElapsed < 9999000) {
+          gameState.elapsedMs = serverElapsed;
+        } else if (!isNaN(localFrozen) && localFrozen > 0 && localFrozen < 9999000) {
+          gameState.elapsedMs = localFrozen;
+        }
         stopTimer(gameState.elapsedMs || 1000);
         if (els.statusRankText) els.statusRankText.textContent = 'OUT';
         if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
@@ -2954,7 +2964,10 @@
       gameState.hadAchievedBingo = true;
       gameState.isDisqualified = true;
       gameState.status = 'completed'; // Lock board completely
-      try { localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1'); } catch (e) {}
+      try { 
+        localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1');
+        if (gameState.elapsedMs) localStorage.setItem('bingo_frozen_elapsed_ms', String(gameState.elapsedMs));
+      } catch (e) {}
 
       stopTimer(gameState.elapsedMs);
       if (els.statusRankText) els.statusRankText.textContent = 'OUT';

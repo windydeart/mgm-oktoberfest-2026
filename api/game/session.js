@@ -48,6 +48,31 @@ function checkBingo(cells) {
   return null;
 }
 
+const BINGO_LINE_CELLS = {
+  'row-0': [0, 1, 2],
+  'row-1': [3, 4, 5],
+  'row-2': [6, 7, 8],
+  'col-0': [0, 3, 6],
+  'col-1': [1, 4, 7],
+  'col-2': [2, 5, 8],
+  'diag-main': [0, 4, 8],
+  'diag-anti': [2, 4, 6]
+};
+
+function findValidBingoLine(completedCells, rejectedCells) {
+  const compSet = new Set(Array.from(completedCells || []).map(Number));
+  const rejSet = new Set(Array.from(rejectedCells || []).map(Number));
+
+  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
+    const allCompleted = cellIndices.every(c => compSet.has(c));
+    const noneRejected = cellIndices.every(c => !rejSet.has(c));
+    if (allCompleted && noneRejected) {
+      return { line: lineKey, cells: cellIndices };
+    }
+  }
+  return null;
+}
+
 function getDefaultChallenges(location = 'danang') {
   const pool = Array.isArray(challengesPool)
     ? challengesPool
@@ -313,14 +338,20 @@ module.exports = async (req, res) => {
     console.warn('Session review sync note:', err.message);
   }
 
-  // 2. Calculate BINGO based on all completed cells (including in-review cells)
-  const calculatedBingoLine = checkBingo(completedCells);
-  let isCompleted = calculatedBingoLine !== null;
+  // 2. Calculate BINGO based on all completed cells with 0 rejected cells
+  const cleanCompletedCells = completedCells.filter(c => !rejectedCells.includes(c));
+  const validBingo = findValidBingoLine(cleanCompletedCells, rejectedCells);
+  const isCompleted = validBingo !== null;
+  const calculatedBingoLine = validBingo ? validBingo.line : null;
+  const hadAchievedBingo = !!(session.had_achieved_bingo || session.bingo_line || session.status === 'completed' || isCompleted);
+  const isDisqualified = !isCompleted && hadAchievedBingo && (rejectedCells && rejectedCells.length > 0);
+
   let rank = null;
   let elapsed_ms = 0;
 
-  if (isCompleted) {
-    // If completed, verify score in DB and compute true leaderboard rank
+  if (isCompleted || isDisqualified) {
+    // ─── GAME FINISHED (BINGO OR DISQUALIFIED OUT) ───
+    // Time must be FROZEN completely at completion/disqualification time! Never run live timer!
     try {
       const scoreRes = await fetch(
         `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}&order=created_at.desc&limit=1`,
@@ -328,15 +359,25 @@ module.exports = async (req, res) => {
       );
       if (scoreRes.ok) {
         const scores = await scoreRes.json();
-        if (scores && scores.length > 0 && scores[0].duration_seconds) {
-          elapsed_ms = Math.round(scores[0].duration_seconds * 1000);
+        if (scores && scores.length > 0) {
+          const s = scores[0];
+          let snap = {};
+          try { snap = JSON.parse(s.player_email || '{}'); } catch (e) {}
+          if (typeof snap.elapsed_ms === 'number' && snap.elapsed_ms > 0 && snap.elapsed_ms < 9999000) {
+            elapsed_ms = snap.elapsed_ms;
+          } else if (s.duration_seconds && s.duration_seconds > 0 && s.duration_seconds < 9999) {
+            elapsed_ms = Math.round(s.duration_seconds * 1000);
+          }
         }
       }
     } catch (e) {
       console.warn('Score lookup note:', e.message);
     }
+
     if (!elapsed_ms) {
-      if (allReviews && allReviews.length > 0) {
+      if (typeof session.elapsed_ms === 'number' && session.elapsed_ms > 0 && session.elapsed_ms < 9999000) {
+        elapsed_ms = session.elapsed_ms;
+      } else if (allReviews && allReviews.length > 0) {
         const sorted = [...allReviews].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         const lastPhotoTime = new Date(sorted[sorted.length - 1].created_at).getTime();
         const startTs = new Date(session.started_at).getTime();
@@ -344,37 +385,37 @@ module.exports = async (req, res) => {
           elapsed_ms = Math.max(1000, lastPhotoTime - startTs);
         }
       }
-      if (!elapsed_ms) elapsed_ms = session.elapsed_ms || 60000;
+      if (!elapsed_ms) elapsed_ms = 15000;
     }
 
-    // Calculate authoritative real rank
-    try {
-      const allScoresRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&select=player_name,duration_seconds&order=duration_seconds.asc`,
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
-      );
-      if (allScoresRes.ok) {
-        const allScores = await allScoresRes.json();
-        const bestByPlayer = new Map();
-        for (const s of (allScores || [])) {
-          const key = (s.player_name || '').trim().toLowerCase();
-          if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
-            bestByPlayer.set(key, s);
+    if (isCompleted) {
+      // Calculate authoritative real rank
+      try {
+        const allScoresRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&select=player_name,duration_seconds&order=duration_seconds.asc`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (allScoresRes.ok) {
+          const allScores = await allScoresRes.json();
+          const bestByPlayer = new Map();
+          for (const s of (allScores || [])) {
+            const key = (s.player_name || '').trim().toLowerCase();
+            if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
+              bestByPlayer.set(key, s);
+            }
           }
+          const myDuration = elapsed_ms / 1000;
+          const fasterCount = Array.from(bestByPlayer.values()).filter(s => {
+            if ((s.player_name || '').trim().toLowerCase() === (session.player_name || '').trim().toLowerCase()) return false;
+            return s.duration_seconds < myDuration;
+          }).length;
+          rank = fasterCount + 1;
         }
-        const myDuration = elapsed_ms / 1000;
-        const fasterCount = Array.from(bestByPlayer.values()).filter(s => {
-          if ((s.player_name || '').trim().toLowerCase() === (session.player_name || '').trim().toLowerCase()) return false;
-          return s.duration_seconds < myDuration;
-        }).length;
-        rank = fasterCount + 1;
+      } catch (rErr) {
+        console.warn('Session rank compute error:', rErr.message);
       }
-    } catch (rErr) {
-      console.warn('Session rank compute error:', rErr.message);
-    }
-  } else {
-    // If NOT completed, invalidate any stale score in database UNLESS player has been disqualified
-    if (rejectedCells && rejectedCells.length > 0) {
+    } else if (isDisqualified) {
+      // For disqualified players: lock their frozen duration in DB so it never mutates
       try {
         await fetch(
           `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
@@ -382,28 +423,29 @@ module.exports = async (req, res) => {
             method: 'PATCH',
             headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              duration_seconds: elapsed_ms / 1000,
               player_email: JSON.stringify({
                 is_disqualified: true,
                 review_status: 'rejected',
-                rejected_cells: rejectedCells
+                rejected_cells: rejectedCells,
+                elapsed_ms: elapsed_ms
               })
             })
           }
         );
       } catch (patchErr) {}
-    } else {
-      try {
-        await fetch(
-          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
-          {
-            method: 'DELETE',
-            headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}` }
-          }
-        );
-      } catch (delErr) {
-        console.warn('Score invalidation note:', delErr.message);
-      }
     }
+  } else {
+    // ─── ACTIVE PLAYING (never achieved bingo, not disqualified) ───
+    try {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
+        {
+          method: 'DELETE',
+          headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}` }
+        }
+      );
+    } catch (delErr) {}
 
     let startTimestamp = session.started_at ? new Date(session.started_at).getTime() : 0;
     if (isNaN(startTimestamp) || startTimestamp <= 0 || Date.now() - startTimestamp > 24 * 3600 * 1000) {
@@ -412,10 +454,6 @@ module.exports = async (req, res) => {
     }
     elapsed_ms = Math.max(1000, Date.now() - startTimestamp);
   }
-
-  // 4. Update session object and create refreshed token
-  const hadAchievedBingo = !!(session.had_achieved_bingo || isCompleted || session.bingo_line);
-  const isDisqualified = hadAchievedBingo && !isCompleted && rejectedCells && rejectedCells.length > 0;
 
   session.completed_cells = completedCells;
   session.pending_review_cells = pendingReviewCells;

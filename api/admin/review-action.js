@@ -355,11 +355,17 @@ async function handleRejection(review, noteText) {
       snapshot.rejection_reason = noteText || 'Photo does not match challenge requirement.';
       snapshot.rejected_cell = cell_index;
       snapshot.completed_cells = completedCells;
+      if (score.duration_seconds && score.duration_seconds > 0 && score.duration_seconds < 9999) {
+        snapshot.elapsed_ms = Math.round(score.duration_seconds * 1000);
+      }
 
       await supabaseRequest(
         'PATCH',
         `oktoberfest_game_scores?id=eq.${score.id}`,
-        { player_email: JSON.stringify(snapshot) },
+        { 
+          player_email: JSON.stringify(snapshot),
+          duration_seconds: score.duration_seconds
+        },
         true
       );
     } else {

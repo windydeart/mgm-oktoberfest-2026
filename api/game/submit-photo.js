@@ -331,8 +331,8 @@ module.exports = async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
 
   const candidateModels = [
-    'gemini-3.8-flash',
     'gemini-3.5-flash',
+    'gemini-3.8-flash',
     'gemini-3.1-flash-lite'
   ];
 
@@ -424,10 +424,11 @@ Reply with ONLY a JSON object:
       }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 256,
-        responseMimeType: 'application/json'
+        maxOutputTokens: 1024,
+        responseMimeType: 'application/json',
+        thinkingConfig: { thinkingBudget: 0 }
       },
-      timeoutMs: 3800
+      timeoutMs: 4500
     });
 
     if (vertexResult.ok && vertexResult.text) {
@@ -470,7 +471,7 @@ Reply with ONLY a JSON object:
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
 
         const geminiRes = await fetch(apiUrl, {
           method: 'POST',
@@ -491,8 +492,9 @@ Reply with ONLY a JSON object:
             }],
             generationConfig: {
               temperature: 0.1,
-              maxOutputTokens: 256,
-              responseMimeType: "application/json"
+              maxOutputTokens: 1024,
+              responseMimeType: "application/json",
+              thinkingConfig: { thinkingBudget: 0 }
             }
           })
         });

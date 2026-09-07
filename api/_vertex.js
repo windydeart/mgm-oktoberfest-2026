@@ -136,8 +136,8 @@ async function callVertexGemini({
   systemInstruction,
   contents,
   generationConfig = {},
-  timeoutMs = 3800,
-  models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'],
+  timeoutMs = 4500,
+  models = ['gemini-3.5-flash', 'gemini-2.5-flash'],
   locations = ['asia-southeast1', 'us-central1']
 }) {
   const sa = getVertexCredentials();
@@ -157,10 +157,13 @@ async function callVertexGemini({
     contents,
     generationConfig: {
       temperature: generationConfig.temperature ?? 0.1,
-      maxOutputTokens: generationConfig.maxOutputTokens ?? 256,
+      maxOutputTokens: generationConfig.maxOutputTokens ?? 1024,
       ...(generationConfig.topP !== undefined ? { topP: generationConfig.topP } : {}),
       ...(generationConfig.topK !== undefined ? { topK: generationConfig.topK } : {}),
-      ...(generationConfig.responseMimeType ? { responseMimeType: generationConfig.responseMimeType } : {})
+      ...(generationConfig.responseMimeType ? { responseMimeType: generationConfig.responseMimeType } : {}),
+      ...(generationConfig.thinkingConfig !== undefined
+        ? { thinkingConfig: generationConfig.thinkingConfig }
+        : { thinkingConfig: { thinkingBudget: 0 } })
     },
     ...(systemInstruction ? {
       system_instruction: {

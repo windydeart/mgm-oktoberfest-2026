@@ -1360,10 +1360,13 @@ body.game-page::before {
 
 .camera-top-bar {
   position: absolute;
-  top: 18px;
+  top: 16px;
   left: 16px;
   right: 16px;
-  z-index: 10;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
 }
 
 .camera-challenge-badge {
@@ -1377,6 +1380,42 @@ body.game-page::before {
   align-items: center;
   gap: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  max-width: 480px;
+  width: 100%;
+  pointer-events: auto;
+}
+
+/* Keep banner slim and pinned cleanly to top in landscape */
+@media (orientation: landscape) and (max-height: 500px) {
+  .camera-top-bar {
+    top: 8px;
+    left: 20px;
+    right: 20px;
+  }
+  .camera-challenge-badge {
+    padding: 6px 14px;
+    gap: 8px;
+    max-width: 520px;
+  }
+  .camera-challenge-label {
+    font-size: 0.62rem;
+  }
+  .camera-challenge-text {
+    font-size: 0.82rem;
+  }
+  .camera-challenge-icon i {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.camera-overlay.is-landscape .camera-top-bar {
+  top: 8px;
+}
+.camera-overlay.is-landscape .camera-challenge-badge {
+  padding: 6px 14px;
+  gap: 8px;
+  max-width: 520px;
 }
 
 .camera-challenge-icon {

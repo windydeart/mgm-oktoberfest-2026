@@ -1022,15 +1022,20 @@
     if (els.cameraShutterBtn) {
       els.cameraShutterBtn.style.transform = rot;
     }
+    // Banner header always stays pinned at the top without rotating in-place
     const badge = document.querySelector('.camera-challenge-badge');
     if (badge) {
-      badge.style.transform = rot;
+      badge.style.transform = '';
     }
   }
 
   function resetUIIconRotation() {
     currentUIRotation = 0;
     applyUIIconRotation(0);
+    const badge = document.querySelector('.camera-challenge-badge');
+    if (badge) {
+      badge.style.transform = '';
+    }
   }
 
   function capturePhoto() {

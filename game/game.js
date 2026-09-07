@@ -676,8 +676,8 @@
     }
 
     const name = (els.playerName.value || '').trim();
-    if (name.length < 2 || name.length > 30) {
-      showToast('Please enter a player name between 2 and 30 characters.', 'error');
+    if (name.length < 2 || name.length > 16) {
+      showToast('Please enter a player name between 2 and 16 characters.', 'error');
       els.playerName.classList.add('shake');
       setTimeout(() => els.playerName.classList.remove('shake'), 500);
       return;

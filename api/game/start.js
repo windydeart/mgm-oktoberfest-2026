@@ -47,8 +47,8 @@ module.exports = async (req, res) => {
   }
 
   const { player_name, location } = req.body || {};
-  if (!player_name || typeof player_name !== 'string' || player_name.trim().length < 2 || player_name.trim().length > 30) {
-    return res.status(400).json({ error: 'Player name must be between 2 and 30 characters.' });
+  if (!player_name || typeof player_name !== 'string' || player_name.trim().length < 2 || player_name.trim().length > 16) {
+    return res.status(400).json({ error: 'Player name must be between 2 and 16 characters.' });
   }
   if (location !== 'danang' && location !== 'hcmc') {
     return res.status(400).json({ error: 'Please select either Da Nang or HCMC.' });

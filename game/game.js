@@ -8,6 +8,18 @@
 (function () {
   'use strict';
 
+  /* ─── LOCK SCREEN TO PORTRAIT (mobile-first game) ───
+     Prevents the browser from rotating the page when the phone is tilted
+     horizontally. This keeps the camera viewfinder and all UI elements
+     stable in portrait orientation at all times.
+     Note: iOS Safari does not support screen.orientation.lock() — on iOS
+     the lock is silently ignored but the game still functions correctly. */
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(function() {});
+    }
+  } catch (e) { /* not supported */ }
+
   /* ─── CONSTANTS & FLAT ICON MAPPINGS ─── */
   const API_BASE = '/api/game';
   const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';

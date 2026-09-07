@@ -1100,7 +1100,7 @@
     const targetCell = $$('.bingo-cell')[targetIdx];
     if (!targetCell) return;
 
-    const wasAlreadyPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(targetIdx);
+    const wasAlreadyPending = gameState.pendingReviewCells && gameState.pendingReviewCells.some(c => Number(c) === Number(targetIdx));
 
     targetCell.classList.remove('verifying');
     targetCell.classList.add('completed', 'pending-review');
@@ -1128,7 +1128,6 @@
     renderBoard();
 
     // Prevent duplicate toast if cell was already marked as in review
-    const wasAlreadyPending = gameState.pendingReviewCells && gameState.pendingReviewCells.some(c => Number(c) === Number(targetIdx));
     if (!wasAlreadyPending && !silent) {
       showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
     }

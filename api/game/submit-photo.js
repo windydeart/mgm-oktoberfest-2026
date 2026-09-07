@@ -284,8 +284,10 @@ module.exports = async (req, res) => {
   }
 
   // 1a. If player had already achieved BINGO and was subsequently disqualified: game is finished permanently!
-  const hadAchievedBingo = !!(session.had_achieved_bingo || checkBingo(completedCells) !== null);
-  if (hadAchievedBingo && rejectedCells.length > 0) {
+  const currentBingoCheck = checkBingo(completedCells);
+  const hadAchievedBingo = !!(session.had_achieved_bingo || currentBingoCheck !== null);
+  const isDisqualified = hadAchievedBingo && currentBingoCheck === null && rejectedCells.length > 0;
+  if (isDisqualified) {
     return res.status(400).json({ error: 'Game finished! You already achieved BINGO.' });
   }
 

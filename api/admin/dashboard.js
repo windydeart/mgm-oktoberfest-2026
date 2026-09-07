@@ -104,10 +104,35 @@ module.exports = async (req, res) => {
       }
     }
 
+const BINGO_LINE_CELLS = {
+  'row-0': [0, 1, 2],
+  'row-1': [3, 4, 5],
+  'row-2': [6, 7, 8],
+  'col-0': [0, 3, 6],
+  'col-1': [1, 4, 7],
+  'col-2': [2, 5, 8],
+  'diag-main': [0, 4, 8],
+  'diag-anti': [2, 4, 6]
+};
+
+function findValidBingoLine(completedCells, rejectedCells) {
+  const compSet = new Set((completedCells || []).map(Number));
+  const rejSet = new Set((rejectedCells || []).map(Number));
+
+  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
+    const allCompleted = cellIndices.every(c => compSet.has(c));
+    const noneRejected = cellIndices.every(c => !rejSet.has(c));
+    if (allCompleted && noneRejected) {
+      return { line: lineKey, cells: cellIndices };
+    }
+  }
+  return null;
+}
+
     // Classify into tiers:
     // Tier 1: Approved BINGO (Priority for Champion & Top 1)
     // Tier 2: Pending BINGO
-    // Tier 3: Disqualified (bị loại) -> Lowest on leaderboard
+    // Tier 3: Disqualified (bị loại do ô trên hàng Bingo bị reject) -> Lowest on leaderboard
     const categorized = Array.from(bestByPlayer.values()).map(s => {
       const key = (s.player_name || '').trim().toLowerCase();
       const playerRevs = reviewsByPlayer.get(key) || [];
@@ -117,20 +142,62 @@ module.exports = async (req, res) => {
         try { snapshot = JSON.parse(s.player_email); } catch (e) {}
       }
 
-      const hasRejected = playerRevs.some(r => r.status === 'rejected') || snapshot.is_disqualified === true || snapshot.review_status === 'rejected';
-      const hasPending = playerRevs.some(r => r.status === 'pending') || snapshot.review_status === 'pending';
+      // 1. Gather all rejected cell indices
+      const rejectedCellIndices = new Set(
+        playerRevs.filter(r => r.status === 'rejected').map(r => Number(r.cell_index))
+      );
+      if (snapshot.rejected_cell !== undefined && snapshot.rejected_cell !== null) {
+        rejectedCellIndices.add(Number(snapshot.rejected_cell));
+      }
+      if (Array.isArray(snapshot.rejected_cells)) {
+        snapshot.rejected_cells.forEach(idx => rejectedCellIndices.add(Number(idx)));
+      }
+
+      // 2. Gather completed cells
+      let completedCells = Array.isArray(snapshot.completed_cells) ? snapshot.completed_cells.map(Number) : [];
+      playerRevs.forEach(r => {
+        if (r.status !== 'rejected') {
+          const idx = Number(r.cell_index);
+          if (!completedCells.includes(idx)) completedCells.push(idx);
+        }
+      });
+      if (completedCells.length === 0 && snapshot.bingo_line && BINGO_LINE_CELLS[snapshot.bingo_line]) {
+        completedCells = [...BINGO_LINE_CELLS[snapshot.bingo_line]];
+      }
+
+      // Filter out rejected cells
+      completedCells = completedCells.filter(c => !rejectedCellIndices.has(c));
+
+      // 3. Find valid Bingo line with ZERO rejected cells
+      const validBingo = findValidBingoLine(completedCells, rejectedCellIndices);
 
       let tier = 2;
       let status = 'pending';
       let isDisqualified = false;
 
-      if (hasRejected) {
+      if (!validBingo) {
+        // Winning line was broken by rejection or has rejected cell -> OUT
         tier = 3;
         status = 'rejected';
         isDisqualified = true;
-      } else if (!hasPending && (playerRevs.some(r => r.status === 'approved') || snapshot.review_status === 'approved')) {
-        tier = 1;
-        status = 'approved';
+      } else {
+        // Has a valid winning line! Check if any cell on this winning line is pending
+        const winningCells = validBingo.cells;
+        const hasPendingOnLine = winningCells.some(cIdx => {
+          const rev = playerRevs.find(r => Number(r.cell_index) === cIdx);
+          if (rev) return rev.status === 'pending';
+          return false;
+        }) || (snapshot.review_status === 'pending' && !playerRevs.length);
+
+        if (hasPendingOnLine) {
+          tier = 2; // Pending BINGO
+          status = 'pending';
+          isDisqualified = false;
+        } else {
+          tier = 1; // Approved BINGO
+          status = 'approved';
+          isDisqualified = false;
+        }
       }
 
       return {

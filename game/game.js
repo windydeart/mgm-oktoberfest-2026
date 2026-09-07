@@ -380,6 +380,34 @@
     return map[lineKey] || null;
   }
 
+  function findValidBingoLine(completedCells, rejectedCells) {
+    if (!completedCells || !completedCells.length) return null;
+    const compSet = new Set(completedCells.map(Number));
+    const rejSet = new Set(
+      rejectedCells instanceof Set
+        ? Array.from(rejectedCells).map(Number)
+        : (rejectedCells || []).map(Number)
+    );
+
+    const lines = [
+      { indices: [0, 1, 2], name: 'row-0' },
+      { indices: [3, 4, 5], name: 'row-1' },
+      { indices: [6, 7, 8], name: 'row-2' },
+      { indices: [0, 3, 6], name: 'col-0' },
+      { indices: [1, 4, 7], name: 'col-1' },
+      { indices: [2, 5, 8], name: 'col-2' },
+      { indices: [0, 4, 8], name: 'diag-main' },
+      { indices: [2, 4, 6], name: 'diag-anti' }
+    ];
+
+    for (const line of lines) {
+      if (line.indices.every(i => compSet.has(i)) && line.indices.every(i => !rejSet.has(i))) {
+        return { line: line.name, indices: line.indices };
+      }
+    }
+    return null;
+  }
+
   /* ═══════════════════════════════════════════════════════
      BINGO BOARD RENDERING (Flat Icons + 4x Camera Watermark)
      ═══════════════════════════════════════════════════════ */
@@ -1889,14 +1917,17 @@
     if (gameState.playerName) {
       const myEntry = entries.find(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && e.location === gameState.location);
       if (myEntry) {
-        const isDisq = myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.hadAchievedBingo && gameState.rejectedCells && gameState.rejectedCells.size > 0);
+        const hasValidLine = findValidBingoLine(gameState.completedCells, gameState.rejectedCells) !== null;
+        const isDisq = myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.hadAchievedBingo && !hasValidLine && gameState.rejectedCells && gameState.rejectedCells.size > 0);
         if (isDisq) {
           gameState.isDisqualified = true;
           if (els.statusRankText) els.statusRankText.textContent = 'OUT';
           if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
-        } else if (gameState.status === 'completed') {
+        } else if (gameState.status === 'completed' || hasValidLine) {
+          gameState.isDisqualified = false;
           const myIdx = entries.indexOf(myEntry);
           gameState.rank = myIdx + 1;
+          if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
           if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
           if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
         }
@@ -2417,20 +2448,24 @@
       gameState.cellAiReasons = data.cell_ai_reasons || {};
       gameState.startedAt = data.started_at || new Date().toISOString();
 
-      const hadBingo = !!(gameState.hadAchievedBingo || (localStorage.getItem(STORAGE_KEY_HAD_BINGO) === '1') || data.had_achieved_bingo || isCompleted || data.is_completed);
-      const isDisqualified = hadBingo && (gameState.rejectedCells && gameState.rejectedCells.size > 0);
+      const validBingoObj = findValidBingoLine(completedCells, gameState.rejectedCells);
+      const hasValidBingo = validBingoObj !== null;
+      const hadBingo = !!(gameState.hadAchievedBingo || (localStorage.getItem(STORAGE_KEY_HAD_BINGO) === '1') || data.had_achieved_bingo || hasValidBingo || isCompleted || data.is_completed);
+
+      // Disqualified ONLY IF player had achieved Bingo, but now has NO valid Bingo line (i.e. winning line was broken)
+      const isDisqualified = !hasValidBingo && hadBingo && (gameState.rejectedCells && gameState.rejectedCells.size > 0);
 
       gameState.hadAchievedBingo = hadBingo;
       gameState.isDisqualified = isDisqualified;
-      gameState.status = (isCompleted || isDisqualified) ? 'completed' : 'playing';
+      gameState.status = (hasValidBingo || isDisqualified) ? 'completed' : 'playing';
 
       // Resolve elapsed_ms: server value > client value > minimum 1s
       const serverElapsed = (typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
         ? data.elapsed_ms : 0;
       const resolvedElapsed = serverElapsed || gameState.elapsedMs || 1000;
       gameState.elapsedMs = resolvedElapsed;
-      gameState.bingoLine = isCompleted ? bingoLine : null;
-      gameState.rank = isCompleted ? (data.rank || null) : null;
+      gameState.bingoLine = hasValidBingo ? validBingoObj.line : (isCompleted ? bingoLine : null);
+      gameState.rank = hasValidBingo ? (data.rank || null) : null;
 
       saveSession();
 
@@ -2443,8 +2478,10 @@
         stopTimer(gameState.elapsedMs || 1000);
         if (els.statusRankText) els.statusRankText.textContent = 'OUT';
         if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
-      } else if (isCompleted) {
+      } else if (hasValidBingo || isCompleted) {
         stopTimer(gameState.elapsedMs || 1000);
+        if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
+        if (els.statusRankText) els.statusRankText.textContent = gameState.rank ? `Rank #${gameState.rank}` : 'Rank #--';
       } else {
         startTimer(gameState.elapsedMs);
       }
@@ -2898,11 +2935,22 @@
 
     // Note: Do NOT delete cellPhotos[cellIdx] so the photo remains displayed on the board with rejected status!
 
-    // Check if player had achieved BINGO
-    const hadBingo = !!(gameState.hadAchievedBingo || gameState.status === 'completed' || (localStorage.getItem(STORAGE_KEY_HAD_BINGO) === '1'));
+    // Check if player STILL has a valid Bingo line with ZERO rejected cells
+    const validBingo = findValidBingoLine(gameState.completedCells, gameState.rejectedCells);
+    const wasBingo = !!(gameState.hadAchievedBingo || gameState.status === 'completed' || (localStorage.getItem(STORAGE_KEY_HAD_BINGO) === '1'));
 
-    if (hadBingo) {
-      // ─── CASE 1: REJECTED AFTER BINGO -> DISQUALIFIED (OUT) ───
+    if (validBingo) {
+      // ─── CASE A: STILL HAS A VALID BINGO LINE (rejection was on an unrelated cell) ───
+      gameState.hadAchievedBingo = true;
+      gameState.isDisqualified = false;
+      gameState.status = 'completed';
+      gameState.bingoLine = validBingo.line;
+      if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
+      if (els.statusRankText && els.statusRankText.textContent === 'OUT') {
+        els.statusRankText.textContent = gameState.rank ? `Rank #${gameState.rank}` : 'Rank #--';
+      }
+    } else if (wasBingo) {
+      // ─── CASE B: HAD BINGO BUT WINNING LINE WAS BROKEN BY REJECTION -> DISQUALIFIED (OUT) ───
       gameState.hadAchievedBingo = true;
       gameState.isDisqualified = true;
       gameState.status = 'completed'; // Lock board completely
@@ -2927,7 +2975,7 @@
       const backdrop = $('#bingoCelebrationBackdrop');
       if (backdrop) backdrop.classList.remove('active');
     } else {
-      // ─── CASE 2: REJECTED BEFORE BINGO -> CONTINUE PLAYING ───
+      // ─── CASE C: REJECTED BEFORE BINGO -> CONTINUE PLAYING ───
       // Only this cell is rejected and locked. Player can attempt other lines.
       gameState.hadAchievedBingo = false;
       gameState.isDisqualified = false;

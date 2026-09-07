@@ -415,7 +415,7 @@ module.exports = async (req, res) => {
 
   // 4. Update session object and create refreshed token
   const hadAchievedBingo = !!(session.had_achieved_bingo || isCompleted || session.bingo_line);
-  const isDisqualified = hadAchievedBingo && rejectedCells && rejectedCells.length > 0;
+  const isDisqualified = hadAchievedBingo && !isCompleted && rejectedCells && rejectedCells.length > 0;
 
   session.completed_cells = completedCells;
   session.pending_review_cells = pendingReviewCells;

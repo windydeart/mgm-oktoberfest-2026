@@ -67,6 +67,31 @@ module.exports = async (req, res) => {
       }
     }
 
+const BINGO_LINE_CELLS = {
+  'row-0': [0, 1, 2],
+  'row-1': [3, 4, 5],
+  'row-2': [6, 7, 8],
+  'col-0': [0, 3, 6],
+  'col-1': [1, 4, 7],
+  'col-2': [2, 5, 8],
+  'diag-main': [0, 4, 8],
+  'diag-anti': [2, 4, 6]
+};
+
+function findValidBingoLine(completedCells, rejectedCells) {
+  const compSet = new Set((completedCells || []).map(Number));
+  const rejSet = new Set((rejectedCells || []).map(Number));
+
+  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
+    const allCompleted = cellIndices.every(c => compSet.has(c));
+    const noneRejected = cellIndices.every(c => !rejSet.has(c));
+    if (allCompleted && noneRejected) {
+      return { line: lineKey, cells: cellIndices };
+    }
+  }
+  return null;
+}
+
     // Filter and tier candidates:
     // Rule: Priority for Top 1 is a player who has Bingo, fastest time, and is Approved.
     // Rejected players are disqualified and can NEVER be Top 1.
@@ -80,10 +105,41 @@ module.exports = async (req, res) => {
         try { snapshotData = JSON.parse(record.player_email); } catch (e) {}
       }
 
-      const hasRejected = playerRevs.some(r => r.status === 'rejected') || snapshotData.is_disqualified === true || snapshotData.review_status === 'rejected';
-      if (hasRejected) continue; // Disqualified! Cannot be winner.
+      // Gather rejected cell indices
+      const rejectedCellIndices = new Set(
+        playerRevs.filter(r => r.status === 'rejected').map(r => Number(r.cell_index))
+      );
+      if (snapshotData.rejected_cell !== undefined && snapshotData.rejected_cell !== null) {
+        rejectedCellIndices.add(Number(snapshotData.rejected_cell));
+      }
+      if (Array.isArray(snapshotData.rejected_cells)) {
+        snapshotData.rejected_cells.forEach(idx => rejectedCellIndices.add(Number(idx)));
+      }
 
-      const hasPending = playerRevs.some(r => r.status === 'pending') || snapshotData.review_status === 'pending';
+      // Gather completed cells
+      let completedCells = Array.isArray(snapshotData.completed_cells) ? snapshotData.completed_cells.map(Number) : [];
+      playerRevs.forEach(r => {
+        if (r.status !== 'rejected') {
+          const idx = Number(r.cell_index);
+          if (!completedCells.includes(idx)) completedCells.push(idx);
+        }
+      });
+      if (completedCells.length === 0 && snapshotData.bingo_line && BINGO_LINE_CELLS[snapshotData.bingo_line]) {
+        completedCells = [...BINGO_LINE_CELLS[snapshotData.bingo_line]];
+      }
+      completedCells = completedCells.filter(c => !rejectedCellIndices.has(c));
+
+      // Find valid Bingo line with 0 rejected cells
+      const validBingo = findValidBingoLine(completedCells, rejectedCellIndices);
+      if (!validBingo) continue; // Disqualified! Cannot be winner.
+
+      const winningCells = validBingo.cells;
+      const hasPending = winningCells.some(cIdx => {
+        const rev = playerRevs.find(r => Number(r.cell_index) === cIdx);
+        if (rev) return rev.status === 'pending';
+        return false;
+      }) || (snapshotData.review_status === 'pending' && !playerRevs.length);
+
       const isApproved = !hasPending && (playerRevs.some(r => r.status === 'approved') || snapshotData.review_status === 'approved');
 
       // Tier 1: Approved, Tier 2: Pending

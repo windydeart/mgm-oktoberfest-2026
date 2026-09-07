@@ -279,6 +279,31 @@ module.exports = async (req, res) => {
   }
 };
 
+const BINGO_LINE_CELLS = {
+  'row-0': [0, 1, 2],
+  'row-1': [3, 4, 5],
+  'row-2': [6, 7, 8],
+  'col-0': [0, 3, 6],
+  'col-1': [1, 4, 7],
+  'col-2': [2, 5, 8],
+  'diag-main': [0, 4, 8],
+  'diag-anti': [2, 4, 6]
+};
+
+function findValidBingoLine(completedCells, rejectedCells) {
+  const compSet = new Set((completedCells || []).map(Number));
+  const rejSet = new Set((rejectedCells || []).map(Number));
+
+  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
+    const allCompleted = cellIndices.every(c => compSet.has(c));
+    const noneRejected = cellIndices.every(c => !rejSet.has(c));
+    if (allCompleted && noneRejected) {
+      return { line: lineKey, cells: cellIndices };
+    }
+  }
+  return null;
+}
+
 async function handleRejection(review, noteText) {
   const { player_name, cell_index, session_id, office } = review;
 
@@ -301,19 +326,56 @@ async function handleRejection(review, noteText) {
       snapshot = JSON.parse(score.player_email || '{}');
     } catch (e) {}
 
-    // Invalidate BINGO and mark disqualified (bị loại) on leaderboard at bottom
-    console.log(`Rejecting cell ${cell_index} marks ${player_name} as disqualified (bị loại) at bottom of leaderboard.`);
-    snapshot.is_disqualified = true;
-    snapshot.review_status = 'rejected';
-    snapshot.rejection_reason = noteText || 'Photo does not match challenge requirement.';
-    snapshot.rejected_cell = cell_index;
-
-    await supabaseRequest(
-      'PATCH',
-      `oktoberfest_game_scores?id=eq.${score.id}`,
-      { player_email: JSON.stringify(snapshot) },
+    // Check all reviews for this player to know all rejected cells
+    const playerRevs = await supabaseGet(
+      `bingo_photo_reviews?player_name=eq.${encodeURIComponent(player_name)}&select=cell_index,status`,
       true
     );
+    const rejectedIndices = new Set(
+      (playerRevs || []).filter(r => r.status === 'rejected').map(r => Number(r.cell_index))
+    );
+    rejectedIndices.add(Number(cell_index));
+
+    // Gather player's completed cells
+    let completedCells = Array.isArray(snapshot.completed_cells) ? snapshot.completed_cells.map(Number) : [];
+    if (completedCells.length === 0 && snapshot.bingo_line && BINGO_LINE_CELLS[snapshot.bingo_line]) {
+      completedCells = [...BINGO_LINE_CELLS[snapshot.bingo_line]];
+    }
+    // Remove rejected cells from completedCells
+    completedCells = completedCells.filter(c => !rejectedIndices.has(c));
+
+    // Check if player STILL has a valid Bingo line with 0 rejected cells
+    const remainingBingo = findValidBingoLine(completedCells, rejectedIndices);
+
+    if (!remainingBingo) {
+      // BINGO is broken by this rejection! Mark as disqualified (OUT) on leaderboard at bottom
+      console.log(`Rejecting cell ${cell_index} breaks BINGO for ${player_name}. Marking disqualified (OUT) at bottom of leaderboard.`);
+      snapshot.is_disqualified = true;
+      snapshot.review_status = 'rejected';
+      snapshot.rejection_reason = noteText || 'Photo does not match challenge requirement.';
+      snapshot.rejected_cell = cell_index;
+      snapshot.completed_cells = completedCells;
+
+      await supabaseRequest(
+        'PATCH',
+        `oktoberfest_game_scores?id=eq.${score.id}`,
+        { player_email: JSON.stringify(snapshot) },
+        true
+      );
+    } else {
+      // Player STILL has a valid BINGO line (on a different row/col/diag)!
+      console.log(`Rejecting cell ${cell_index} does not break BINGO for ${player_name}. Winning line is ${remainingBingo.line}.`);
+      snapshot.bingo_line = remainingBingo.line;
+      snapshot.completed_cells = completedCells;
+      snapshot.is_disqualified = false;
+
+      await supabaseRequest(
+        'PATCH',
+        `oktoberfest_game_scores?id=eq.${score.id}`,
+        { player_email: JSON.stringify(snapshot) },
+        true
+      );
+    }
   } catch (err) {
     console.error('Rejection handling error:', err);
   }

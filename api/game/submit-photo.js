@@ -414,7 +414,7 @@ Reply with ONLY a JSON object:
         maxOutputTokens: 256,
         responseMimeType: 'application/json'
       },
-      timeoutMs: 3500
+      timeoutMs: 3800
     });
 
     if (vertexResult.ok && vertexResult.text) {

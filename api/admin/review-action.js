@@ -258,9 +258,11 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Failed to update review status.' });
     }
 
-    // 3. If REJECT → handle leaderboard penalty
+    // 3. Handle leaderboard updates for rejection/approval
     if (action === 'reject') {
-      await handleRejection(review);
+      await handleRejection(review, noteText);
+    } else if (action === 'approve') {
+      await handleApproval(review);
     }
 
     return res.status(200).json({
@@ -269,7 +271,7 @@ module.exports = async (req, res) => {
       review_id,
       message: action === 'approve'
         ? `Photo approved for ${review.player_name}, cell ${review.cell_index + 1}.`
-        : `Photo rejected for ${review.player_name}, cell ${review.cell_index + 1}. Player's BINGO may be invalidated.`
+        : `Photo rejected for ${review.player_name}, cell ${review.cell_index + 1}. Player is disqualified to bottom of leaderboard.`
     });
   } catch (err) {
     console.error('Review action error:', err);
@@ -277,8 +279,8 @@ module.exports = async (req, res) => {
   }
 };
 
-async function handleRejection(review) {
-  const { player_name, cell_index, session_id } = review;
+async function handleRejection(review, noteText) {
+  const { player_name, cell_index, session_id, office } = review;
 
   try {
     // Find the player's score record
@@ -288,73 +290,96 @@ async function handleRejection(review) {
     );
 
     if (!scores.length) {
-      console.log(`No score record found for ${player_name}, nothing to invalidate.`);
+      console.log(`Inserting disqualified record for rejected player ${player_name}...`);
+      await supabaseRequest(
+        'POST',
+        'oktoberfest_game_scores',
+        {
+          player_name,
+          office: office || 'danang',
+          game_name: 'photo_bingo',
+          score: 0,
+          duration_seconds: 9999,
+          player_email: JSON.stringify({
+            is_disqualified: true,
+            review_status: 'rejected',
+            rejection_reason: noteText || 'Photo does not match challenge requirement.',
+            rejected_cell: cell_index,
+            completed_cells: []
+          })
+        },
+        true
+      );
       return;
     }
 
     const score = scores[0];
-
-    // Parse snapshot from player_email
-    let snapshot = null;
+    let snapshot = {};
     try {
       snapshot = JSON.parse(score.player_email || '{}');
-    } catch (e) {
-      snapshot = {};
-    }
+    } catch (e) {}
 
-    const completedCells = snapshot.completed_cells || [];
-    const bingoLine = snapshot.bingo_line || null;
+    // Invalidate BINGO and mark disqualified (bị loại) on leaderboard at bottom
+    console.log(`Rejecting cell ${cell_index} marks ${player_name} as disqualified (bị loại) at bottom of leaderboard.`);
+    snapshot.is_disqualified = true;
+    snapshot.review_status = 'rejected';
+    snapshot.rejection_reason = noteText || 'Photo does not match challenge requirement.';
+    snapshot.rejected_cell = cell_index;
 
-    // Check if the rejected cell is part of the winning BINGO line
-    const BINGO_LINES = {
-      'row-0': [0, 1, 2], 'row-1': [3, 4, 5], 'row-2': [6, 7, 8],
-      'col-0': [0, 3, 6], 'col-1': [1, 4, 7], 'col-2': [2, 5, 8],
-      'diag-main': [0, 4, 8], 'diag-anti': [2, 4, 6]
-    };
-
-    const winningCells = bingoLine ? (BINGO_LINES[bingoLine] || []) : [];
-    const isInWinningLine = winningCells.includes(cell_index);
-
-    if (isInWinningLine) {
-      // BINGO is invalidated — DELETE the score record
-      console.log(`Rejecting cell ${cell_index} invalidates BINGO line ${bingoLine} for ${player_name}. Deleting score.`);
-
-      const deleteRes = await supabaseRequest(
-        'DELETE',
-        `oktoberfest_game_scores?player_name=eq.${encodeURIComponent(player_name)}&game_name=eq.photo_bingo`,
-        null,
-        true
-      );
-
-      if (!deleteRes.ok) {
-        console.error('Failed to delete score:', await deleteRes.text());
-      } else {
-        console.log(`Score record ${score.id} deleted for ${player_name}.`);
-      }
-    } else {
-      // Cell is not in the winning line, just update the snapshot
-      console.log(`Rejected cell ${cell_index} is NOT in winning line ${bingoLine} for ${player_name}. Updating snapshot only.`);
-
-      // Remove cell from completed_cells in snapshot
-      const updatedCompleted = completedCells.filter(c => c !== cell_index);
-      snapshot.completed_cells = updatedCompleted;
-
-      // Remove from cell_photos and cell_ai_reasons
-      if (snapshot.cell_photos) delete snapshot.cell_photos[String(cell_index)];
-      if (snapshot.cell_ai_reasons) delete snapshot.cell_ai_reasons[String(cell_index)];
-
-      const patchRes = await supabaseRequest(
-        'PATCH',
-        `oktoberfest_game_scores?id=eq.${score.id}`,
-        { player_email: JSON.stringify(snapshot) },
-        true
-      );
-
-      if (!patchRes.ok) {
-        console.error('Failed to update snapshot:', await patchRes.text());
-      }
-    }
+    await supabaseRequest(
+      'PATCH',
+      `oktoberfest_game_scores?id=eq.${score.id}`,
+      { player_email: JSON.stringify(snapshot) },
+      true
+    );
   } catch (err) {
     console.error('Rejection handling error:', err);
+  }
+}
+
+async function handleApproval(review) {
+  const { player_name } = review;
+
+  try {
+    const scores = await supabaseGet(
+      `oktoberfest_game_scores?player_name=eq.${encodeURIComponent(player_name)}&game_name=eq.photo_bingo&select=*&order=created_at.desc&limit=1`,
+      true
+    );
+    if (!scores.length) return;
+
+    const score = scores[0];
+    let snapshot = {};
+    try {
+      snapshot = JSON.parse(score.player_email || '{}');
+    } catch (e) {}
+
+    // Query all reviews for this player to see if completely approved
+    const allPlayerRevs = await supabaseGet(
+      `bingo_photo_reviews?player_name=eq.${encodeURIComponent(player_name)}&select=status`,
+      true
+    );
+
+    const hasRejected = (allPlayerRevs || []).some(r => r.status === 'rejected');
+    const hasPending = (allPlayerRevs || []).some(r => r.status === 'pending');
+
+    if (hasRejected) {
+      snapshot.is_disqualified = true;
+      snapshot.review_status = 'rejected';
+    } else if (!hasPending) {
+      snapshot.is_disqualified = false;
+      snapshot.review_status = 'approved';
+    } else {
+      snapshot.is_disqualified = false;
+      snapshot.review_status = 'pending';
+    }
+
+    await supabaseRequest(
+      'PATCH',
+      `oktoberfest_game_scores?id=eq.${score.id}`,
+      { player_email: JSON.stringify(snapshot) },
+      true
+    );
+  } catch (err) {
+    console.error('Approval handling error:', err);
   }
 }

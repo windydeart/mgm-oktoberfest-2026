@@ -371,17 +371,36 @@ module.exports = async (req, res) => {
       console.warn('Session rank compute error:', rErr.message);
     }
   } else {
-    // If NOT completed, invalidate any stale score in database
-    try {
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
-        {
-          method: 'DELETE',
-          headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}` }
-        }
-      );
-    } catch (delErr) {
-      console.warn('Score invalidation note:', delErr.message);
+    // If NOT completed, invalidate any stale score in database UNLESS player has been disqualified
+    if (rejectedCells && rejectedCells.length > 0) {
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
+          {
+            method: 'PATCH',
+            headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              player_email: JSON.stringify({
+                is_disqualified: true,
+                review_status: 'rejected',
+                rejected_cells: rejectedCells
+              })
+            })
+          }
+        );
+      } catch (patchErr) {}
+    } else {
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${session.location}`,
+          {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}` }
+          }
+        );
+      } catch (delErr) {
+        console.warn('Score invalidation note:', delErr.message);
+      }
     }
 
     let startTimestamp = session.started_at ? new Date(session.started_at).getTime() : 0;

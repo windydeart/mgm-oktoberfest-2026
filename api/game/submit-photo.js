@@ -668,12 +668,14 @@ Reply with ONLY a JSON object:
             completed_cells: completedCells,
             challenges: session.challenges || [],
             cell_photos: session.cell_photo_urls || {},
-            cell_ai_reasons: session.cell_ai_reasons || {}
+            cell_ai_reasons: session.cell_ai_reasons || {},
+            review_status: (session.pending_review_cells && session.pending_review_cells.length > 0) ? 'pending' : 'approved',
+            is_disqualified: false
           })
         })
       });
 
-      const allScoresRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&select=player_name,duration_seconds&order=duration_seconds.asc`, {
+      const allScoresRes = await fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&select=player_name,duration_seconds,player_email&order=duration_seconds.asc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
       if (allScoresRes.ok) {
@@ -681,6 +683,14 @@ Reply with ONLY a JSON object:
         const bestByPlayer = new Map();
         for (const s of (allScores || [])) {
           const key = (s.player_name || '').trim().toLowerCase();
+          let isDisq = false;
+          if (s.player_email && typeof s.player_email === 'string') {
+            try {
+              const snap = JSON.parse(s.player_email);
+              if (snap.is_disqualified || snap.review_status === 'rejected') isDisq = true;
+            } catch (e) {}
+          }
+          if (isDisq) continue; // Don't count disqualified players ahead
           if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
             bestByPlayer.set(key, s);
           }

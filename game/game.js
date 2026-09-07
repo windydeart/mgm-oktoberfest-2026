@@ -1795,31 +1795,53 @@
     const top10 = entries.slice(0, 10);
     top10.forEach((entry, i) => {
       const rank = i + 1;
-      const isTop1 = rank === 1;
+      const isDisqualified = entry.is_disqualified || entry.status === 'rejected';
+      const isPending = entry.status === 'pending';
+      const isApproved = entry.status === 'approved';
+      const isTop1 = rank === 1 && !isDisqualified && isApproved;
       const medal = isTop1 ? '👑 #1' : `#${rank}`;
       const isMe = gameState.playerName && entry.player_name &&
                     (entry.player_name.trim().toLowerCase() === gameState.playerName.trim().toLowerCase()) &&
                     (entry.location === gameState.location);
 
       const tr = document.createElement('tr');
-      if (isTop1) {
+      if (isDisqualified) {
+        tr.classList.add('lb-disqualified-row');
+      } else if (isTop1) {
         tr.classList.add('lb-winner-row');
         tr.title = 'Click to view Champion Winning Board';
         tr.addEventListener('click', () => openWinnerShowcase(currentLbLocation));
       }
       if (isMe && !isTop1) tr.classList.add('current-player-row');
 
+      let rankDisplay = '';
+      if (isDisqualified) {
+        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> BỊ LOẠI</span>`;
+      } else if (isTop1) {
+        rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
+      } else {
+        rankDisplay = `<span style="font-weight:700;">${medal}</span>`;
+      }
+
+      let timeDisplay = '';
+      if (isDisqualified) {
+        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Bị loại'}</span>`;
+      } else {
+        timeDisplay = formatTime(entry.elapsed_ms || 0);
+      }
+
       tr.innerHTML = `
         <td class="lb-rank">
-          ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
+          ${rankDisplay}
         </td>
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
+            ${isPending && !isDisqualified ? `<span class="lb-pending-tag">Pending</span>` : ''}
             ${isMe ? `<span class="current-user-tag">YOU</span>` : ''}
           </div>
         </td>
-        <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
+        <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${timeDisplay}</td>
         <td class="lb-location">
           <span class="status-loc-badge ${entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc'}">${entry.location === 'danang' ? 'Da Nang' : 'HCMC'}</span>
         </td>
@@ -1848,20 +1870,29 @@
 
     if (emptyEl) emptyEl.style.display = 'none';
 
-    // Update live rank for current user if found in leaderboard and completed
-    if (gameState.playerName && gameState.status === 'completed') {
-      const myIdx = entries.findIndex(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase());
-      if (myIdx !== -1) {
-        gameState.rank = myIdx + 1;
-        if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
-        if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
+    // Update live rank for current user if found in leaderboard
+    if (gameState.playerName) {
+      const myEntry = entries.find(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && e.location === gameState.location);
+      if (myEntry) {
+        if (myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.rejectedCells && gameState.rejectedCells.size > 0)) {
+          if (els.statusRankText) els.statusRankText.textContent = 'Bị loại';
+          if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+        } else if (gameState.status === 'completed') {
+          const myIdx = entries.indexOf(myEntry);
+          gameState.rank = myIdx + 1;
+          if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
+          if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
+        }
       }
     }
 
     const top10 = entries.slice(0, 10);
     top10.forEach((entry, idx) => {
       const rank = idx + 1;
-      const isWinner = rank === 1;
+      const isDisqualified = entry.is_disqualified || entry.status === 'rejected';
+      const isPending = entry.status === 'pending';
+      const isApproved = entry.status === 'approved';
+      const isWinner = rank === 1 && !isDisqualified && isApproved;
       const medal = isWinner ? '👑 #1' : `#${rank}`;
       const isMe = gameState.playerName && entry.player_name &&
                     (entry.player_name.trim().toLowerCase() === gameState.playerName.trim().toLowerCase()) &&
@@ -1870,7 +1901,9 @@
       const locationLabel = entry.location === 'danang' ? 'Da Nang' : 'HCMC';
 
       const tr = document.createElement('tr');
-      if (isWinner) {
+      if (isDisqualified) {
+        tr.classList.add('lb-disqualified-row');
+      } else if (isWinner) {
         tr.classList.add('lb-winner-row');
         tr.title = 'Click to view Champion Winning Board';
         tr.addEventListener('click', (e) => {
@@ -1881,17 +1914,34 @@
       }
       if (isMe && !isWinner) tr.classList.add('current-player-row');
 
+      let rankDisplay = '';
+      if (isDisqualified) {
+        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> BỊ LOẠI</span>`;
+      } else if (isWinner) {
+        rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
+      } else {
+        rankDisplay = `<span style="font-weight:700;">${medal}</span>`;
+      }
+
+      let timeDisplay = '';
+      if (isDisqualified) {
+        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Bị loại'}</span>`;
+      } else {
+        timeDisplay = formatTime(entry.elapsed_ms || 0);
+      }
+
       tr.innerHTML = `
         <td class="lb-rank">
-          ${isWinner ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
+          ${rankDisplay}
         </td>
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
+            ${isPending && !isDisqualified ? `<span class="lb-pending-tag">Pending</span>` : ''}
             ${isMe ? `<span class="current-user-tag">YOU</span>` : ''}
           </div>
         </td>
-        <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isWinner?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
+        <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isWinner?'#fbbf24':'var(--text-gold)'};">${timeDisplay}</td>
         <td class="lb-location">
           <span class="status-loc-badge ${locationClass}">${locationLabel}</span>
         </td>
@@ -2354,7 +2404,11 @@
       if (els.bingoBoard) els.bingoBoard.style.display = 'grid';
       renderBoard();
 
-      if (isCompleted) {
+      if (gameState.rejectedCells && gameState.rejectedCells.size > 0) {
+        stopTimer(gameState.elapsedMs || 1000);
+        if (els.statusRankText) els.statusRankText.textContent = 'Bị loại';
+        if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+      } else if (isCompleted) {
         stopTimer(gameState.elapsedMs || 1000);
       } else {
         startTimer(gameState.elapsedMs);
@@ -2813,11 +2867,14 @@
     const currentBingo = checkBingo(gameState.completedCells);
     const wasBingo = gameState.status === 'completed';
 
+    // Single attempt rule: player is eliminated upon any rejection
+    stopTimer(gameState.elapsedMs);
+    if (els.statusRankText) els.statusRankText.textContent = 'Bị loại';
+    if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+
     if (wasBingo && !currentBingo) {
-      // BINGO invalidated: freeze/stop timer, do NOT resume timer (each player plays once)
       gameState.bingoLine = null;
       gameState.rank = null;
-      stopTimer(gameState.elapsedMs);
 
       // Hide victory modal if visible
       if (els.victoryModal) closeModal(els.victoryModal);

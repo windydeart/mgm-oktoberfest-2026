@@ -41,9 +41,9 @@ module.exports = async (req, res) => {
 
   try {
     // Fetch all data in parallel
-    const [scores, reviews, reviewsPending, reviewsApproved, reviewsRejected, gameControlRow] = await Promise.all([
-      supabaseGet('oktoberfest_game_scores?game_name=eq.photo_bingo&select=id,player_name,office,duration_seconds,created_at&order=duration_seconds.asc'),
-      supabaseGet('bingo_photo_reviews?select=id,status'),
+    const [scores, allReviews, reviewsPending, reviewsApproved, reviewsRejected, gameControlRow] = await Promise.all([
+      supabaseGet('oktoberfest_game_scores?game_name=eq.photo_bingo&select=id,player_name,office,duration_seconds,created_at,player_email&order=duration_seconds.asc'),
+      supabaseGet('bingo_photo_reviews?select=id,player_name,office,cell_index,status,created_at'),
       supabaseGet('bingo_photo_reviews?status=eq.pending&select=id'),
       supabaseGet('bingo_photo_reviews?status=eq.approved&select=id'),
       supabaseGet('bingo_photo_reviews?status=eq.rejected&select=id'),
@@ -64,6 +64,14 @@ module.exports = async (req, res) => {
       } catch (e) {}
     }
 
+    // Group reviews by player key
+    const reviewsByPlayer = new Map();
+    for (const r of (allReviews || [])) {
+      const key = (r.player_name || '').trim().toLowerCase();
+      if (!reviewsByPlayer.has(key)) reviewsByPlayer.set(key, []);
+      reviewsByPlayer.get(key).push(r);
+    }
+
     // Deduplicate scores: keep only the best (fastest) time per player
     const bestByPlayer = new Map();
     for (const s of scores) {
@@ -72,27 +80,88 @@ module.exports = async (req, res) => {
         bestByPlayer.set(key, s);
       }
     }
-    const uniqueScores = Array.from(bestByPlayer.values()).sort((a, b) => a.duration_seconds - b.duration_seconds);
+
+    // Include any rejected players from reviews not in scores
+    for (const [key, revs] of reviewsByPlayer.entries()) {
+      const hasRejected = revs.some(r => r.status === 'rejected');
+      if (hasRejected && !bestByPlayer.has(key)) {
+        const sampleRev = revs.find(r => r.status === 'rejected') || revs[0];
+        bestByPlayer.set(key, {
+          player_name: sampleRev.player_name,
+          office: sampleRev.office || 'danang',
+          duration_seconds: 9999,
+          created_at: sampleRev.created_at,
+          player_email: JSON.stringify({ is_disqualified: true, review_status: 'rejected' })
+        });
+      }
+    }
+
+    // Classify into tiers:
+    // Tier 1: Approved BINGO (Priority for Champion & Top 1)
+    // Tier 2: Pending BINGO
+    // Tier 3: Disqualified (bị loại) -> Lowest on leaderboard
+    const categorized = Array.from(bestByPlayer.values()).map(s => {
+      const key = (s.player_name || '').trim().toLowerCase();
+      const playerRevs = reviewsByPlayer.get(key) || [];
+
+      let snapshot = {};
+      if (s.player_email && typeof s.player_email === 'string' && s.player_email.startsWith('{')) {
+        try { snapshot = JSON.parse(s.player_email); } catch (e) {}
+      }
+
+      const hasRejected = playerRevs.some(r => r.status === 'rejected') || snapshot.is_disqualified === true || snapshot.review_status === 'rejected';
+      const hasPending = playerRevs.some(r => r.status === 'pending') || snapshot.review_status === 'pending';
+
+      let tier = 2;
+      let status = 'pending';
+      let isDisqualified = false;
+
+      if (hasRejected) {
+        tier = 3;
+        status = 'rejected';
+        isDisqualified = true;
+      } else if (!hasPending && (playerRevs.some(r => r.status === 'approved') || snapshot.review_status === 'approved')) {
+        tier = 1;
+        status = 'approved';
+      }
+
+      return {
+        ...s,
+        tier,
+        status,
+        is_disqualified: isDisqualified
+      };
+    });
+
+    // Sort: Tier 1 first, then Tier 2, then Tier 3 (Disqualified) at the bottom
+    categorized.sort((a, b) => {
+      if (a.tier !== b.tier) return a.tier - b.tier;
+      if (a.duration_seconds !== b.duration_seconds) return a.duration_seconds - b.duration_seconds;
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
 
     // Calculate stats
-    const totalPlayers = uniqueScores.length;
-    const danangPlayers = uniqueScores.filter(s => s.office === 'danang').length;
-    const hcmcPlayers = uniqueScores.filter(s => s.office === 'hcmc').length;
+    const totalPlayers = categorized.length;
+    const danangPlayers = categorized.filter(s => s.office === 'danang').length;
+    const hcmcPlayers = categorized.filter(s => s.office === 'hcmc').length;
 
-    // Average completion time
-    const durations = uniqueScores.map(s => s.duration_seconds).filter(d => d > 0);
+    // Average completion time (only for qualified players)
+    const durations = categorized.filter(s => !s.is_disqualified && s.duration_seconds > 0 && s.duration_seconds < 9999).map(s => s.duration_seconds);
     const avgTime = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
 
-    // Champion (fastest)
-    const champion = uniqueScores.length > 0 ? uniqueScores[0] : null;
+    // Champion: Top 1 eligible player (Approved prioritized, never disqualified)
+    const eligibleForChampion = categorized.filter(s => !s.is_disqualified);
+    const champion = eligibleForChampion.length > 0 ? eligibleForChampion[0] : null;
 
-    // Leaderboard (top 10)
-    const leaderboard = uniqueScores.slice(0, 10).map((s, idx) => ({
+    // Leaderboard (top 15)
+    const leaderboard = categorized.slice(0, 15).map((s, idx) => ({
       rank: idx + 1,
       player_name: s.player_name,
       location: s.office,
-      elapsed_ms: Math.round(s.duration_seconds * 1000),
-      completed_at: s.created_at
+      elapsed_ms: s.duration_seconds >= 9999 ? 0 : Math.round(s.duration_seconds * 1000),
+      completed_at: s.created_at,
+      status: s.status,
+      is_disqualified: s.is_disqualified
     }));
 
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -101,12 +170,12 @@ module.exports = async (req, res) => {
       stats: {
         total_players: totalPlayers,
         players_by_location: { danang: danangPlayers, hcmc: hcmcPlayers },
-        total_completed: totalPlayers, // All in scores table have completed BINGO
+        total_completed: categorized.filter(s => !s.is_disqualified).length,
         pending_reviews: reviewsPending.length,
         approved_count: reviewsApproved.length,
         rejected_count: reviewsRejected.length,
         avg_completion_time_ms: Math.round(avgTime * 1000),
-        champion: champion ? { player_name: champion.player_name, location: champion.office, elapsed_ms: Math.round(champion.duration_seconds * 1000) } : null,
+        champion: champion ? { player_name: champion.player_name, location: champion.office, elapsed_ms: Math.round(champion.duration_seconds * 1000), status: champion.status } : null,
         game_state: gameState,
         round_id: roundId
       },

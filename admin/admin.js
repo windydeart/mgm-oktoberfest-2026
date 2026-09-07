@@ -194,29 +194,51 @@ function renderLeaderboard(entries) {
     
     tbody.innerHTML = filteredEntries.map((entry, index) => {
         const rank = index + 1;
-        const isTop1 = rank === 1;
+        const isDisqualified = entry.is_disqualified || entry.status === 'rejected';
+        const isPending = entry.status === 'pending';
+        const isApproved = entry.status === 'approved';
+        const isTop1 = rank === 1 && !isDisqualified && isApproved;
         const medal = isTop1 ? '👑 #1' : `#${rank}`;
         const locationClass = (entry.location || '').toLowerCase() === 'danang' ? 'loc-danang' : 'loc-hcmc';
         const locationLabel = (entry.location || '').toLowerCase() === 'danang' ? 'Da Nang' : 'HCMC';
 
+        let rankDisplay = '';
+        if (isDisqualified) {
+            rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> BỊ LOẠI</span>`;
+        } else if (isTop1) {
+            rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
+        } else {
+            rankDisplay = `<span style="font-weight:700;">${medal}</span>`;
+        }
+
+        let timeDisplay = '';
+        if (isDisqualified) {
+            timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Bị loại'}</span>`;
+        } else {
+            timeDisplay = formatTime(entry.elapsed_ms || 0);
+        }
+
         return `
-            <tr class="${isTop1 ? 'lb-winner-row' : ''}" ${isTop1 ? `onclick="openWinnerShowcaseAdmin('${adminLbLocation || 'all'}')"` : ''} title="${isTop1 ? 'Click to view Winner Showcase & 3x3 Board' : ''}">
+            <tr class="${isDisqualified ? 'lb-disqualified-row' : (isTop1 ? 'lb-winner-row' : '')}" ${isTop1 ? `onclick="openWinnerShowcaseAdmin('${adminLbLocation || 'all'}')"` : ''} title="${isTop1 ? 'Click to view Winner Showcase & 3x3 Board' : ''}">
                 <td class="lb-rank">
-                    ${isTop1 ? `<span class="lb-rank-crown">${medal}</span>` : `<span style="font-weight:700;">${medal}</span>`}
+                    ${rankDisplay}
                 </td>
                 <td class="lb-name">
                     <div class="lb-player-with-prize">
-                        <span style="font-weight:700; color:var(--gold);">${escapeHTML(entry.player_name)}</span>
+                        <span style="font-weight:700; color:${isDisqualified ? '#fca5a5' : 'var(--gold)'};">${escapeHTML(entry.player_name)}</span>
+                        ${isPending && !isDisqualified ? `<span class="lb-pending-tag">Pending</span>` : ''}
                         ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
                     </div>
                 </td>
-                <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
+                <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--gold)'};">${timeDisplay}</td>
                 <td class="lb-location">
                     <span class="location-badge ${locationClass}">${locationLabel}</span>
                 </td>
             </tr>
         `;
     }).join('');
+
+    if (window.lucide) window.lucide.createIcons();
 }
 
 // Review Functions

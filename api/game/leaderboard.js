@@ -13,8 +13,8 @@ const BINGO_LINE_CELLS = {
 };
 
 function findValidBingoLine(completedCells, rejectedCells) {
-  const compSet = new Set((completedCells || []).map(Number));
-  const rejSet = new Set((rejectedCells || []).map(Number));
+  const compSet = new Set(Array.from(completedCells || []).map(Number));
+  const rejSet = new Set(Array.from(rejectedCells || []).map(Number));
 
   for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
     const allCompleted = cellIndices.every(c => compSet.has(c));
@@ -75,7 +75,7 @@ module.exports = async (req, res) => {
 
     if (!sbRes.ok) {
       console.error('Scores fetch failed:', sbRes.status);
-      return res.status(200).json({ leaderboard: [], debug: 'sbRes ' + sbRes.status });
+      return res.status(200).json({ leaderboard: [] });
     }
 
     const records = await sbRes.json();
@@ -223,6 +223,6 @@ module.exports = async (req, res) => {
     return res.status(200).json({ leaderboard });
   } catch (err) {
     console.error('Leaderboard error:', err);
-    return res.status(200).json({ leaderboard: [], error: err.message, stack: err.stack });
+    return res.status(200).json({ leaderboard: [] });
   }
 };

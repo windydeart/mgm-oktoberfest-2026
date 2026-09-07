@@ -38,8 +38,8 @@ const BINGO_LINE_CELLS = {
 };
 
 function findValidBingoLine(completedCells, rejectedCells) {
-  const compSet = new Set((completedCells || []).map(Number));
-  const rejSet = new Set((rejectedCells || []).map(Number));
+  const compSet = new Set(Array.from(completedCells || []).map(Number));
+  const rejSet = new Set(Array.from(rejectedCells || []).map(Number));
 
   for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
     const allCompleted = cellIndices.every(c => compSet.has(c));

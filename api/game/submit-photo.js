@@ -56,10 +56,10 @@ function getDefaultChallenges(location = 'danang') {
     const isHCMC = location === 'hcmc';
     const eligiblePool = pool.filter(c => {
       if (c.office && c.office !== location) return false;
-      if ((c.id === 20 || c.id === 27) && !isHCMC) return false;
+      if ((c.id === 20 || c.id === 27 || c.id === 41) && !isHCMC) return false;
       return true;
     });
-    // 1. Always guarantee all pinned challenges (e.g. ID 41: Selfie with "A12 open source" banner)
+    // 1. Always guarantee all pinned challenges (e.g. ID 41: Selfie with "A12 open source" banner for HCMC)
     const pinned = eligiblePool.filter(c => c.pinned === true);
     const unpinned = eligiblePool.filter(c => c.pinned !== true);
 
@@ -84,9 +84,9 @@ function getDefaultChallenges(location = 'danang') {
   }
   return Array.from({ length: 9 }, (_, i) => ({
     id: i + 1,
-    category: 'Marketing',
-    icon: '📸',
-    challenge: i === 0 ? 'Selfie with "A12 open source" banner' : `Challenge #${i + 1}`
+    category: (i === 0 && location === 'hcmc') ? 'Marketing' : 'Food',
+    icon: (i === 0 && location === 'hcmc') ? '📸' : '🥨',
+    challenge: (i === 0 && location === 'hcmc') ? 'Selfie with "A12 open source" banner' : `Challenge #${i + 1}`
   }));
 }
 
@@ -240,6 +240,7 @@ module.exports = async (req, res) => {
 
   let completedCells = [...(session.completed_cells || [])];
   let pendingReviewCells = [...(session.pending_review_cells || [])];
+  let rejectedCells = [];
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
   let allReviews = [];
@@ -264,10 +265,9 @@ module.exports = async (req, res) => {
         if (r.status === 'rejected') {
           completedCells = completedCells.filter(c => c !== cIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cIdx);
-          delete cellPhotoUrls[String(cIdx)];
-          delete cellPhotoUrls[cIdx];
-          delete cellAiReasons[String(cIdx)];
-          delete cellAiReasons[cIdx];
+          if (!rejectedCells.includes(cIdx)) rejectedCells.push(cIdx);
+          if (r.photo_url) cellPhotoUrls[cIdx] = r.photo_url;
+          if (r.reviewer_note) cellAiReasons[cIdx] = r.reviewer_note;
         } else if (r.status === 'approved') {
           if (!completedCells.includes(cIdx)) completedCells.push(cIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cIdx);
@@ -281,6 +281,11 @@ module.exports = async (req, res) => {
     }
   } catch (syncErr) {
     console.warn('Review sync in submit-photo note:', syncErr.message);
+  }
+
+  // 1b. Enforce single-attempt rule: rejected cells cannot be retaken!
+  if (rejectedCells.includes(cell_index)) {
+    return res.status(400).json({ error: 'This challenge photo was rejected. Each player has only 1 attempt.' });
   }
 
   // 2. If board does NOT have a winning line, ensure status is playing
@@ -703,6 +708,7 @@ Reply with ONLY a JSON object:
     rotation: ai_rotation,
     cell_index,
     session_token: new_token,
+    rejected_cells: rejectedCells,
     is_bingo,
     bingo_line: bingoLine,
     elapsed_ms,

@@ -93,8 +93,6 @@
     els.statusLocation = $('#statusLocation');
     els.statusRankPill = $('#statusRankPill');
     els.statusRankText = $('#statusRankText');
-    els.statusProgressPill = $('#statusProgressPill');
-    els.statusProgress = $('#statusProgress');
     els.statusGoalPill = $('#statusGoalPill');
     els.statusGoalText = $('#statusGoalText');
 
@@ -405,11 +403,26 @@
         textP.textContent = challenge.challenge;
       }
 
-      // 3. Completed State & Translucent Photo Background
-      if (gameState.completedCells.includes(i)) {
-        cell.classList.remove('cell-unfilled', 'cell-inactive', 'cell-locked');
-        cell.classList.add('completed');
-        if (gameState.pendingReviewCells && gameState.pendingReviewCells.includes(i)) {
+      // 3. Completed, Pending, or Rejected Board State
+      const isRejected = gameState.rejectedCells && gameState.rejectedCells.has(i);
+      const isCompleted = gameState.completedCells.includes(i);
+      const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(i);
+
+      if (isRejected) {
+        cell.classList.remove('completed', 'pending-review', 'verifying', 'cell-unfilled', 'cell-inactive');
+        cell.classList.add('rejected', 'cell-locked');
+        const photoUrl = gameState.cellPhotos && gameState.cellPhotos[i];
+        if (photoUrl) {
+          cell.style.backgroundImage = `linear-gradient(rgba(45, 10, 15, 0.65), rgba(45, 10, 15, 0.85)), url('${photoUrl}')`;
+          cell.style.backgroundSize = 'cover';
+          cell.style.backgroundPosition = 'center';
+        }
+        const hint = cell.querySelector('.cell-tap-hint');
+        if (hint) hint.textContent = 'Rejected';
+      } else if (isCompleted) {
+        cell.classList.remove('rejected', 'cell-unfilled', 'cell-inactive');
+        cell.classList.add('completed', 'cell-locked');
+        if (isPending) {
           cell.classList.add('pending-review');
         } else {
           cell.classList.remove('pending-review');
@@ -436,7 +449,7 @@
         const hint = cell.querySelector('.cell-tap-hint');
         if (hint) hint.textContent = '';
       } else {
-        cell.classList.remove('completed', 'pending-review', 'cell-locked');
+        cell.classList.remove('completed', 'pending-review', 'rejected', 'cell-locked');
         cell.style.backgroundImage = '';
         const hint = cell.querySelector('.cell-tap-hint');
         if (gameState.status === 'completed') {
@@ -445,10 +458,7 @@
           if (hint) hint.textContent = '';
         } else {
           cell.classList.remove('cell-unfilled', 'cell-inactive');
-          const isRejected = gameState.rejectedCells && gameState.rejectedCells.has(i);
-          if (hint) hint.textContent = isRejected ? 'Tap to retry' : 'Tap to Snap';
-          if (isRejected) cell.classList.add('cell-rejected-border');
-          else cell.classList.remove('cell-rejected-border');
+          if (hint) hint.textContent = 'Tap to Snap';
         }
       }
 
@@ -466,7 +476,6 @@
       if (els.gameStatusBar) els.gameStatusBar.style.display = 'flex';
       if (els.statusPlayerName) els.statusPlayerName.textContent = gameState.playerName || 'Player';
       if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
-      if (els.statusProgress) els.statusProgress.textContent = `${gameState.completedCells.length}/9 Completed`;
 
       const rankStr = (gameState.status === 'completed' && gameState.rank) ? `#${gameState.rank}` : '#--';
       if (els.statusRankText) els.statusRankText.textContent = `Rank ${rankStr}`;
@@ -669,24 +678,27 @@
       gameState.playerName = name;
       gameState.challenges = data.challenges;
 
-      // Double-check guaranteed pinned Marketing challenge at random position
-      const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));
-      if (!hasA12 && gameState.challenges && gameState.challenges.length === 9) {
-        const randSlot = Math.floor(Math.random() * 9);
-        gameState.challenges[randSlot] = {
-          id: 41,
-          category: 'Marketing',
-          icon: '📸',
-          challenge: 'Selfie with "A12 open source" banner',
-          pinned: true
-        };
+      // Double-check guaranteed pinned Marketing challenge at random position (HCMC only)
+      if (gameState.location === 'hcmc') {
+        const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));
+        if (!hasA12 && gameState.challenges && gameState.challenges.length === 9) {
+          const randSlot = Math.floor(Math.random() * 9);
+          gameState.challenges[randSlot] = {
+            id: 41,
+            category: 'Marketing',
+            icon: '📸',
+            challenge: 'Selfie with "A12 open source" banner',
+            office: 'hcmc',
+            pinned: true
+          };
+        }
       }
 
-      // Safeguard: Ensure Da Nang never contains HCMC-only challenges (Trinh Tran #20 or Dirndl #27)
+      // Safeguard: Ensure Da Nang never contains HCMC-only challenges (Trinh Tran #20, Dirndl #27, or A12 #41)
       if (gameState.location === 'danang' && gameState.challenges) {
         for (let i = 0; i < gameState.challenges.length; i++) {
           const c = gameState.challenges[i];
-          if (c && (c.id === 20 || c.id === 27 || (c.challenge && (c.challenge.includes('Trinh Tran') || c.challenge.includes('Dirndl'))))) {
+          if (c && (c.id === 20 || c.id === 27 || c.id === 41 || (c.challenge && (c.challenge.includes('Trinh Tran') || c.challenge.includes('Dirndl') || c.challenge.includes('A12 open source'))))) {
             gameState.challenges[i] = { id: 19, category: 'People', icon: '👤', challenge: 'Selfie with MC' };
           }
         }
@@ -727,8 +739,8 @@
       return;
     }
 
-    // If cell is already completed or in-review -> Open Photo Detail & Review Modal!
-    if (gameState.completedCells.includes(cellIndex)) {
+    // If cell is already completed, in-review, or rejected -> Open Photo Detail & Review Modal!
+    if (gameState.completedCells.includes(cellIndex) || (gameState.rejectedCells && gameState.rejectedCells.has(cellIndex))) {
       openPhotoReview(cellIndex);
       return;
     }
@@ -768,9 +780,10 @@
     const challenge = gameState.challenges[cellIndex];
     if (!challenge) return;
 
+    const isRejected = gameState.rejectedCells && gameState.rejectedCells.has(cellIndex);
     const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
     const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
-    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isPending ? 'AI could not automatically verify your photo. Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.');
+    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isRejected ? 'Photo was rejected by organizers.' : (isPending ? 'AI could not automatically verify your photo. Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.'));
     const aiReason = sanitizeAiReason(rawAiReason);
 
     const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
@@ -800,7 +813,16 @@
     const aiReasonEl = $('#photoReviewAiReason');
     const aiTip = $('#photoReviewAiTip');
 
-    if (isPending) {
+    if (isRejected) {
+      if (pill) {
+        pill.className = 'photo-review-status-pill status-rejected';
+        pill.innerHTML = '<i data-lucide="x-circle"></i> <span>REJECTED</span>';
+      }
+      if (aiBox) aiBox.className = 'photo-review-ai-box is-rejected';
+      if (aiTitle) aiTitle.textContent = 'Organizer Review Verdict';
+      if (aiReasonEl) aiReasonEl.textContent = aiReason;
+      if (aiTip) aiTip.innerHTML = '<i data-lucide="alert-circle"></i> <span>This photo was rejected. Under game rules, each player only has 1 attempt.</span>';
+    } else if (isPending) {
       if (pill) {
         pill.className = 'photo-review-status-pill status-pending';
         pill.innerHTML = '<i data-lucide="clock"></i> <span>IN REVIEW</span>';
@@ -1206,7 +1228,11 @@
     const challenge = gameState.challenges[targetIdx];
 
     // ─── 1. Instantly close camera & unblock player ───
-    if (gameState.rejectedCells) gameState.rejectedCells.delete(targetIdx);
+    if (gameState.rejectedCells && gameState.rejectedCells.has(targetIdx)) {
+      showToast('This challenge was rejected. Each player has only 1 attempt.', 'error', 3000);
+      closeCamera();
+      return;
+    }
     closeCamera();
 
     // ─── 2. Set cell into Verifying state immediately ───
@@ -1280,6 +1306,10 @@
 
       if (data.session_token) {
         gameState.sessionToken = data.session_token;
+      }
+      if (Array.isArray(data.rejected_cells)) {
+        if (!gameState.rejectedCells) gameState.rejectedCells = new Set();
+        data.rejected_cells.forEach(idx => gameState.rejectedCells.add(Number(idx)));
       }
       saveSession();
       if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
@@ -1767,9 +1797,9 @@
       const rank = i + 1;
       const isTop1 = rank === 1;
       const medal = isTop1 ? '👑 #1' : `#${rank}`;
-      const isMe = entry.player_name === gameState.playerName &&
-                    entry.location === gameState.location &&
-                    Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
+      const isMe = gameState.playerName && entry.player_name &&
+                    (entry.player_name.trim().toLowerCase() === gameState.playerName.trim().toLowerCase()) &&
+                    (entry.location === gameState.location);
 
       const tr = document.createElement('tr');
       if (isTop1) {
@@ -1786,7 +1816,7 @@
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
-            ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : (isMe ? `<span class="current-user-tag">YOU</span>` : '')}
+            ${isMe ? `<span class="current-user-tag">YOU</span>` : ''}
           </div>
         </td>
         <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isTop1?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
@@ -1833,9 +1863,9 @@
       const rank = idx + 1;
       const isWinner = rank === 1;
       const medal = isWinner ? '👑 #1' : `#${rank}`;
-      const isMe = entry.player_name === gameState.playerName &&
-                    entry.location === gameState.location &&
-                    Math.abs(entry.elapsed_ms - (gameState.elapsedMs || 0)) < 1000;
+      const isMe = gameState.playerName && entry.player_name &&
+                    (entry.player_name.trim().toLowerCase() === gameState.playerName.trim().toLowerCase()) &&
+                    (entry.location === gameState.location);
       const locationClass = entry.location === 'danang' ? 'loc-danang' : 'loc-hcmc';
       const locationLabel = entry.location === 'danang' ? 'Da Nang' : 'HCMC';
 
@@ -1858,7 +1888,7 @@
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
-            ${isWinner ? `<span class="sidebar-prize-badge">WINNER</span>` : (isMe ? `<span class="current-user-tag">YOU</span>` : '')}
+            ${isMe ? `<span class="current-user-tag">YOU</span>` : ''}
           </div>
         </td>
         <td class="lb-time" style="font-family:monospace; font-weight:700; color:${isWinner?'#fbbf24':'var(--text-gold)'};">${formatTime(entry.elapsed_ms || 0)}</td>
@@ -2128,7 +2158,8 @@
     clearSession();
     gameState = {
       sessionId: null, sessionToken: null, playerName: '', location: gameState.location || 'danang',
-      challenges: [], completedCells: [], cellPhotos: {}, status: 'idle',
+      challenges: [], completedCells: [], cellPhotos: {}, pendingReviewCells: [],
+      rejectedCells: new Set(), cellAiReasons: {}, status: 'idle',
       startedAt: null, elapsedMs: null, bingoLine: null, rank: null
     };
     $$('.bingo-cell').forEach(cell => {
@@ -2268,28 +2299,31 @@
         }
       }
 
-      // Double-check guaranteed pinned Marketing challenge on recovered session
-      const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));
-      if (!hasA12 && gameState.challenges && gameState.challenges.length === 9) {
-        const uncompletedIndices = [0,1,2,3,4,5,6,7,8].filter(idx => !completedCells.includes(idx));
-        const targetIdx = uncompletedIndices.length > 0 
-          ? uncompletedIndices[Math.floor(Math.random() * uncompletedIndices.length)]
-          : Math.floor(Math.random() * 9);
-        gameState.challenges[targetIdx] = {
-          id: 41,
-          category: 'Marketing',
-          icon: '📸',
-          challenge: 'Selfie with "A12 open source" banner',
-          pinned: true
-        };
+      // Double-check guaranteed pinned Marketing challenge on recovered session (HCMC only)
+      if (gameState.location === 'hcmc') {
+        const hasA12 = (gameState.challenges || []).some(c => c.pinned === true || (c.challenge && c.challenge.includes('A12 open source')));
+        if (!hasA12 && gameState.challenges && gameState.challenges.length === 9) {
+          const uncompletedIndices = [0,1,2,3,4,5,6,7,8].filter(idx => !completedCells.includes(idx));
+          const targetIdx = uncompletedIndices.length > 0 
+            ? uncompletedIndices[Math.floor(Math.random() * uncompletedIndices.length)]
+            : Math.floor(Math.random() * 9);
+          gameState.challenges[targetIdx] = {
+            id: 41,
+            category: 'Marketing',
+            icon: '📸',
+            challenge: 'Selfie with "A12 open source" banner',
+            office: 'hcmc',
+            pinned: true
+          };
+        }
       }
 
-      // Safeguard: Ensure Da Nang office never restores legacy cached HCMC-only challenges
+      // Safeguard: Ensure Da Nang office never restores legacy cached HCMC-only challenges (Trinh Tran #20, Dirndl #27, or A12 #41)
       if (gameState.location === 'danang' && gameState.challenges) {
         for (let i = 0; i < gameState.challenges.length; i++) {
           const c = gameState.challenges[i];
-          if (c && (c.id === 20 || c.id === 27 || (c.challenge && (c.challenge.includes('Trinh Tran') || c.challenge.includes('Dirndl'))))) {
-            if (data.challenges && data.challenges[i] && data.challenges[i].id !== 20 && data.challenges[i].id !== 27) {
+          if (c && (c.id === 20 || c.id === 27 || c.id === 41 || (c.challenge && (c.challenge.includes('Trinh Tran') || c.challenge.includes('Dirndl') || c.challenge.includes('A12 open source'))))) {
+            if (data.challenges && data.challenges[i] && data.challenges[i].id !== 20 && data.challenges[i].id !== 27 && data.challenges[i].id !== 41) {
               gameState.challenges[i] = data.challenges[i];
             } else {
               gameState.challenges[i] = { id: 19, category: 'People', icon: '👤', challenge: 'Selfie with MC' };
@@ -2299,7 +2333,9 @@
       }
       gameState.completedCells = completedCells;
       gameState.pendingReviewCells = pendingReviewCells;
+      gameState.rejectedCells = new Set((data.rejected_cells || []).map(Number));
       gameState.cellPhotos = data.cell_photo_urls || {};
+      gameState.cellAiReasons = data.cell_ai_reasons || {};
       gameState.startedAt = data.started_at || new Date().toISOString();
       gameState.status = isCompleted ? 'completed' : 'playing';
 
@@ -2739,45 +2775,49 @@
     }
   }
 
+  function condenseRejectNote(note) {
+    if (!note || typeof note !== 'string') return 'Does not match challenge';
+    let s = note
+      .replace(/Please try again\.?/gi, '')
+      .replace(/Your BINGO has been invalidated\.?/gi, '')
+      .replace(/Photo does not match the challenge requirement\.?/gi, 'Does not match challenge')
+      .replace(/Photo does not match the challenge\.?/gi, 'Does not match challenge')
+      .trim();
+    if (s.length > 35) {
+      s = s.substring(0, 33) + '...';
+    }
+    return s || 'Does not match challenge';
+  }
+
   function handleReviewRejected(decision) {
     const cellIdx = parseInt(decision.cell_index, 10);
     if (isNaN(cellIdx)) return;
 
-    const note = decision.reviewer_note || 'Photo does not match the challenge. Please try again.';
+    const note = decision.reviewer_note || 'Photo does not match the challenge.';
 
-    // Track rejected cell
+    // Track rejected cell (single attempt rule: cell cannot be retaken)
     if (!gameState.rejectedCells) gameState.rejectedCells = new Set();
     gameState.rejectedCells.add(cellIdx);
 
-    // Remove from both completedCells and pendingReviewCells
+    // Save note for detail review modal
+    if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
+    gameState.cellAiReasons[cellIdx] = note;
+
+    // Remove from completedCells and pendingReviewCells
     gameState.completedCells = (gameState.completedCells || []).filter(c => Number(c) !== cellIdx);
     gameState.pendingReviewCells = (gameState.pendingReviewCells || []).filter(c => Number(c) !== cellIdx);
 
-    // Remove photo and AI reason for this cell
-    if (gameState.cellPhotos) {
-      delete gameState.cellPhotos[cellIdx];
-      delete gameState.cellPhotos[String(cellIdx)];
-    }
-    if (gameState.cellAiReasons) {
-      delete gameState.cellAiReasons[cellIdx];
-      delete gameState.cellAiReasons[String(cellIdx)];
-    }
+    // Note: Do NOT delete cellPhotos[cellIdx] so the photo remains displayed on the board with rejected status!
 
     // Check if BINGO is now invalidated based on remaining completed cells
     const currentBingo = checkBingo(gameState.completedCells);
     const wasBingo = gameState.status === 'completed';
 
     if (wasBingo && !currentBingo) {
-      // BINGO invalidated!
-      const previousElapsed = (typeof gameState.elapsedMs === 'number' && !isNaN(gameState.elapsedMs) && gameState.elapsedMs > 0)
-        ? gameState.elapsedMs : 116290;
-      gameState.status = 'playing';
+      // BINGO invalidated: freeze/stop timer, do NOT resume timer (each player plays once)
       gameState.bingoLine = null;
       gameState.rank = null;
-      gameState.elapsedMs = previousElapsed;
-
-      // Resume timer smoothly from previous accumulated elapsed time
-      startTimer(previousElapsed);
+      stopTimer(gameState.elapsedMs);
 
       // Hide victory modal if visible
       if (els.victoryModal) closeModal(els.victoryModal);
@@ -2785,26 +2825,19 @@
       // Remove laser cut line
       const laserLine = document.querySelector('.laser-cut-line');
       if (laserLine) laserLine.remove();
-
-      showToast(`⚠️ Photo rejected: ${note}\nYour BINGO has been invalidated. Timer resumed — keep going!`, 'error', 8000);
-    } else {
-      showToast(`❌ Photo rejected for Challenge #${cellIdx + 1}: ${note}`, 'error', 6000);
-      if (gameState.status === 'playing' && !timerInterval) {
-        startTimer(gameState.elapsedMs);
-      }
     }
+
+    // Concise 3-second toast notification
+    const shortNote = condenseRejectNote(note);
+    showToast(`❌ Cell #${cellIdx + 1} Rejected: ${shortNote}`, 'error', 3000);
 
     // Reset cell visuals with shake animation
     const cells = $$('.bingo-cell');
     if (cells[cellIdx]) {
       const cell = cells[cellIdx];
       cell.classList.remove('completed', 'pending-review', 'bingo-line-cell');
-      cell.style.backgroundImage = '';
       cell.classList.add('cell-rejected-shake');
       setTimeout(() => cell.classList.remove('cell-rejected-shake'), 600);
-
-      const hint = cell.querySelector('.cell-tap-hint');
-      if (hint) hint.textContent = 'Tap to retry';
     }
 
     saveSession();

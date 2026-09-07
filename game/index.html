@@ -78,15 +78,11 @@
         </div>
       </div>
 
-      <!-- Live Game Status Bar (3 Elements: Rank, Completed, Bingo) -->
+      <!-- Live Game Status Bar (Rank & Bingo) -->
       <div class="game-status-bar" id="gameStatusBar" style="display:none;">
         <div class="status-pill rank-pill" id="statusRankPill">
           <i data-lucide="trophy"></i>
           <span id="statusRankText">Rank #--</span>
-        </div>
-        <div class="status-pill progress-pill" id="statusProgressPill">
-          <i data-lucide="target"></i>
-          <span id="statusProgress">0/9 Completed</span>
         </div>
         <div class="status-pill goal-pill" id="statusGoalPill" style="display:none;">
           <i data-lucide="award"></i>
@@ -188,6 +184,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -203,6 +200,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -218,6 +216,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -233,6 +232,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -248,6 +248,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -263,6 +264,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -278,6 +280,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -293,6 +296,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -308,6 +312,7 @@
                 <span class="cell-done-badge"><i data-lucide="check"></i> DONE</span>
                 <span class="cell-review-badge"><i data-lucide="clock"></i> IN REVIEW</span>
                 <span class="cell-verifying-badge"><i data-lucide="loader-2" class="spin-icon"></i> CHECKING</span>
+                <span class="cell-rejected-badge"><i data-lucide="x-circle"></i> REJECTED</span>
               </div>
               <div class="cell-body">
                 <div class="cell-cam-watermark"><i data-lucide="camera" stroke-width="1.2"></i></div>
@@ -728,6 +733,6 @@
   <div id="gameToastContainer" class="toast-container"></div>
 
   <!-- Game JavaScript Engine -->
-  <script src="/game/game.js?v=413"></script>
+  <script src="/game/game.js?v=414"></script>
 </body>
 </html>

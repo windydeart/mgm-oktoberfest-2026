@@ -39,5 +39,5 @@
   { "id": 38, "category": "Team Building", "icon": "🤝", "challenge": "Office besties" },
   { "id": 39, "category": "Team Building", "icon": "🤝", "challenge": "New friends" },
   { "id": 40, "category": "Team Building", "icon": "🤝", "challenge": "The mgm logo" },
-  { "id": 41, "category": "Marketing", "icon": "📸", "challenge": "Selfie with \"A12 open source\" banner", "pinned": true }
+  { "id": 41, "category": "Marketing", "icon": "📸", "challenge": "Selfie with \"A12 open source\" banner", "office": "hcmc", "pinned": true }
 ]

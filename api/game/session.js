@@ -56,10 +56,10 @@ function getDefaultChallenges(location = 'danang') {
     const isHCMC = location === 'hcmc';
     const eligiblePool = pool.filter(c => {
       if (c.office && c.office !== location) return false;
-      if ((c.id === 20 || c.id === 27) && !isHCMC) return false;
+      if ((c.id === 20 || c.id === 27 || c.id === 41) && !isHCMC) return false;
       return true;
     });
-    // Always include pinned challenges (e.g. ID 41: Selfie with "A12 open source" banner)
+    // Always include pinned challenges (e.g. ID 41: Selfie with "A12 open source" banner for HCMC)
     const pinned = eligiblePool.filter(c => c.pinned === true);
     const unpinned = eligiblePool.filter(c => c.pinned !== true);
     const specificIds = [39, 36, 9, 24, 10, 33, 7, 15, 31];
@@ -84,9 +84,9 @@ function getDefaultChallenges(location = 'danang') {
   }
   return Array.from({ length: 9 }, (_, i) => ({
     id: i + 1,
-    category: 'Marketing',
-    icon: '📸',
-    challenge: i === 0 ? 'Selfie with "A12 open source" banner' : `Challenge #${i + 1}`
+    category: (i === 0 && location === 'hcmc') ? 'Marketing' : 'Food',
+    icon: (i === 0 && location === 'hcmc') ? '📸' : '🥨',
+    challenge: (i === 0 && location === 'hcmc') ? 'Selfie with "A12 open source" banner' : `Challenge #${i + 1}`
   }));
 }
 
@@ -262,6 +262,7 @@ module.exports = async (req, res) => {
 
   let completedCells = [...(session.completed_cells || [])];
   let pendingReviewCells = [...(session.pending_review_cells || [])];
+  let rejectedCells = [];
   let cellPhotoUrls = { ...(session.cell_photo_urls || {}) };
   let cellAiReasons = { ...(session.cell_ai_reasons || {}) };
   let allReviews = [];
@@ -290,10 +291,9 @@ module.exports = async (req, res) => {
         if (r.status === 'rejected') {
           completedCells = completedCells.filter(c => c !== cellIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);
-          delete cellPhotoUrls[String(cellIdx)];
-          delete cellPhotoUrls[cellIdx];
-          delete cellAiReasons[String(cellIdx)];
-          delete cellAiReasons[cellIdx];
+          if (!rejectedCells.includes(cellIdx)) rejectedCells.push(cellIdx);
+          if (r.photo_url) cellPhotoUrls[cellIdx] = r.photo_url;
+          cellAiReasons[cellIdx] = r.reviewer_note || 'Photo does not match challenge requirement.';
         } else if (r.status === 'approved') {
           if (!completedCells.includes(cellIdx)) completedCells.push(cellIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);
@@ -413,6 +413,7 @@ module.exports = async (req, res) => {
     started_at: session.started_at,
     completed_cells: completedCells,
     pending_review_cells: pendingReviewCells,
+    rejected_cells: rejectedCells,
     cell_photo_urls: cellPhotoUrls,
     cell_ai_reasons: cellAiReasons,
     status: isCompleted ? 'completed' : 'playing',

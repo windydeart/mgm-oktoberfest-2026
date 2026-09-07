@@ -83,12 +83,12 @@ module.exports = async (req, res) => {
   }
 
   // Filter pool by player office/location:
-  // Challenges specific to HCMC (e.g. ID 20 "Selfie with Trinh Tran", ID 27 "Selfie with someone wearing Dirndl")
+  // Challenges specific to HCMC (ID 20 "Selfie with Trinh Tran", ID 27 "Selfie with someone wearing Dirndl", ID 41 "Selfie with A12 open source banner")
   // are ONLY eligible when location === 'hcmc'. If location is 'danang', they are strictly excluded.
   const isHCMC = location === 'hcmc';
   const availableChallenges = allChallenges.filter(c => {
     if (c.office && c.office !== location) return false;
-    if ((c.id === 20 || c.id === 27) && !isHCMC) return false;
+    if ((c.id === 20 || c.id === 27 || c.id === 41) && !isHCMC) return false;
     return true;
   });
 

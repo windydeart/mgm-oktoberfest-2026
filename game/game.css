@@ -884,6 +884,62 @@ body.game-page::before {
   30%, 70% { transform: translateX(4px); }
 }
 
+/* ─── Cell Rejected Badge & Board State ─── */
+.cell-rejected-badge {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  background: rgba(239, 68, 68, 0.28);
+  border: 1px solid rgba(239, 68, 68, 0.85);
+  color: #fca5a5;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
+}
+
+.cell-rejected-badge svg,
+.cell-rejected-badge i {
+  width: 10px;
+  height: 10px;
+}
+
+.bingo-cell.rejected {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.55) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  cursor: pointer;
+}
+
+.bingo-cell.rejected .cell-cam-watermark {
+  opacity: 0 !important;
+}
+
+.bingo-cell.rejected .cell-rejected-badge {
+  display: inline-flex !important;
+}
+
+.bingo-cell.rejected .cell-done-badge,
+.bingo-cell.rejected .cell-review-badge,
+.bingo-cell.rejected .cell-verifying-badge {
+  display: none !important;
+}
+
+.bingo-cell.rejected .cell-challenge-text {
+  color: #ffffff !important;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.98), 0 0 10px rgba(0, 0, 0, 0.95);
+}
+
+.bingo-cell.rejected .cell-tap-hint {
+  color: #f87171 !important;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
 /* ─── Cell Completed State (Translucent submitted photo background) ─── */
 .bingo-cell.completed {
   border-color: #22c55e !important;
@@ -2875,6 +2931,13 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   border: 1px solid rgba(251, 191, 36, 0.6);
 }
 
+.photo-review-status-pill.status-rejected {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #ffffff;
+  border: 1px solid rgba(254, 202, 202, 0.6);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
 .photo-review-status-pill svg,
 .photo-review-status-pill i {
   width: 13px;
@@ -2895,6 +2958,11 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   background: rgba(15, 35, 25, 0.6);
 }
 
+.photo-review-ai-box.is-rejected {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(45, 15, 20, 0.65);
+}
+
 .ai-box-header {
   display: flex;
   align-items: center;
@@ -2910,6 +2978,10 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
 
 .photo-review-ai-box.is-approved .ai-sparkle-icon {
   color: #22c55e;
+}
+
+.photo-review-ai-box.is-rejected .ai-sparkle-icon {
+  color: #ef4444;
 }
 
 .ai-box-title {

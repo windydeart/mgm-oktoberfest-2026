@@ -893,24 +893,6 @@
     });
   }
 
-  function isMobileDevice() {
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || 
-           (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
-  }
-
-  function updateCameraOrientationState() {
-    if (!els.cameraOverlay) return;
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const isFrontCamera = facingMode === 'user';
-    const needsInversionFix = isFrontCamera && isLandscape && isMobileDevice();
-
-    if (needsInversionFix) {
-      els.cameraOverlay.classList.add('front-cam-landscape-inverted');
-    } else {
-      els.cameraOverlay.classList.remove('front-cam-landscape-inverted');
-    }
-  }
-
   function capturePhoto() {
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
@@ -922,20 +904,7 @@
     canvas.width = Math.round(vw * scale);
     canvas.height = Math.round(vh * scale);
     const ctx = canvas.getContext('2d');
-
-    const isLandscape = window.innerWidth > window.innerHeight;
-    const needsInversionFix = (facingMode === 'user') && isLandscape && isMobileDevice();
-
-    if (needsInversionFix) {
-      // Compensate for the mobile browser WebRTC 180° inverted front camera bug in landscape
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(Math.PI);
-      ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
-      ctx.restore();
-    } else {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     currentPreviewRotation = 0;
     // High speed compact JPEG (~25KB for instant transmission)
@@ -1427,19 +1396,16 @@
     els.cameraControls.style.display = 'flex';
     els.cameraOverlay.classList.add('active');
     document.body.style.overflow = 'hidden';
-    updateCameraOrientationState();
 
     try {
       const constraints = {
         video: {
-          facingMode: facingMode,
-          width: { ideal: 1280 }
+          facingMode: facingMode
         },
         audio: false
       };
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
-      updateCameraOrientationState();
     } catch (err) {
       showToast('Unable to access camera. Please allow camera permissions in your browser.', 'error', 5000);
       closeCamera();
@@ -1452,9 +1418,7 @@
       cameraStream = null;
     }
     if (els.cameraVideo) els.cameraVideo.srcObject = null;
-    if (els.cameraOverlay) {
-      els.cameraOverlay.classList.remove('active', 'front-cam-landscape-inverted');
-    }
+    if (els.cameraOverlay) els.cameraOverlay.classList.remove('active');
     document.body.style.overflow = '';
     currentCellIndex = null;
   }
@@ -1464,14 +1428,12 @@
     if (cameraStream) {
       cameraStream.getTracks().forEach(t => t.stop());
     }
-    updateCameraOrientationState();
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode, width: { ideal: 1280 } },
+        video: { facingMode: facingMode },
         audio: false
       });
       els.cameraVideo.srcObject = cameraStream;
-      updateCameraOrientationState();
     } catch (err) {
       showToast('Unable to switch camera.', 'error');
     }
@@ -2237,8 +2199,6 @@
     els.cameraShutterBtn.addEventListener('click', capturePhoto);
     els.cameraCancelBtn.addEventListener('click', closeCamera);
     els.cameraSwitchBtn.addEventListener('click', switchCamera);
-    window.addEventListener('resize', updateCameraOrientationState);
-    window.addEventListener('orientationchange', updateCameraOrientationState);
     els.retakeBtn.addEventListener('click', () => {
       if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';
       els.cameraPreview.style.display = 'none';

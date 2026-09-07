@@ -821,7 +821,7 @@
     const isRejected = gameState.rejectedCells && gameState.rejectedCells.has(cellIndex);
     const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
     const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
-    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isRejected ? 'Photo was rejected by organizers.' : (isPending ? 'AI could not automatically verify your photo. Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.'));
+    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isRejected ? 'Photo was rejected by organizers.' : (isPending ? 'Evaluating with AI... Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.'));
     const aiReason = sanitizeAiReason(rawAiReason);
 
     const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
@@ -1187,7 +1187,7 @@
     gameState.cellPhotos[targetIdx] = dataUrl;
     if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
     if (!gameState.cellAiReasons[targetIdx]) {
-      gameState.cellAiReasons[targetIdx] = 'AI could not automatically verify your photo. Submitted for manual review by organizers.';
+      gameState.cellAiReasons[targetIdx] = 'Evaluating with AI... Submitted for manual review by organizers.';
     }
 
     if (window.lucide) window.lucide.createIcons();
@@ -1301,7 +1301,7 @@
     let hasResolved = false;
     let hasNotified = false;
 
-    // ─── 3. Strict 5-Second Fallback: Only triggers if AI / network takes >= 5s ───
+    // ─── 3. Strict <=4s Timeout: If AI / network takes >= 3.8s, immediately show IN REVIEW so player is unblocked, but continue background verification until result arrives ───
     const fallbackTimer = setTimeout(() => {
       if (!hasResolved) {
         hasResolved = true;
@@ -1309,7 +1309,7 @@
         promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null, false);
         ensurePendingReviewInDb(targetIdx, dataUrl, challenge);
       }
-    }, 5000);
+    }, 3800);
 
     // ─── 4. Background Asynchronous Verification ───
     try {
@@ -1400,6 +1400,7 @@
           onBingo({ bingo_line: finalLine, elapsed_ms: finalElapsedMs, rank: gameState.rank });
         } else {
           saveSession();
+          renderBoard();
           showToast(`Challenge approved: ${challenge?.challenge || 'Cell completed!'}`, 'success', 3000);
         }
       }

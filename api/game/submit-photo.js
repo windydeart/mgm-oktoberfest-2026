@@ -331,16 +331,15 @@ module.exports = async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
 
   const candidateModels = [
-    'gemini-3.5-flash',
     'gemini-3.8-flash',
-    'gemini-3.1-flash-lite'
+    'gemini-3.5-flash'
   ];
 
   let ai_decision_made = false;
   let ai_verified = false;
   let is_pending_review = false;
   let ai_rotation = 0;
-  let ai_reason = "AI could not automatically verify your photo. Submitted for manual review by organizers.";
+  let ai_reason = "Photo submitted. Evaluating with AI...";
 
   // Run AI check and photo upload concurrently for speed
   const photoUploadPromise = uploadPhotoToStorage(base64Data, session.session_id, cell_index);
@@ -397,6 +396,13 @@ module.exports = async (req, res) => {
 Evaluate the submitted photo objectively.
 - APPROVE if the photo reasonably matches or demonstrates a genuine attempt at the challenge (subject, people, beer, festive atmosphere, props, food).
 - REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
+
+SPECIAL RULE FOR UNVERIFIABLE PERSONAL TRAITS & FACTS (e.g., birthday in September, speaks German, visited Germany, never met before, office besties, new friends):
+Visual photos cannot prove private personal facts such as a person's birth month, language fluency, or travel history.
+- Focus strictly on verifying the VISIBLE requirements of the challenge (e.g. photo/selfie with another person or group of people at the event).
+- If the visible criteria is met (people posing together at the event), APPROVE the challenge and state what was detected (e.g., 'Photo shows people posing together at the event. September birthday is accepted as an unverifiable personal trait.').
+- Only REJECT if the visible criteria is completely missing (e.g., no people present, photo of an empty wall or inanimate object).
+
 CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
 
 ORIENTATION ANALYSIS:
@@ -428,7 +434,7 @@ Reply with ONLY a JSON object:
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 }
       },
-      timeoutMs: 4500
+      timeoutMs: 3800
     });
 
     if (vertexResult.ok && vertexResult.text) {
@@ -556,7 +562,7 @@ Reply with ONLY a JSON object:
   } else {
     ai_verified = true;
     is_pending_review = true;
-    ai_reason = ai_reason || "AI could not automatically verify your photo. Submitted for manual review by organizers.";
+    ai_reason = ai_reason || "Photo submitted for manual review by organizers.";
   }
 
   // Update completed cells & in-review cells

@@ -136,8 +136,8 @@ async function callVertexGemini({
   systemInstruction,
   contents,
   generationConfig = {},
-  timeoutMs = 4500,
-  models = ['gemini-3.5-flash', 'gemini-2.5-flash'],
+  timeoutMs = 3500,
+  models,
   locations = ['asia-southeast1', 'us-central1']
 }) {
   const sa = getVertexCredentials();
@@ -152,6 +152,12 @@ async function callVertexGemini({
     console.error('Failed to get Vertex access token:', err.message);
     return { ok: false, error: err.message };
   }
+
+  // Prioritize the highest models available in each region (Singapore: gemini-3.5-flash, US: gemini-2.5-pro)
+  const regionalModels = {
+    'asia-southeast1': ['gemini-3.5-flash', 'gemini-2.5-flash'],
+    'us-central1': ['gemini-2.5-pro', 'gemini-2.5-flash']
+  };
 
   const bodyPayload = {
     contents,
@@ -175,7 +181,8 @@ async function callVertexGemini({
   let lastError = null;
 
   for (const loc of locations) {
-    for (const model of models) {
+    const locModels = models || regionalModels[loc] || ['gemini-3.5-flash', 'gemini-2.5-flash'];
+    for (const model of locModels) {
       const url = `https://${loc}-aiplatform.googleapis.com/v1/projects/${sa.project_id}/locations/${loc}/publishers/google/models/${model}:generateContent`;
 
       try {

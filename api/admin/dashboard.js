@@ -26,6 +26,8 @@ async function supabaseGet(path, fallback = []) {
     console.warn(`Supabase fetch failed for ${path}:`, err.message);
     return fallback;
   }
+}
+
 const BINGO_LINE_CELLS = {
   'row-0': [0, 1, 2],
   'row-1': [3, 4, 5],

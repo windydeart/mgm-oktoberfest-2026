@@ -340,21 +340,13 @@ Evaluate the submitted photo objectively.
 - REJECT if the photo does not match (e.g. blank/dark screen, office desk without required items, totally unrelated).
 CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
 
-ORIENTATION DETECTION:
-Identify which edge of the photo the person's HEAD (or the CEILING/SKY/TOP of key subject) is currently pointing towards:
-- "top": The head/ceiling is already near the TOP edge (photo is upright).
-- "bottom": The head/ceiling is near the BOTTOM edge (photo is upside down).
-- "left": The head/ceiling is pointing towards the LEFT edge.
-- "right": The head/ceiling is pointing towards the RIGHT edge.
-
-ROTATION TO MAKE UPRIGHT (Degrees CLOCKWISE):
-- If head points to "top" -> rotation: 0
-- If head points to "left" -> rotation: 90 (rotating 90° CW brings left edge to top)
-- If head points to "bottom" -> rotation: 180 (rotating 180° CW brings bottom edge to top)
-- If head points to "right" -> rotation: 270 (rotating 270° CW brings right edge to top. WARNING: NEVER output 90 when head is at right edge, as 90 would rotate the head upside down to the bottom!)
+ORIENTATION ANALYSIS:
+Analyze where the person's head/face and chest/body are in this image rectangle:
+- "head_side": "top" | "bottom" | "left" | "right" (Which side/border of the image is the person's head/hair on?)
+- "body_side": "top" | "bottom" | "left" | "right" (Which side/border of the image is the person's body/shirt on?)
 
 Reply with ONLY a JSON object:
-{"approved": true/false, "reason": "1-2 concise objective sentences", "head_points_to": "top"|"bottom"|"left"|"right", "rotation": 0|90|180|270}`;
+{"approved": true/false, "reason": "1-2 concise objective sentences", "head_side": "top"|"bottom"|"left"|"right", "body_side": "top"|"bottom"|"left"|"right"}`;
 
   // ─── 1. Primary Evaluation via Google Cloud Vertex AI (Singapore / US) ───
   try {
@@ -383,7 +375,7 @@ Reply with ONLY a JSON object:
         const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
         ai_reason = sanitizeAiReason(rawReason);
         
-        const headPos = String(result.head_points_to || '').toLowerCase().trim();
+        const headPos = String(result.head_side || result.head_points_to || result.face_location || '').toLowerCase().trim();
         if (headPos === 'right') {
           ai_rotation = 270;
         } else if (headPos === 'left') {
@@ -395,7 +387,7 @@ Reply with ONLY a JSON object:
         } else if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
           ai_rotation = result.rotation;
         }
-        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, head_points_to=${headPos || 'n/a'}, rotation=${ai_rotation}`);
+        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, head_side=${headPos || 'n/a'}, rotation=${ai_rotation}`);
       }
     }
   } catch (vertexErr) {
@@ -448,7 +440,7 @@ Reply with ONLY a JSON object:
               const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
               ai_reason = sanitizeAiReason(rawReason);
               
-              const headPos = String(result.head_points_to || '').toLowerCase().trim();
+              const headPos = String(result.head_side || result.head_points_to || result.face_location || '').toLowerCase().trim();
               if (headPos === 'right') {
                 ai_rotation = 270;
               } else if (headPos === 'left') {
@@ -460,7 +452,7 @@ Reply with ONLY a JSON object:
               } else if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
                 ai_rotation = result.rotation;
               }
-              console.log(`[Gemini Studio] Photo verified via ${model}: approved=${ai_verified}, head_points_to=${headPos || 'n/a'}, rotation=${ai_rotation}`);
+              console.log(`[Gemini Studio] Photo verified via ${model}: approved=${ai_verified}, head_side=${headPos || 'n/a'}, rotation=${ai_rotation}`);
               break; // Clear AI verdict obtained!
             }
           }

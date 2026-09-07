@@ -893,37 +893,12 @@
     const vw = video.videoWidth || 640;
     const vh = video.videoHeight || 480;
     const maxDim = 480;
-
-    // Detect if device is held in portrait mode while camera sensor is landscape
-    // On mobile devices held vertically (portrait), window.innerHeight > window.innerWidth.
-    // However, getUserMedia video streams are typically delivered in landscape (vw > vh).
-    // The top of the phone corresponds to the right edge (3 o'clock) of the video sensor.
-    // Rotating 270° clockwise (90° CCW) into a portrait canvas brings the head upright to the top.
-    const isScreenPortrait = window.innerHeight > window.innerWidth;
-    const isSensorLandscape = vw > vh;
-    const needsPortraitRotation = isScreenPortrait && isSensorLandscape;
-
+    const scale = Math.min(1, maxDim / Math.max(vw, vh));
+    
+    canvas.width = Math.round(vw * scale);
+    canvas.height = Math.round(vh * scale);
     const ctx = canvas.getContext('2d');
-
-    if (needsPortraitRotation) {
-      const scale = Math.min(1, maxDim / Math.max(vw, vh));
-      const targetW = Math.round(vw * scale);
-      const targetH = Math.round(vh * scale);
-
-      canvas.width = targetH;
-      canvas.height = targetW;
-
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate((270 * Math.PI) / 180);
-      ctx.drawImage(video, -targetW / 2, -targetH / 2, targetW, targetH);
-      ctx.restore();
-    } else {
-      const scale = Math.min(1, maxDim / Math.max(vw, vh));
-      canvas.width = Math.round(vw * scale);
-      canvas.height = Math.round(vh * scale);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     currentPreviewRotation = 0;
     // High speed compact JPEG (~25KB for instant transmission)

@@ -1433,8 +1433,7 @@
       const constraints = {
         video: {
           facingMode: facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 960 }
+          width: { ideal: 1280 }
         },
         audio: false
       };
@@ -1468,7 +1467,7 @@
     updateCameraOrientationState();
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: { facingMode: facingMode, width: { ideal: 1280 } },
         audio: false
       });
       els.cameraVideo.srcObject = cameraStream;

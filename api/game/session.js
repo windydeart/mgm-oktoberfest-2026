@@ -136,6 +136,8 @@ module.exports = async (req, res) => {
             elapsed_ms: Math.round(score.duration_seconds * 1000),
             bingo_line: snapshot.bingo_line,
             status: 'completed',
+            had_achieved_bingo: true,
+            is_disqualified: !!snapshot.is_disqualified,
             rank: 1
           };
         }
@@ -412,13 +414,18 @@ module.exports = async (req, res) => {
   }
 
   // 4. Update session object and create refreshed token
+  const hadAchievedBingo = !!(session.had_achieved_bingo || isCompleted || session.bingo_line);
+  const isDisqualified = hadAchievedBingo && rejectedCells && rejectedCells.length > 0;
+
   session.completed_cells = completedCells;
   session.pending_review_cells = pendingReviewCells;
   session.cell_photo_urls = cellPhotoUrls;
   session.cell_ai_reasons = cellAiReasons;
-  session.status = isCompleted ? 'completed' : 'playing';
+  session.status = (isCompleted || isDisqualified) ? 'completed' : 'playing';
   session.bingo_line = isCompleted ? calculatedBingoLine : null;
   session.elapsed_ms = elapsed_ms;
+  session.had_achieved_bingo = hadAchievedBingo;
+  session.is_disqualified = isDisqualified;
 
   const refreshedToken = createToken(session);
 
@@ -435,9 +442,12 @@ module.exports = async (req, res) => {
     rejected_cells: rejectedCells,
     cell_photo_urls: cellPhotoUrls,
     cell_ai_reasons: cellAiReasons,
-    status: isCompleted ? 'completed' : 'playing',
+    is_completed: isCompleted || isDisqualified,
+    had_achieved_bingo: hadAchievedBingo,
+    is_disqualified: isDisqualified,
+    bingo_line: calculatedBingoLine,
     elapsed_ms: elapsed_ms,
-    bingo_line: isCompleted ? calculatedBingoLine : null,
+    status: session.status,
     rank: isCompleted ? (rank || 1) : null
   });
 };

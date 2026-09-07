@@ -290,47 +290,8 @@ async function handleRejection(review, noteText) {
     );
 
     if (!scores.length) {
-      console.log(`Inserting disqualified record for rejected player ${player_name}...`);
-      let calculatedDuration = 0;
-      try {
-        const sessionScores = await supabaseGet(
-          `oktoberfest_game_scores?player_name=eq.${encodeURIComponent(player_name)}&game_name=eq.photo_bingo_session&select=player_email&order=created_at.desc&limit=1`
-        );
-        if (sessionScores && sessionScores.length > 0) {
-          const snap = JSON.parse(sessionScores[0].player_email || '{}');
-          if (snap.started_at) {
-            const startTime = typeof snap.started_at === 'number' ? snap.started_at : new Date(snap.started_at).getTime();
-            const photoTime = review && review.created_at ? new Date(review.created_at).getTime() : Date.now();
-            const diffMs = Math.max(1000, photoTime - startTime);
-            calculatedDuration = Math.round(diffMs / 10) / 100;
-          }
-        }
-      } catch (calcErr) {
-        console.warn('Could not calculate duration from session:', calcErr);
-      }
-      if (!calculatedDuration || calculatedDuration <= 0) {
-        calculatedDuration = 15.0;
-      }
-
-      await supabaseRequest(
-        'POST',
-        'oktoberfest_game_scores',
-        {
-          player_name,
-          office: office || 'danang',
-          game_name: 'photo_bingo',
-          score: 0,
-          duration_seconds: calculatedDuration,
-          player_email: JSON.stringify({
-            is_disqualified: true,
-            review_status: 'rejected',
-            rejection_reason: noteText || 'Photo does not match challenge requirement.',
-            rejected_cell: cell_index,
-            completed_cells: []
-          })
-        },
-        true
-      );
+      // Player has not achieved BINGO yet. Cell is rejected, but player remains in the game to attempt other Bingo lines.
+      console.log(`Player ${player_name} has not achieved BINGO yet. Cell ${cell_index} marked rejected, but player remains in game to attempt other lines.`);
       return;
     }
 

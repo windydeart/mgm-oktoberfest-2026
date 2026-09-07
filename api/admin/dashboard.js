@@ -104,28 +104,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Include any rejected players from reviews not in scores
-    for (const [key, revs] of reviewsByPlayer.entries()) {
-      const hasRejected = revs.some(r => r.status === 'rejected');
-      if (hasRejected && !bestByPlayer.has(key)) {
-        const sampleRev = revs.find(r => r.status === 'rejected') || revs[0];
-        let calcDuration = 0;
-        const startedAt = sessionsByPlayer.get(key);
-        if (startedAt && sampleRev.created_at) {
-          const startTime = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
-          const photoTime = new Date(sampleRev.created_at).getTime();
-          calcDuration = Math.round(Math.max(1000, photoTime - startTime) / 10) / 100;
-        }
-        bestByPlayer.set(key, {
-          player_name: sampleRev.player_name,
-          office: sampleRev.office || 'danang',
-          duration_seconds: calcDuration > 0 ? calcDuration : 15.0,
-          created_at: sampleRev.created_at,
-          player_email: JSON.stringify({ is_disqualified: true, review_status: 'rejected' })
-        });
-      }
-    }
-
     // Classify into tiers:
     // Tier 1: Approved BINGO (Priority for Champion & Top 1)
     // Tier 2: Pending BINGO

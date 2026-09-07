@@ -95,28 +95,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Also collect rejected players from reviews who may not have a score record
-    for (const [key, revs] of reviewsByPlayer.entries()) {
-      const hasRejected = revs.some(r => r.status === 'rejected');
-      if (hasRejected && !bestByPlayer.has(key)) {
-        const sampleRev = revs.find(r => r.status === 'rejected') || revs[0];
-        let calcDuration = 0;
-        const startedAt = sessionsByPlayer.get(key);
-        if (startedAt && sampleRev.created_at) {
-          const startTime = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
-          const photoTime = new Date(sampleRev.created_at).getTime();
-          calcDuration = Math.round(Math.max(1000, photoTime - startTime) / 10) / 100;
-        }
-        bestByPlayer.set(key, {
-          player_name: sampleRev.player_name,
-          office: sampleRev.office || location,
-          duration_seconds: calcDuration > 0 ? calcDuration : 15.0,
-          created_at: sampleRev.created_at,
-          player_email: JSON.stringify({ is_disqualified: true, review_status: 'rejected' })
-        });
-      }
-    }
-
     // Classify each player into Ranking Tiers:
     // Tier 1 (Priority): BINGO + Approved (no pending, no rejected) -> eligible for Top 1 / Champion
     // Tier 2: BINGO + Pending review (no rejected)

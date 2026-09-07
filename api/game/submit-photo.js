@@ -283,6 +283,12 @@ module.exports = async (req, res) => {
     console.warn('Review sync in submit-photo note:', syncErr.message);
   }
 
+  // 1a. If player had already achieved BINGO and was subsequently disqualified: game is finished permanently!
+  const hadAchievedBingo = !!(session.had_achieved_bingo || checkBingo(completedCells) !== null);
+  if (hadAchievedBingo && rejectedCells.length > 0) {
+    return res.status(400).json({ error: 'Game finished! You already achieved BINGO.' });
+  }
+
   // 1b. Enforce single-attempt rule: rejected cells cannot be retaken!
   if (rejectedCells.includes(cell_index)) {
     return res.status(400).json({ error: 'This challenge photo was rejected. Each player has only 1 attempt.' });
@@ -646,6 +652,7 @@ Reply with ONLY a JSON object:
     const duration_seconds = Math.max(1, Math.round(elapsed_ms / 10) / 100);
 
     session.status = 'completed';
+    session.had_achieved_bingo = true;
     session.elapsed_ms = elapsed_ms;
     session.bingo_line = bingoLine;
 

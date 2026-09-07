@@ -43,7 +43,9 @@
     startedAt: null,
     elapsedMs: null,
     bingoLine: null,
-    rank: null
+    rank: null,
+    hadAchievedBingo: false,
+    isDisqualified: false
   };
 
   /* ─── GAME REMOTE CONTROLLER STATE ─── */
@@ -66,6 +68,7 @@
   const STORAGE_KEY_TOKEN = 'bingo_session_token';
   const STORAGE_KEY_CHALLENGES = 'bingo_board_challenges';
   const STORAGE_KEY_ROUND_ID = 'bingo_game_round_id';
+  const STORAGE_KEY_HAD_BINGO = 'bingo_had_achieved';
 
   try {
     ['bingo_game_state', 'bingo_game_state_v2', 'bingo_game_state_v3', 'bingo_game_state_v4', 'bingo_session_token_v2', 'bingo_session_token_v3'].forEach(k => {
@@ -452,7 +455,8 @@
         cell.classList.remove('completed', 'pending-review', 'rejected', 'cell-locked');
         cell.style.backgroundImage = '';
         const hint = cell.querySelector('.cell-tap-hint');
-        if (gameState.status === 'completed') {
+        const isGameLocked = gameState.status === 'completed' || gameState.hadAchievedBingo || gameState.isDisqualified;
+        if (isGameLocked) {
           cell.classList.add('cell-unfilled');
           cell.classList.remove('cell-inactive');
           if (hint) hint.textContent = '';
@@ -477,11 +481,17 @@
       if (els.statusPlayerName) els.statusPlayerName.textContent = gameState.playerName || 'Player';
       if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
 
-      const rankStr = (gameState.status === 'completed' && gameState.rank) ? `#${gameState.rank}` : '#--';
-      if (els.statusRankText) els.statusRankText.textContent = `Rank ${rankStr}`;
+      if (gameState.isDisqualified) {
+        if (els.statusRankText) els.statusRankText.textContent = 'OUT';
+        if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+      } else {
+        if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
+        const rankStr = (gameState.status === 'completed' && gameState.rank) ? `#${gameState.rank}` : '#--';
+        if (els.statusRankText) els.statusRankText.textContent = `Rank ${rankStr}`;
+      }
 
       if (els.statusGoalPill) {
-        if (gameState.status === 'completed') {
+        if (gameState.status === 'completed' && !gameState.isDisqualified) {
           els.statusGoalPill.style.display = 'inline-flex';
           if (els.statusGoalText) els.statusGoalText.textContent = 'BINGO!';
         } else {
@@ -745,9 +755,9 @@
       return;
     }
 
-    // If game is completed (Bingo achieved), lock non-completed cells from taking new photos!
-    if (gameState.status === 'completed') {
-      showToast('Game finished! You already achieved BINGO!', 'info', 3000);
+    // If player had achieved Bingo (whether currently completed or disqualified after rejection), lock non-completed cells from taking new photos!
+    if (gameState.status === 'completed' || gameState.hadAchievedBingo || gameState.isDisqualified) {
+      showToast('Game finished! You already achieved BINGO!', 'info', 4000);
       return;
     }
 
@@ -1585,6 +1595,9 @@
 
   function onBingo(data) {
     gameState.status = 'completed';
+    gameState.hadAchievedBingo = true;
+    gameState.isDisqualified = false;
+    try { localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1'); } catch (e) {}
     const liveElapsed = timerStartTime ? (Date.now() - timerStartTime) : (gameState.elapsedMs || 0);
     const resolvedElapsed = (data && typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
       ? data.elapsed_ms
@@ -1876,7 +1889,9 @@
     if (gameState.playerName) {
       const myEntry = entries.find(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && e.location === gameState.location);
       if (myEntry) {
-        if (myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.rejectedCells && gameState.rejectedCells.size > 0)) {
+        const isDisq = myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.hadAchievedBingo && gameState.rejectedCells && gameState.rejectedCells.size > 0);
+        if (isDisq) {
+          gameState.isDisqualified = true;
           if (els.statusRankText) els.statusRankText.textContent = 'OUT';
           if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
         } else if (gameState.status === 'completed') {
@@ -2189,6 +2204,9 @@
       if (currentRoundId) {
         localStorage.setItem(STORAGE_KEY_ROUND_ID, String(currentRoundId));
       }
+      if (gameState.hadAchievedBingo) {
+        localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1');
+      }
       // Purge all old local state blobs so client NEVER uses stale local data
       localStorage.removeItem('bingo_game_state_v4');
       localStorage.removeItem('bingo_game_state');
@@ -2201,6 +2219,7 @@
       localStorage.removeItem(STORAGE_KEY_USER_LOC);
       localStorage.removeItem(STORAGE_KEY_TOKEN);
       localStorage.removeItem(STORAGE_KEY_CHALLENGES);
+      localStorage.removeItem(STORAGE_KEY_HAD_BINGO);
       localStorage.removeItem('bingo_session_token_v4');
       localStorage.removeItem('bingo_game_state_v4');
       localStorage.removeItem('bingo_session_token');
@@ -2214,7 +2233,8 @@
       sessionId: null, sessionToken: null, playerName: '', location: gameState.location || 'danang',
       challenges: [], completedCells: [], cellPhotos: {}, pendingReviewCells: [],
       rejectedCells: new Set(), cellAiReasons: {}, status: 'idle',
-      startedAt: null, elapsedMs: null, bingoLine: null, rank: null
+      startedAt: null, elapsedMs: null, bingoLine: null, rank: null,
+      hadAchievedBingo: false, isDisqualified: false
     };
     $$('.bingo-cell').forEach(cell => {
       cell.className = 'bingo-cell';
@@ -2255,11 +2275,16 @@
       challenges: [],
       completedCells: [],
       cellPhotos: {},
+      pendingReviewCells: [],
+      rejectedCells: new Set(),
+      cellAiReasons: {},
       status: 'idle',
       startedAt: null,
       elapsedMs: null,
       bingoLine: null,
-      rank: null
+      rank: null,
+      hadAchievedBingo: false,
+      isDisqualified: false
     };
 
     $$('.bingo-cell').forEach(cell => {
@@ -2391,7 +2416,13 @@
       gameState.cellPhotos = data.cell_photo_urls || {};
       gameState.cellAiReasons = data.cell_ai_reasons || {};
       gameState.startedAt = data.started_at || new Date().toISOString();
-      gameState.status = isCompleted ? 'completed' : 'playing';
+
+      const hadBingo = !!(gameState.hadAchievedBingo || (localStorage.getItem(STORAGE_KEY_HAD_BINGO) === '1') || data.had_achieved_bingo || isCompleted || data.is_completed);
+      const isDisqualified = hadBingo && (gameState.rejectedCells && gameState.rejectedCells.size > 0);
+
+      gameState.hadAchievedBingo = hadBingo;
+      gameState.isDisqualified = isDisqualified;
+      gameState.status = (isCompleted || isDisqualified) ? 'completed' : 'playing';
 
       // Resolve elapsed_ms: server value > client value > minimum 1s
       const serverElapsed = (typeof data.elapsed_ms === 'number' && !isNaN(data.elapsed_ms) && data.elapsed_ms > 0)
@@ -2408,7 +2439,7 @@
       if (els.bingoBoard) els.bingoBoard.style.display = 'grid';
       renderBoard();
 
-      if (gameState.rejectedCells && gameState.rejectedCells.size > 0) {
+      if (isDisqualified) {
         stopTimer(gameState.elapsedMs || 1000);
         if (els.statusRankText) els.statusRankText.textContent = 'OUT';
         if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
@@ -2867,16 +2898,20 @@
 
     // Note: Do NOT delete cellPhotos[cellIdx] so the photo remains displayed on the board with rejected status!
 
-    // Check if BINGO is now invalidated based on remaining completed cells
-    const currentBingo = checkBingo(gameState.completedCells);
-    const wasBingo = gameState.status === 'completed';
+    // Check if player had achieved BINGO
+    const hadBingo = !!(gameState.hadAchievedBingo || gameState.status === 'completed' || (localStorage.getItem(STORAGE_KEY_HAD_BINGO) === '1'));
 
-    // Single attempt rule: player is eliminated upon any rejection
-    stopTimer(gameState.elapsedMs);
-    if (els.statusRankText) els.statusRankText.textContent = 'OUT';
-    if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+    if (hadBingo) {
+      // ─── CASE 1: REJECTED AFTER BINGO -> DISQUALIFIED (OUT) ───
+      gameState.hadAchievedBingo = true;
+      gameState.isDisqualified = true;
+      gameState.status = 'completed'; // Lock board completely
+      try { localStorage.setItem(STORAGE_KEY_HAD_BINGO, '1'); } catch (e) {}
 
-    if (wasBingo && !currentBingo) {
+      stopTimer(gameState.elapsedMs);
+      if (els.statusRankText) els.statusRankText.textContent = 'OUT';
+      if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+
       gameState.bingoLine = null;
       gameState.rank = null;
 
@@ -2886,6 +2921,26 @@
       // Remove laser cut line
       const laserLine = document.querySelector('.laser-cut-line');
       if (laserLine) laserLine.remove();
+
+      // Dismiss celebration background if active
+      document.body.classList.remove('celebrating-bingo');
+      const backdrop = $('#bingoCelebrationBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    } else {
+      // ─── CASE 2: REJECTED BEFORE BINGO -> CONTINUE PLAYING ───
+      // Only this cell is rejected and locked. Player can attempt other lines.
+      gameState.hadAchievedBingo = false;
+      gameState.isDisqualified = false;
+      gameState.status = 'playing';
+
+      // Keep timer running!
+      if (!timerInterval) {
+        startTimer(gameState.elapsedMs);
+      }
+      if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
+      if (els.statusRankText && els.statusRankText.textContent === 'OUT') {
+        els.statusRankText.textContent = 'Rank #--';
+      }
     }
 
     // Concise 4-second toast notification

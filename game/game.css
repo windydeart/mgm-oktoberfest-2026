@@ -1410,6 +1410,12 @@ body.game-page::before {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+/* Fix mobile browser WebRTC front camera 180-degree upside down bug in landscape */
+.camera-overlay.front-cam-landscape-inverted .camera-viewfinder {
+  transform: rotate(180deg);
 }
 
 .camera-bottom-bar {

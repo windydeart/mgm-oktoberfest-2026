@@ -126,7 +126,7 @@ module.exports = async (req, res) => {
       return new Date(a.created_at) - new Date(b.created_at);
     });
 
-    const uniqueRecords = categorized.slice(0, 15);
+    const uniqueRecords = categorized.slice(0, 10);
 
     const leaderboard = uniqueRecords.map((record, index) => ({
       rank: index + 1,

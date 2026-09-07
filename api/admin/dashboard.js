@@ -153,8 +153,8 @@ module.exports = async (req, res) => {
     const eligibleForChampion = categorized.filter(s => !s.is_disqualified);
     const champion = eligibleForChampion.length > 0 ? eligibleForChampion[0] : null;
 
-    // Leaderboard (top 15)
-    const leaderboard = categorized.slice(0, 15).map((s, idx) => ({
+    // Leaderboard (top 10)
+    const leaderboard = categorized.slice(0, 10).map((s, idx) => ({
       rank: idx + 1,
       player_name: s.player_name,
       location: s.office,

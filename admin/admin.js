@@ -192,7 +192,9 @@ function renderLeaderboard(entries) {
     }
     if (emptyEl) emptyEl.classList.add('hidden');
     
-    tbody.innerHTML = filteredEntries.map((entry, index) => {
+    const top10 = filteredEntries.slice(0, 10);
+    
+    tbody.innerHTML = top10.map((entry, index) => {
         const rank = index + 1;
         const isDisqualified = entry.is_disqualified || entry.status === 'rejected';
         const isPending = entry.status === 'pending';
@@ -204,7 +206,7 @@ function renderLeaderboard(entries) {
 
         let rankDisplay = '';
         if (isDisqualified) {
-            rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> BỊ LOẠI</span>`;
+            rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> DISQUALIFIED</span>`;
         } else if (isTop1) {
             rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
         } else {
@@ -213,7 +215,7 @@ function renderLeaderboard(entries) {
 
         let timeDisplay = '';
         if (isDisqualified) {
-            timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Bị loại'}</span>`;
+            timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Disqualified'}</span>`;
         } else {
             timeDisplay = formatTime(entry.elapsed_ms || 0);
         }

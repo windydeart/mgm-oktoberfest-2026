@@ -1816,7 +1816,7 @@
 
       let rankDisplay = '';
       if (isDisqualified) {
-        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> BỊ LOẠI</span>`;
+        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> DISQUALIFIED</span>`;
       } else if (isTop1) {
         rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
       } else {
@@ -1825,7 +1825,7 @@
 
       let timeDisplay = '';
       if (isDisqualified) {
-        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Bị loại'}</span>`;
+        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Disqualified'}</span>`;
       } else {
         timeDisplay = formatTime(entry.elapsed_ms || 0);
       }
@@ -1875,7 +1875,7 @@
       const myEntry = entries.find(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && e.location === gameState.location);
       if (myEntry) {
         if (myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.rejectedCells && gameState.rejectedCells.size > 0)) {
-          if (els.statusRankText) els.statusRankText.textContent = 'Bị loại';
+          if (els.statusRankText) els.statusRankText.textContent = 'Disqualified';
           if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
         } else if (gameState.status === 'completed') {
           const myIdx = entries.indexOf(myEntry);
@@ -1916,7 +1916,7 @@
 
       let rankDisplay = '';
       if (isDisqualified) {
-        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> BỊ LOẠI</span>`;
+        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> DISQUALIFIED</span>`;
       } else if (isWinner) {
         rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
       } else {
@@ -1925,7 +1925,7 @@
 
       let timeDisplay = '';
       if (isDisqualified) {
-        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Bị loại'}</span>`;
+        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Disqualified'}</span>`;
       } else {
         timeDisplay = formatTime(entry.elapsed_ms || 0);
       }
@@ -2406,7 +2406,7 @@
 
       if (gameState.rejectedCells && gameState.rejectedCells.size > 0) {
         stopTimer(gameState.elapsedMs || 1000);
-        if (els.statusRankText) els.statusRankText.textContent = 'Bị loại';
+        if (els.statusRankText) els.statusRankText.textContent = 'Disqualified';
         if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
       } else if (isCompleted) {
         stopTimer(gameState.elapsedMs || 1000);
@@ -2869,7 +2869,7 @@
 
     // Single attempt rule: player is eliminated upon any rejection
     stopTimer(gameState.elapsedMs);
-    if (els.statusRankText) els.statusRankText.textContent = 'Bị loại';
+    if (els.statusRankText) els.statusRankText.textContent = 'Disqualified';
     if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
 
     if (wasBingo && !currentBingo) {
@@ -2884,9 +2884,9 @@
       if (laserLine) laserLine.remove();
     }
 
-    // Concise 3-second toast notification
+    // Concise 4-second toast notification
     const shortNote = condenseRejectNote(note);
-    showToast(`❌ Cell #${cellIdx + 1} Rejected: ${shortNote}`, 'error', 3000);
+    showToast(`❌ Cell #${cellIdx + 1} Rejected: ${shortNote}`, 'error', 4000);
 
     // Reset cell visuals with shake animation
     const cells = $$('.bingo-cell');

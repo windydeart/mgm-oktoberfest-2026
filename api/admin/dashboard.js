@@ -41,13 +41,14 @@ module.exports = async (req, res) => {
 
   try {
     // Fetch all data in parallel
-    const [scores, allReviews, reviewsPending, reviewsApproved, reviewsRejected, gameControlRow] = await Promise.all([
+    const [scores, allReviews, reviewsPending, reviewsApproved, reviewsRejected, gameControlRow, sessionRows] = await Promise.all([
       supabaseGet('oktoberfest_game_scores?game_name=eq.photo_bingo&select=id,player_name,office,duration_seconds,created_at,player_email&order=duration_seconds.asc'),
       supabaseGet('bingo_photo_reviews?select=id,player_name,office,cell_index,status,created_at'),
       supabaseGet('bingo_photo_reviews?status=eq.pending&select=id'),
       supabaseGet('bingo_photo_reviews?status=eq.approved&select=id'),
       supabaseGet('bingo_photo_reviews?status=eq.rejected&select=id'),
-      supabaseGet('oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control&select=player_email&limit=1')
+      supabaseGet('oktoberfest_game_scores?player_name=eq.__game_control__&game_name=eq.game_control&select=player_email&limit=1'),
+      supabaseGet('oktoberfest_game_scores?game_name=eq.photo_bingo_session&select=player_name,player_email')
     ]);
 
     let gameState = 'active';
@@ -64,6 +65,15 @@ module.exports = async (req, res) => {
       } catch (e) {}
     }
 
+    const sessionsByPlayer = new Map();
+    for (const row of (sessionRows || [])) {
+      const key = (row.player_name || '').trim().toLowerCase();
+      try {
+        const snap = JSON.parse(row.player_email || '{}');
+        if (snap.started_at) sessionsByPlayer.set(key, snap.started_at);
+      } catch (e) {}
+    }
+
     // Group reviews by player key
     const reviewsByPlayer = new Map();
     for (const r of (allReviews || [])) {
@@ -76,6 +86,19 @@ module.exports = async (req, res) => {
     const bestByPlayer = new Map();
     for (const s of scores) {
       const key = (s.player_name || '').trim().toLowerCase();
+      if (s.duration_seconds >= 9999) {
+        const startedAt = sessionsByPlayer.get(key);
+        const playerRevs = reviewsByPlayer.get(key) || [];
+        const refTime = playerRevs.length > 0 && playerRevs[0].created_at
+          ? new Date(playerRevs[0].created_at).getTime()
+          : new Date(s.created_at).getTime();
+        if (startedAt) {
+          const startTime = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
+          s.duration_seconds = Math.round(Math.max(1000, refTime - startTime) / 10) / 100;
+        } else {
+          s.duration_seconds = 15.0;
+        }
+      }
       if (!bestByPlayer.has(key) || s.duration_seconds < bestByPlayer.get(key).duration_seconds) {
         bestByPlayer.set(key, s);
       }
@@ -86,10 +109,17 @@ module.exports = async (req, res) => {
       const hasRejected = revs.some(r => r.status === 'rejected');
       if (hasRejected && !bestByPlayer.has(key)) {
         const sampleRev = revs.find(r => r.status === 'rejected') || revs[0];
+        let calcDuration = 0;
+        const startedAt = sessionsByPlayer.get(key);
+        if (startedAt && sampleRev.created_at) {
+          const startTime = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
+          const photoTime = new Date(sampleRev.created_at).getTime();
+          calcDuration = Math.round(Math.max(1000, photoTime - startTime) / 10) / 100;
+        }
         bestByPlayer.set(key, {
           player_name: sampleRev.player_name,
           office: sampleRev.office || 'danang',
-          duration_seconds: 9999,
+          duration_seconds: calcDuration > 0 ? calcDuration : 15.0,
           created_at: sampleRev.created_at,
           player_email: JSON.stringify({ is_disqualified: true, review_status: 'rejected' })
         });
@@ -158,7 +188,7 @@ module.exports = async (req, res) => {
       rank: idx + 1,
       player_name: s.player_name,
       location: s.office,
-      elapsed_ms: s.duration_seconds >= 9999 ? 0 : Math.round(s.duration_seconds * 1000),
+      elapsed_ms: Math.round(Math.max(1, s.duration_seconds >= 9999 ? 15 : (s.duration_seconds || 1)) * 1000),
       completed_at: s.created_at,
       status: s.status,
       is_disqualified: s.is_disqualified

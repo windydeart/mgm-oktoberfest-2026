@@ -1828,7 +1828,7 @@
 
       let timeDisplay = '';
       if (isDisqualified) {
-        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'OUT'}</span>`;
+        timeDisplay = `<span class="lb-time-disqualified">${formatTime(entry.elapsed_ms || 0)}</span>`;
       } else {
         timeDisplay = formatTime(entry.elapsed_ms || 0);
       }
@@ -1930,7 +1930,7 @@
 
       let timeDisplay = '';
       if (isDisqualified) {
-        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'OUT'}</span>`;
+        timeDisplay = `<span class="lb-time-disqualified">${formatTime(entry.elapsed_ms || 0)}</span>`;
       } else {
         timeDisplay = formatTime(entry.elapsed_ms || 0);
       }

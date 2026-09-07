@@ -19,13 +19,15 @@ module.exports = async (req, res) => {
   try {
     let queryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&order=duration_seconds.asc&limit=50&select=id,player_name,office,duration_seconds,created_at,player_email`;
     let reviewQueryUrl = `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?select=player_name,office,cell_index,status,reviewer_note,created_at`;
+    let sessionQueryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo_session&select=player_name,player_email`;
     
     if (location === 'danang' || location === 'hcmc') {
       queryUrl += `&office=eq.${location}`;
       reviewQueryUrl += `&office=eq.${location}`;
+      sessionQueryUrl += `&office=eq.${location}`;
     }
 
-    const [sbRes, revRes] = await Promise.all([
+    const [sbRes, revRes, sessRes] = await Promise.all([
       fetch(queryUrl, {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -33,6 +35,12 @@ module.exports = async (req, res) => {
         }
       }),
       fetch(reviewQueryUrl, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      }),
+      fetch(sessionQueryUrl, {
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -46,6 +54,16 @@ module.exports = async (req, res) => {
 
     const records = await sbRes.json();
     const reviews = revRes.ok ? await revRes.json() : [];
+    const sessions = sessRes.ok ? await sessRes.json() : [];
+
+    const sessionsByPlayer = new Map();
+    for (const s of (sessions || [])) {
+      const key = (s.player_name || '').trim().toLowerCase();
+      try {
+        const snap = JSON.parse(s.player_email || '{}');
+        if (snap.started_at) sessionsByPlayer.set(key, snap.started_at);
+      } catch (e) {}
+    }
 
     // Group reviews by player key
     const reviewsByPlayer = new Map();
@@ -59,6 +77,19 @@ module.exports = async (req, res) => {
     const bestByPlayer = new Map();
     for (const record of (records || [])) {
       const key = (record.player_name || '').trim().toLowerCase();
+      if (record.duration_seconds >= 9999) {
+        const startedAt = sessionsByPlayer.get(key);
+        const playerRevs = reviewsByPlayer.get(key) || [];
+        const refTime = playerRevs.length > 0 && playerRevs[0].created_at
+          ? new Date(playerRevs[0].created_at).getTime()
+          : new Date(record.created_at).getTime();
+        if (startedAt) {
+          const startTime = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
+          record.duration_seconds = Math.round(Math.max(1000, refTime - startTime) / 10) / 100;
+        } else {
+          record.duration_seconds = 15.0;
+        }
+      }
       if (!bestByPlayer.has(key) || record.duration_seconds < bestByPlayer.get(key).duration_seconds) {
         bestByPlayer.set(key, record);
       }
@@ -69,10 +100,17 @@ module.exports = async (req, res) => {
       const hasRejected = revs.some(r => r.status === 'rejected');
       if (hasRejected && !bestByPlayer.has(key)) {
         const sampleRev = revs.find(r => r.status === 'rejected') || revs[0];
+        let calcDuration = 0;
+        const startedAt = sessionsByPlayer.get(key);
+        if (startedAt && sampleRev.created_at) {
+          const startTime = typeof startedAt === 'number' ? startedAt : new Date(startedAt).getTime();
+          const photoTime = new Date(sampleRev.created_at).getTime();
+          calcDuration = Math.round(Math.max(1000, photoTime - startTime) / 10) / 100;
+        }
         bestByPlayer.set(key, {
           player_name: sampleRev.player_name,
           office: sampleRev.office || location,
-          duration_seconds: 9999,
+          duration_seconds: calcDuration > 0 ? calcDuration : 15.0,
           created_at: sampleRev.created_at,
           player_email: JSON.stringify({ is_disqualified: true, review_status: 'rejected' })
         });
@@ -132,7 +170,7 @@ module.exports = async (req, res) => {
       rank: index + 1,
       player_name: record.player_name,
       location: record.office,
-      elapsed_ms: record.duration_seconds >= 9999 ? 0 : Math.round((record.duration_seconds || 0) * 1000),
+      elapsed_ms: Math.round(Math.max(1, record.duration_seconds >= 9999 ? 15 : (record.duration_seconds || 1)) * 1000),
       completed_at: record.created_at,
       status: record.status,
       is_disqualified: record.is_disqualified

@@ -1410,17 +1410,7 @@ body.game-page::before {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.25s ease;
-}
-
-/* Front camera in landscape: Compensate for mobile browser WebRTC 180° upside-down bug */
-.camera-overlay.facing-user.is-landscape .camera-viewfinder {
-  transform: rotate(180deg);
-}
-
-/* Back camera in landscape: Keep standard 0° view */
-.camera-overlay.facing-environment .camera-viewfinder {
-  transform: none;
+  transition: transform 0.2s ease;
 }
 
 /* UI Controls smooth rotation on device tilt (Native Camera App feel) */

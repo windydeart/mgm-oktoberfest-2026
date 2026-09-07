@@ -893,7 +893,49 @@
     });
   }
 
-  /* ─── SCREEN ORIENTATION LOCK & UI ROTATION (Native Camera Experience) ─── */
+  /* ─── SCREEN ORIENTATION ANGLE & DYNAMIC CAMERA TRANSFORM ─── */
+  function getScreenAngle() {
+    let angle = 0;
+    if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
+      angle = window.screen.orientation.angle;
+    } else if (typeof window.orientation === 'number') {
+      angle = (window.orientation === -90) ? 270 : window.orientation;
+    }
+    // Fallback: If angle reports 0 but screen dimensions are landscape, treat as 90
+    if ((angle === 0 || angle === 180) && window.innerWidth > window.innerHeight) {
+      angle = 90;
+    }
+    return angle;
+  }
+
+  function applyCameraVideoTransform() {
+    if (!els.cameraVideo) return;
+    const isFrontCamera = (facingMode === 'user');
+
+    if (!isFrontCamera) {
+      // Camera sau: Giữ nguyên mặc định (không can thiệp transform)
+      els.cameraVideo.style.transform = 'none';
+      return;
+    }
+
+    // Camera trước (Front Camera)
+    const angle = getScreenAngle();
+
+    if (angle === 90) {
+      // Landscape-primary (Angle = 90°): Lật trục Y triệt tiêu 180° lộn ngược
+      els.cameraVideo.style.transform = 'scaleY(-1)';
+    } else if (angle === 270) {
+      // Landscape-secondary (Angle = 270° hoặc -90°)
+      els.cameraVideo.style.transform = 'scaleY(-1) rotate(180deg)';
+    } else if (angle === 180) {
+      // Portrait ngược
+      els.cameraVideo.style.transform = 'scaleX(-1) rotate(180deg)';
+    } else {
+      // Portrait chuẩn (Angle = 0°): Lật gương ngang
+      els.cameraVideo.style.transform = 'scaleX(-1)';
+    }
+  }
+
   function lockScreenOrientation() {
     try {
       if (screen.orientation && screen.orientation.lock) {
@@ -929,6 +971,8 @@
       els.cameraOverlay.classList.add('is-portrait');
       els.cameraOverlay.classList.remove('is-landscape');
     }
+
+    applyCameraVideoTransform();
   }
 
   let currentUIRotation = 0;
@@ -1001,19 +1045,38 @@
     canvas.height = Math.round(vh * scale);
     const ctx = canvas.getContext('2d');
 
-    const isLandscape = window.innerWidth > window.innerHeight;
-    // Front camera on mobile WebRTC feeds the frame inverted 180° when in landscape mode.
-    // We compensate on canvas so the captured photo matches the upright preview.
-    const needsInversionFix = (facingMode === 'user') && isLandscape;
+    const isFrontCamera = (facingMode === 'user');
 
-    if (needsInversionFix) {
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(Math.PI);
-      ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
-      ctx.restore();
-    } else {
+    if (!isFrontCamera) {
+      // Camera sau: Giữ nguyên mặc định
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    } else {
+      // Camera trước: Áp dụng đúng ma trận transform tương ứng theo góc quay hiện tại
+      const angle = getScreenAngle();
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      if (angle === 90) {
+        // Landscape-primary (Angle = 90°): scaleY(-1)
+        ctx.scale(1, -1);
+      } else if (angle === 270) {
+        // Landscape-secondary (Angle = 270° hoặc -90°): scaleY(-1) rotate(180deg)
+        ctx.scale(1, -1);
+        ctx.rotate(Math.PI);
+      } else if (angle === 180) {
+        // Portrait ngược (Angle = 180°): scaleX(-1) rotate(180deg)
+        ctx.scale(-1, 1);
+        ctx.rotate(Math.PI);
+      } else {
+        // Portrait chuẩn (Angle = 0°): scaleX(-1) (lật gương ngang)
+        ctx.scale(-1, 1);
+      }
+
+      ctx.drawImage(video, -cx, -cy, canvas.width, canvas.height);
+      ctx.restore();
     }
 
     currentPreviewRotation = 0;
@@ -1519,6 +1582,9 @@
       };
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
+      els.cameraVideo.onloadedmetadata = () => {
+        applyCameraVideoTransform();
+      };
       updateCameraOrientationState();
     } catch (err) {
       showToast('Unable to access camera. Please allow camera permissions in your browser.', 'error', 5000);
@@ -1531,7 +1597,11 @@
       cameraStream.getTracks().forEach(t => t.stop());
       cameraStream = null;
     }
-    if (els.cameraVideo) els.cameraVideo.srcObject = null;
+    if (els.cameraVideo) {
+      els.cameraVideo.srcObject = null;
+      els.cameraVideo.style.transform = '';
+      els.cameraVideo.onloadedmetadata = null;
+    }
     if (els.cameraOverlay) {
       els.cameraOverlay.classList.remove('active', 'is-landscape', 'is-portrait', 'facing-user', 'facing-environment');
     }
@@ -1553,6 +1623,9 @@
         audio: false
       });
       els.cameraVideo.srcObject = cameraStream;
+      els.cameraVideo.onloadedmetadata = () => {
+        applyCameraVideoTransform();
+      };
       updateCameraOrientationState();
     } catch (err) {
       showToast('Unable to switch camera.', 'error');
@@ -2319,8 +2392,19 @@
     els.cameraShutterBtn.addEventListener('click', capturePhoto);
     els.cameraCancelBtn.addEventListener('click', closeCamera);
     els.cameraSwitchBtn.addEventListener('click', switchCamera);
-    window.addEventListener('resize', updateCameraOrientationState);
-    window.addEventListener('orientationchange', updateCameraOrientationState);
+    window.addEventListener('resize', () => {
+      updateCameraOrientationState();
+    });
+    window.addEventListener('orientationchange', () => {
+      updateCameraOrientationState();
+      setTimeout(updateCameraOrientationState, 150);
+    });
+    if (window.screen && window.screen.orientation) {
+      window.screen.orientation.addEventListener('change', () => {
+        updateCameraOrientationState();
+        setTimeout(updateCameraOrientationState, 150);
+      });
+    }
     window.addEventListener('deviceorientation', handleDeviceOrientation, true);
     els.retakeBtn.addEventListener('click', () => {
       if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';

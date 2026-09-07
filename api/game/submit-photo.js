@@ -341,9 +341,13 @@ Evaluate the submitted photo objectively.
 CRITICAL: State concisely what was detected in the photo and why it does or does not meet the criteria. DO NOT tell the user to try again or retake the photo, as the submission has already been locked for organizer review.
 
 ORIENTATION ANALYSIS:
-Analyze where the person's head/face and chest/body are in this image rectangle:
-- "head_side": "top" | "bottom" | "left" | "right" (Which side/border of the image is the person's head/hair on?)
-- "body_side": "top" | "bottom" | "left" | "right" (Which side/border of the image is the person's body/shirt on?)
+Analyze the spatial orientation of this image rectangle so the subject can be rotated upright:
+- If a person is present:
+  * "head_side": "top" | "bottom" | "left" | "right" (Which border of the image is the person's head/face nearest to?)
+  * "body_side": "top" | "bottom" | "left" | "right" (Which border of the image is the person's torso/body nearest to?)
+- If no person is present (e.g. beer, food, objects, room):
+  * "head_side": "top" | "bottom" | "left" | "right" (Which border is the top/ceiling/sky of the subject?)
+  * "body_side": "top" | "bottom" | "left" | "right" (Which border is the table/ground?)
 
 Reply with ONLY a JSON object:
 {"approved": true/false, "reason": "1-2 concise objective sentences", "head_side": "top"|"bottom"|"left"|"right", "body_side": "top"|"bottom"|"left"|"right"}`;
@@ -376,18 +380,25 @@ Reply with ONLY a JSON object:
         ai_reason = sanitizeAiReason(rawReason);
         
         const headPos = String(result.head_side || result.head_points_to || result.face_location || '').toLowerCase().trim();
-        if (headPos === 'right') {
+        const bodyPos = String(result.body_side || '').toLowerCase().trim();
+        if (headPos.includes('right')) {
           ai_rotation = 270;
-        } else if (headPos === 'left') {
+        } else if (headPos.includes('left')) {
           ai_rotation = 90;
-        } else if (headPos === 'bottom') {
+        } else if (headPos.includes('bottom')) {
           ai_rotation = 180;
-        } else if (headPos === 'top') {
+        } else if (headPos.includes('top')) {
           ai_rotation = 0;
+        } else if (bodyPos.includes('top')) {
+          ai_rotation = 180;
+        } else if (bodyPos.includes('left')) {
+          ai_rotation = 270;
+        } else if (bodyPos.includes('right')) {
+          ai_rotation = 90;
         } else if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
           ai_rotation = result.rotation;
         }
-        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, head_side=${headPos || 'n/a'}, rotation=${ai_rotation}`);
+        console.log(`[Vertex AI] Photo verified via ${vertexResult.model} (${vertexResult.location}): approved=${ai_verified}, head_side=${headPos || 'n/a'}, body_side=${bodyPos || 'n/a'}, rotation=${ai_rotation}`);
       }
     }
   } catch (vertexErr) {
@@ -441,18 +452,25 @@ Reply with ONLY a JSON object:
               ai_reason = sanitizeAiReason(rawReason);
               
               const headPos = String(result.head_side || result.head_points_to || result.face_location || '').toLowerCase().trim();
-              if (headPos === 'right') {
+              const bodyPos = String(result.body_side || '').toLowerCase().trim();
+              if (headPos.includes('right')) {
                 ai_rotation = 270;
-              } else if (headPos === 'left') {
+              } else if (headPos.includes('left')) {
                 ai_rotation = 90;
-              } else if (headPos === 'bottom') {
+              } else if (headPos.includes('bottom')) {
                 ai_rotation = 180;
-              } else if (headPos === 'top') {
+              } else if (headPos.includes('top')) {
                 ai_rotation = 0;
+              } else if (bodyPos.includes('top')) {
+                ai_rotation = 180;
+              } else if (bodyPos.includes('left')) {
+                ai_rotation = 270;
+              } else if (bodyPos.includes('right')) {
+                ai_rotation = 90;
               } else if (typeof result.rotation === 'number' && [0, 90, 180, 270].includes(result.rotation)) {
                 ai_rotation = result.rotation;
               }
-              console.log(`[Gemini Studio] Photo verified via ${model}: approved=${ai_verified}, head_side=${headPos || 'n/a'}, rotation=${ai_rotation}`);
+              console.log(`[Gemini Studio] Photo verified via ${model}: approved=${ai_verified}, head_side=${headPos || 'n/a'}, body_side=${bodyPos || 'n/a'}, rotation=${ai_rotation}`);
               break; // Clear AI verdict obtained!
             }
           }

@@ -871,16 +871,22 @@
     return new Promise((resolve) => {
       if (!degrees || degrees === 0 || !srcUrl) return resolve(srcUrl);
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const isPerpendicular = (degrees === 90 || degrees === 270);
-        const rotCanvas = document.createElement('canvas');
-        rotCanvas.width = isPerpendicular ? img.height : img.width;
-        rotCanvas.height = isPerpendicular ? img.width : img.height;
-        const ctx = rotCanvas.getContext('2d');
-        ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
-        ctx.rotate((degrees * Math.PI) / 180);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        resolve(rotCanvas.toDataURL('image/jpeg', 0.70));
+        try {
+          const isPerpendicular = (degrees === 90 || degrees === 270);
+          const rotCanvas = document.createElement('canvas');
+          rotCanvas.width = isPerpendicular ? img.height : img.width;
+          rotCanvas.height = isPerpendicular ? img.width : img.height;
+          const ctx = rotCanvas.getContext('2d');
+          ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+          ctx.rotate((degrees * Math.PI) / 180);
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+          resolve(rotCanvas.toDataURL('image/jpeg', 0.70));
+        } catch (err) {
+          console.warn('rotateDataUrl canvas export error:', err);
+          resolve(srcUrl);
+        }
       };
       img.onerror = () => resolve(srcUrl);
       img.src = srcUrl;

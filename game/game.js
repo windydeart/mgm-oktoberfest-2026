@@ -2813,7 +2813,7 @@
 
     saveSession();
     renderBoard();
-    showToast(`📸 Photo for Challenge #${cellIdx + 1} approved by organizers! ✓`, 'success', 5000);
+    showToast(`📸 Photo for Challenge #${cellIdx + 1} approved by organizers! ✓`, 'success', 3000);
 
     // Check if this approval completes BINGO
     const confirmedCells = gameState.completedCells.filter(c => !(gameState.pendingReviewCells || []).includes(c));

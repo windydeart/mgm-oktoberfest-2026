@@ -625,7 +625,8 @@ body {
 
 .lb-ranking-table .lb-rank,
 .lb-ranking-table th:first-child {
-    width: 55px;
+    min-width: 80px;
+    width: auto;
     white-space: nowrap;
 }
 
@@ -2054,7 +2055,9 @@ body {
 
     .lb-ranking-table .lb-rank,
     .lb-ranking-table th:first-child {
-        width: 42px;
+        min-width: 72px;
+        width: auto;
+        white-space: nowrap;
     }
 
     .lb-ranking-table .lb-name {
@@ -2994,12 +2997,12 @@ body {
     background: rgba(245, 158, 11, 0.15);
     border: 1px solid rgba(245, 158, 11, 0.35);
     color: #fbbf24;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.3px;
-    padding: 1px 5px;
+    padding: 1px 4px;
     border-radius: 4px;
-    margin-left: 6px;
+    margin-left: 5px;
     vertical-align: middle;
     white-space: nowrap;
 }

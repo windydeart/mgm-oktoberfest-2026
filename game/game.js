@@ -1816,16 +1816,19 @@
 
       let rankDisplay = '';
       if (isDisqualified) {
-        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> DISQUALIFIED</span>`;
+        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> OUT</span>`;
       } else if (isTop1) {
         rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
       } else {
         rankDisplay = `<span style="font-weight:700;">${medal}</span>`;
       }
+      if (isPending && !isDisqualified) {
+        rankDisplay += `<span class="lb-pending-tag">Pending</span>`;
+      }
 
       let timeDisplay = '';
       if (isDisqualified) {
-        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Disqualified'}</span>`;
+        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'OUT'}</span>`;
       } else {
         timeDisplay = formatTime(entry.elapsed_ms || 0);
       }
@@ -1837,7 +1840,6 @@
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
-            ${isPending && !isDisqualified ? `<span class="lb-pending-tag">Pending</span>` : ''}
             ${isMe ? `<span class="current-user-tag">YOU</span>` : ''}
           </div>
         </td>
@@ -1875,7 +1877,7 @@
       const myEntry = entries.find(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && e.location === gameState.location);
       if (myEntry) {
         if (myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.rejectedCells && gameState.rejectedCells.size > 0)) {
-          if (els.statusRankText) els.statusRankText.textContent = 'Disqualified';
+          if (els.statusRankText) els.statusRankText.textContent = 'OUT';
           if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
         } else if (gameState.status === 'completed') {
           const myIdx = entries.indexOf(myEntry);
@@ -1916,16 +1918,19 @@
 
       let rankDisplay = '';
       if (isDisqualified) {
-        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> DISQUALIFIED</span>`;
+        rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> OUT</span>`;
       } else if (isWinner) {
         rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
       } else {
         rankDisplay = `<span style="font-weight:700;">${medal}</span>`;
       }
+      if (isPending && !isDisqualified) {
+        rankDisplay += `<span class="lb-pending-tag">Pending</span>`;
+      }
 
       let timeDisplay = '';
       if (isDisqualified) {
-        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Disqualified'}</span>`;
+        timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'OUT'}</span>`;
       } else {
         timeDisplay = formatTime(entry.elapsed_ms || 0);
       }
@@ -1937,7 +1942,6 @@
         <td class="lb-name">
           <div class="lb-player-with-prize">
             <span style="font-weight:700;">${escapeHtml(entry.player_name)}</span>
-            ${isPending && !isDisqualified ? `<span class="lb-pending-tag">Pending</span>` : ''}
             ${isMe ? `<span class="current-user-tag">YOU</span>` : ''}
           </div>
         </td>
@@ -2406,7 +2410,7 @@
 
       if (gameState.rejectedCells && gameState.rejectedCells.size > 0) {
         stopTimer(gameState.elapsedMs || 1000);
-        if (els.statusRankText) els.statusRankText.textContent = 'Disqualified';
+        if (els.statusRankText) els.statusRankText.textContent = 'OUT';
         if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
       } else if (isCompleted) {
         stopTimer(gameState.elapsedMs || 1000);
@@ -2869,7 +2873,7 @@
 
     // Single attempt rule: player is eliminated upon any rejection
     stopTimer(gameState.elapsedMs);
-    if (els.statusRankText) els.statusRankText.textContent = 'Disqualified';
+    if (els.statusRankText) els.statusRankText.textContent = 'OUT';
     if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
 
     if (wasBingo && !currentBingo) {

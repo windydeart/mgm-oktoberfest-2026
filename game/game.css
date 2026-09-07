@@ -2049,6 +2049,12 @@ body.game-page::before {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+.lb-ranking-table td.lb-rank,
+.lb-ranking-table th:first-child {
+  min-width: 80px;
+  white-space: nowrap;
+}
+
 /* Winner Row Highlight in Table */
 .lb-ranking-table tr.lb-winner-row {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(217, 119, 6, 0.16)) !important;
@@ -3122,6 +3128,11 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
     padding: 8px 6px;
     font-size: 0.8rem;
   }
+
+  .lb-ranking-table td.lb-rank,
+  .lb-ranking-table th:first-child {
+    min-width: 70px;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3653,12 +3664,12 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.35);
   color: #fbbf24;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.3px;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 4px;
-  margin-left: 6px;
+  margin-left: 5px;
   vertical-align: middle;
   white-space: nowrap;
 }

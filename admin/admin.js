@@ -206,16 +206,19 @@ function renderLeaderboard(entries) {
 
         let rankDisplay = '';
         if (isDisqualified) {
-            rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> DISQUALIFIED</span>`;
+            rankDisplay = `<span class="lb-disqualified-tag"><i data-lucide="x-circle"></i> OUT</span>`;
         } else if (isTop1) {
             rankDisplay = `<span class="lb-rank-crown">${medal}</span>`;
         } else {
             rankDisplay = `<span style="font-weight:700;">${medal}</span>`;
         }
+        if (isPending && !isDisqualified) {
+            rankDisplay += `<span class="lb-pending-tag">Pending</span>`;
+        }
 
         let timeDisplay = '';
         if (isDisqualified) {
-            timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'Disqualified'}</span>`;
+            timeDisplay = `<span class="lb-time-disqualified">${entry.elapsed_ms > 0 ? formatTime(entry.elapsed_ms) : 'OUT'}</span>`;
         } else {
             timeDisplay = formatTime(entry.elapsed_ms || 0);
         }
@@ -228,7 +231,6 @@ function renderLeaderboard(entries) {
                 <td class="lb-name">
                     <div class="lb-player-with-prize">
                         <span style="font-weight:700; color:${isDisqualified ? '#fca5a5' : 'var(--gold)'};">${escapeHTML(entry.player_name)}</span>
-                        ${isPending && !isDisqualified ? `<span class="lb-pending-tag">Pending</span>` : ''}
                         ${isTop1 ? `<span class="sidebar-prize-badge">WINNER</span>` : ''}
                     </div>
                 </td>

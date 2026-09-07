@@ -893,6 +893,102 @@
     });
   }
 
+  /* ─── SCREEN ORIENTATION LOCK & UI ROTATION (Native Camera Experience) ─── */
+  function lockScreenOrientation() {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  function unlockScreenOrientation() {
+    try {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } catch (e) {}
+  }
+
+  function updateCameraOrientationState() {
+    if (!els.cameraOverlay) return;
+    const isLandscape = window.innerWidth > window.innerHeight;
+
+    if (facingMode === 'user') {
+      els.cameraOverlay.classList.add('facing-user');
+      els.cameraOverlay.classList.remove('facing-environment');
+    } else {
+      els.cameraOverlay.classList.add('facing-environment');
+      els.cameraOverlay.classList.remove('facing-user');
+    }
+
+    if (isLandscape) {
+      els.cameraOverlay.classList.add('is-landscape');
+      els.cameraOverlay.classList.remove('is-portrait');
+    } else {
+      els.cameraOverlay.classList.add('is-portrait');
+      els.cameraOverlay.classList.remove('is-landscape');
+    }
+  }
+
+  let currentUIRotation = 0;
+
+  function handleDeviceOrientation(e) {
+    if (!els.cameraOverlay || !els.cameraOverlay.classList.contains('active')) return;
+    
+    // If browser itself is in landscape, reset extra gyro rotation
+    const isLandscape = window.innerWidth > window.innerHeight;
+    if (isLandscape) {
+      if (currentUIRotation !== 0) {
+        currentUIRotation = 0;
+        applyUIIconRotation(0);
+      }
+      return;
+    }
+
+    if (e.gamma === null || e.beta === null) return;
+    const gamma = e.gamma;
+    const beta = e.beta;
+
+    let targetAngle = 0;
+    if (Math.abs(gamma) > 25) {
+      targetAngle = gamma > 0 ? -90 : 90;
+    } else if (beta < -25) {
+      targetAngle = 180;
+    } else {
+      targetAngle = 0;
+    }
+
+    if (targetAngle !== currentUIRotation) {
+      currentUIRotation = targetAngle;
+      applyUIIconRotation(targetAngle);
+    }
+  }
+
+  function applyUIIconRotation(angle) {
+    const rot = angle ? `rotate(${angle}deg)` : '';
+    if (els.cameraCancelBtn) {
+      const icon = els.cameraCancelBtn.querySelector('i') || els.cameraCancelBtn;
+      icon.style.transform = rot;
+    }
+    if (els.cameraSwitchBtn) {
+      const icon = els.cameraSwitchBtn.querySelector('i') || els.cameraSwitchBtn;
+      icon.style.transform = rot;
+    }
+    if (els.cameraShutterBtn) {
+      els.cameraShutterBtn.style.transform = rot;
+    }
+    const badge = document.querySelector('.camera-challenge-badge');
+    if (badge) {
+      badge.style.transform = rot;
+    }
+  }
+
+  function resetUIIconRotation() {
+    currentUIRotation = 0;
+    applyUIIconRotation(0);
+  }
+
   function capturePhoto() {
     const video = els.cameraVideo;
     const canvas = els.cameraCanvas;
@@ -904,7 +1000,21 @@
     canvas.width = Math.round(vw * scale);
     canvas.height = Math.round(vh * scale);
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const isLandscape = window.innerWidth > window.innerHeight;
+    // Front camera on mobile WebRTC feeds the frame inverted 180° when in landscape mode.
+    // We compensate on canvas so the captured photo matches the upright preview.
+    const needsInversionFix = (facingMode === 'user') && isLandscape;
+
+    if (needsInversionFix) {
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI);
+      ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
 
     currentPreviewRotation = 0;
     // High speed compact JPEG (~25KB for instant transmission)
@@ -1397,6 +1507,9 @@
     els.cameraOverlay.classList.add('active');
     document.body.style.overflow = 'hidden';
 
+    lockScreenOrientation();
+    updateCameraOrientationState();
+
     try {
       const constraints = {
         video: {
@@ -1406,6 +1519,7 @@
       };
       cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       els.cameraVideo.srcObject = cameraStream;
+      updateCameraOrientationState();
     } catch (err) {
       showToast('Unable to access camera. Please allow camera permissions in your browser.', 'error', 5000);
       closeCamera();
@@ -1418,9 +1532,13 @@
       cameraStream = null;
     }
     if (els.cameraVideo) els.cameraVideo.srcObject = null;
-    if (els.cameraOverlay) els.cameraOverlay.classList.remove('active');
+    if (els.cameraOverlay) {
+      els.cameraOverlay.classList.remove('active', 'is-landscape', 'is-portrait', 'facing-user', 'facing-environment');
+    }
     document.body.style.overflow = '';
     currentCellIndex = null;
+    resetUIIconRotation();
+    unlockScreenOrientation();
   }
 
   async function switchCamera() {
@@ -1428,12 +1546,14 @@
     if (cameraStream) {
       cameraStream.getTracks().forEach(t => t.stop());
     }
+    updateCameraOrientationState();
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facingMode },
         audio: false
       });
       els.cameraVideo.srcObject = cameraStream;
+      updateCameraOrientationState();
     } catch (err) {
       showToast('Unable to switch camera.', 'error');
     }
@@ -2199,6 +2319,9 @@
     els.cameraShutterBtn.addEventListener('click', capturePhoto);
     els.cameraCancelBtn.addEventListener('click', closeCamera);
     els.cameraSwitchBtn.addEventListener('click', switchCamera);
+    window.addEventListener('resize', updateCameraOrientationState);
+    window.addEventListener('orientationchange', updateCameraOrientationState);
+    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
     els.retakeBtn.addEventListener('click', () => {
       if (els.cameraConfirmOverlay) els.cameraConfirmOverlay.style.display = 'none';
       els.cameraPreview.style.display = 'none';

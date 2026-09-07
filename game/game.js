@@ -1128,6 +1128,7 @@
     renderBoard();
 
     // Prevent duplicate toast if cell was already marked as in review
+    const wasAlreadyPending = gameState.pendingReviewCells && gameState.pendingReviewCells.some(c => Number(c) === Number(targetIdx));
     if (!wasAlreadyPending && !silent) {
       showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
     }
@@ -1147,6 +1148,48 @@
 
     // Start polling for organizer decisions
     startReviewPolling();
+  }
+
+  async function ensurePendingReviewInDb(targetIdx, dataUrl, challenge) {
+    try {
+      const pName = gameState.playerName || localStorage.getItem(STORAGE_KEY_USER_NAME) || 'Player';
+      const pLoc = gameState.location || localStorage.getItem(STORAGE_KEY_USER_LOC) || 'danang';
+      const cText = challenge?.challenge || `Challenge #${targetIdx + 1}`;
+
+      // Check if review already exists for this player and cell
+      const checkRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(pName)}&office=eq.${encodeURIComponent(pLoc)}&cell_index=eq.${targetIdx}&status=eq.pending&select=id`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (checkRes.ok) {
+        const existing = await checkRes.json();
+        if (existing && existing.length > 0) return; // Server already inserted, no duplicate needed!
+      }
+
+      await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          session_id: gameState.sessionId || `session-${pName}-${pLoc}`,
+          player_name: pName,
+          office: pLoc,
+          cell_index: targetIdx,
+          challenge_text: cText,
+          photo_url: dataUrl,
+          ai_reason: 'Photo submitted. Marked for organizer review.',
+          status: 'pending',
+          reviewer_note: null,
+          reviewed_at: null
+        })
+      });
+    } catch (dbErr) {
+      console.warn('ensurePendingReviewInDb error:', dbErr);
+    }
   }
 
   async function submitPhoto() {
@@ -1185,14 +1228,17 @@
     showToast('Photo submitted! AI is verifying in background...', 'info', 2500);
 
     let hasResolved = false;
+    let hasNotified = false;
 
-    // ─── 3. Safety Fallback: Only triggers if network hangs (> 12 seconds) ───
+    // ─── 3. Strict 5-Second Fallback: Only triggers if AI / network takes >= 5s ───
     const fallbackTimer = setTimeout(() => {
       if (!hasResolved) {
         hasResolved = true;
-        promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
+        hasNotified = true;
+        promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null, false);
+        ensurePendingReviewInDb(targetIdx, dataUrl, challenge);
       }
-    }, 12000);
+    }, 5000);
 
     // ─── 4. Background Asynchronous Verification ───
     try {
@@ -1219,7 +1265,7 @@
         data = { verified: true, pending_review: true, ai_reason: 'Photo submitted. Queued for manual review by organizers.' };
       }
 
-      const alreadyResolvedByTimeout = hasResolved;
+      const wasAlreadyResolved = hasResolved;
       hasResolved = true;
 
       const finalElapsedMs = isPotentialBingo ? captureElapsedMs : ((typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) ? data.elapsed_ms : gameState.elapsedMs);
@@ -1243,7 +1289,9 @@
       }
 
       if (data.pending_review) {
-        promoteToPendingReview(targetIdx, finalPhotoData, challenge, isPotentialBingo ? captureElapsedMs : null, alreadyResolvedByTimeout);
+        const shouldBeSilent = wasAlreadyResolved || hasNotified;
+        hasNotified = true;
+        promoteToPendingReview(targetIdx, finalPhotoData, challenge, isPotentialBingo ? captureElapsedMs : null, shouldBeSilent);
       } else {
         // AI Approved directly
         if (!gameState.completedCells.includes(targetIdx)) {
@@ -1285,7 +1333,9 @@
       if (!hasResolved) {
         clearTimeout(fallbackTimer);
         hasResolved = true;
-        promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
+        hasNotified = true;
+        promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null, false);
+        ensurePendingReviewInDb(targetIdx, dataUrl, challenge);
       }
     }
   }

@@ -318,6 +318,9 @@ module.exports = async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY || fallbackKey;
 
   const candidateModels = [
+    'gemini-3.8-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
     'gemini-2.5-flash',
     'gemini-2.0-flash',
     'gemini-1.5-flash'
@@ -331,6 +334,54 @@ module.exports = async (req, res) => {
 
   // Run AI check and photo upload concurrently for speed
   const photoUploadPromise = uploadPhotoToStorage(base64Data, session.session_id, cell_index);
+
+  // IMMEDIATELY insert initial 'pending' record into bingo_photo_reviews as soon as photo is uploaded!
+  // This guarantees the organizer dashboard sees the submission instantly (within ~300-500ms),
+  // with ZERO waiting for the AI check to complete!
+  const initialReviewPromise = (async () => {
+    try {
+      const pUrl = await photoUploadPromise;
+      const challengeText = challenge.challenge || `Challenge #${cell_index + 1}`;
+      const delUrl = session.player_name
+        ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}&status=eq.pending`
+        : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}&status=eq.pending`;
+
+      await fetch(delUrl, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_SECRET_KEY, 'Authorization': `Bearer ${SUPABASE_SECRET_KEY}` }
+      });
+
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          player_name: session.player_name || 'Unknown',
+          office: session.location || 'danang',
+          cell_index: cell_index,
+          challenge_text: challengeText,
+          photo_url: pUrl || null,
+          ai_reason: 'Photo submitted. Evaluating with AI...',
+          status: 'pending',
+          reviewer_note: null,
+          reviewed_at: null
+        })
+      });
+
+      if (insertRes.ok) {
+        const rows = await insertRes.json();
+        return rows?.[0]?.id || null;
+      }
+    } catch (draftErr) {
+      console.warn('[submit-photo] Early draft review insert error:', draftErr.message);
+    }
+    return null;
+  })();
 
   const orientationInstruction = `You are an AI photo challenge evaluator for Oktoberfest Photo Bingo. Challenge: "${challenge.challenge}".
 Evaluate the submitted photo objectively.
@@ -366,7 +417,7 @@ Reply with ONLY a JSON object:
         maxOutputTokens: 256,
         responseMimeType: 'application/json'
       },
-      timeoutMs: 4000
+      timeoutMs: 3200
     });
 
     if (vertexResult.ok && vertexResult.text) {
@@ -409,7 +460,7 @@ Reply with ONLY a JSON object:
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
 
         const geminiRes = await fetch(apiUrl, {
           method: 'POST',
@@ -511,46 +562,67 @@ Reply with ONLY a JSON object:
     session.pending_review_cells = (session.pending_review_cells || []).filter(c => c !== cell_index);
   }
 
-  // ─── ALWAYS Upsert into bingo_photo_reviews for database persistence ───
+  // ─── Update or Upsert into bingo_photo_reviews with final AI verdict ───
   try {
+    const earlyReviewId = await initialReviewPromise;
     const challengeText = challenge.challenge || `Challenge #${cell_index + 1}`;
     const reviewStatus = is_pending_review ? 'pending' : 'approved';
     const reviewerNote = is_pending_review ? null : 'Approved by AI ✓';
 
-    // 1. Only clean up unreviewed 'pending' drafts for this cell, KEEP 'rejected' records so rejection audit log is never lost!
-    const delUrl = session.player_name
-      ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}&status=eq.pending`
-      : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}&status=eq.pending`;
+    if (earlyReviewId) {
+      // Fast path: Update the existing draft record with final verdict and corrected rotation URL!
+      await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews?id=eq.${earlyReviewId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          photo_url: finalPhotoUrl,
+          ai_reason: ai_reason,
+          status: reviewStatus,
+          reviewer_note: reviewerNote,
+          reviewed_at: is_pending_review ? null : new Date().toISOString()
+        })
+      });
+    } else {
+      // Fallback: Delete unreviewed 'pending' drafts for this cell, KEEP 'rejected' records for audit log!
+      const delUrl = session.player_name
+        ? `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=eq.${encodeURIComponent(session.player_name)}&office=eq.${encodeURIComponent(session.location)}&cell_index=eq.${cell_index}&status=eq.pending`
+        : `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?session_id=eq.${encodeURIComponent(session.session_id)}&cell_index=eq.${cell_index}&status=eq.pending`;
 
-    await fetch(delUrl, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_SECRET_KEY,
-        'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
-      }
-    });
+      await fetch(delUrl, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
+        }
+      });
 
-    // 2. Insert fresh review record
-    await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SECRET_KEY,
-        'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        session_id: session.session_id,
-        player_name: session.player_name || 'Unknown',
-        office: session.location || 'danang',
-        cell_index: cell_index,
-        challenge_text: challengeText,
-        photo_url: finalPhotoUrl,
-        ai_reason: ai_reason,
-        status: reviewStatus,
-        reviewer_note: reviewerNote
-      })
-    });
+      await fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          session_id: session.session_id,
+          player_name: session.player_name || 'Unknown',
+          office: session.location || 'danang',
+          cell_index: cell_index,
+          challenge_text: challengeText,
+          photo_url: finalPhotoUrl,
+          ai_reason: ai_reason,
+          status: reviewStatus,
+          reviewer_note: reviewerNote,
+          reviewed_at: is_pending_review ? null : new Date().toISOString()
+        })
+      });
+    }
   } catch (reviewInsertErr) {
     console.warn('Failed to upsert bingo_photo_reviews:', reviewInsertErr.message);
   }

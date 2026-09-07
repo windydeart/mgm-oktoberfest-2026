@@ -1,6 +1,31 @@
 const SUPABASE_URL = 'https://jijngdphviddhdtnyhwr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dP8FnIPTiNNLJZgo84_47A_Yni1UnRm';
 
+const BINGO_LINE_CELLS = {
+  'row-0': [0, 1, 2],
+  'row-1': [3, 4, 5],
+  'row-2': [6, 7, 8],
+  'col-0': [0, 3, 6],
+  'col-1': [1, 4, 7],
+  'col-2': [2, 5, 8],
+  'diag-main': [0, 4, 8],
+  'diag-anti': [2, 4, 6]
+};
+
+function findValidBingoLine(completedCells, rejectedCells) {
+  const compSet = new Set((completedCells || []).map(Number));
+  const rejSet = new Set((rejectedCells || []).map(Number));
+
+  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
+    const allCompleted = cellIndices.every(c => compSet.has(c));
+    const noneRejected = cellIndices.every(c => !rejSet.has(c));
+    if (allCompleted && noneRejected) {
+      return { line: lineKey, cells: cellIndices };
+    }
+  }
+  return null;
+}
+
 function handleCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -66,31 +91,6 @@ module.exports = async (req, res) => {
         bestByPlayer.set(key, record);
       }
     }
-
-const BINGO_LINE_CELLS = {
-  'row-0': [0, 1, 2],
-  'row-1': [3, 4, 5],
-  'row-2': [6, 7, 8],
-  'col-0': [0, 3, 6],
-  'col-1': [1, 4, 7],
-  'col-2': [2, 5, 8],
-  'diag-main': [0, 4, 8],
-  'diag-anti': [2, 4, 6]
-};
-
-function findValidBingoLine(completedCells, rejectedCells) {
-  const compSet = new Set((completedCells || []).map(Number));
-  const rejSet = new Set((rejectedCells || []).map(Number));
-
-  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
-    const allCompleted = cellIndices.every(c => compSet.has(c));
-    const noneRejected = cellIndices.every(c => !rejSet.has(c));
-    if (allCompleted && noneRejected) {
-      return { line: lineKey, cells: cellIndices };
-    }
-  }
-  return null;
-}
 
     // Filter and tier candidates:
     // Rule: Priority for Top 1 is a player who has Bingo, fastest time, and is Approved.
@@ -185,6 +185,6 @@ function findValidBingoLine(completedCells, rejectedCells) {
 
   } catch (err) {
     console.error('Winner API error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error', message: err.message, stack: err.stack });
   }
 };

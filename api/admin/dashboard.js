@@ -26,6 +26,29 @@ async function supabaseGet(path, fallback = []) {
     console.warn(`Supabase fetch failed for ${path}:`, err.message);
     return fallback;
   }
+const BINGO_LINE_CELLS = {
+  'row-0': [0, 1, 2],
+  'row-1': [3, 4, 5],
+  'row-2': [6, 7, 8],
+  'col-0': [0, 3, 6],
+  'col-1': [1, 4, 7],
+  'col-2': [2, 5, 8],
+  'diag-main': [0, 4, 8],
+  'diag-anti': [2, 4, 6]
+};
+
+function findValidBingoLine(completedCells, rejectedCells) {
+  const compSet = new Set((completedCells || []).map(Number));
+  const rejSet = new Set((rejectedCells || []).map(Number));
+
+  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
+    const allCompleted = cellIndices.every(c => compSet.has(c));
+    const noneRejected = cellIndices.every(c => !rejSet.has(c));
+    if (allCompleted && noneRejected) {
+      return { line: lineKey, cells: cellIndices };
+    }
+  }
+  return null;
 }
 
 module.exports = async (req, res) => {
@@ -103,31 +126,6 @@ module.exports = async (req, res) => {
         bestByPlayer.set(key, s);
       }
     }
-
-const BINGO_LINE_CELLS = {
-  'row-0': [0, 1, 2],
-  'row-1': [3, 4, 5],
-  'row-2': [6, 7, 8],
-  'col-0': [0, 3, 6],
-  'col-1': [1, 4, 7],
-  'col-2': [2, 5, 8],
-  'diag-main': [0, 4, 8],
-  'diag-anti': [2, 4, 6]
-};
-
-function findValidBingoLine(completedCells, rejectedCells) {
-  const compSet = new Set((completedCells || []).map(Number));
-  const rejSet = new Set((rejectedCells || []).map(Number));
-
-  for (const [lineKey, cellIndices] of Object.entries(BINGO_LINE_CELLS)) {
-    const allCompleted = cellIndices.every(c => compSet.has(c));
-    const noneRejected = cellIndices.every(c => !rejSet.has(c));
-    if (allCompleted && noneRejected) {
-      return { line: lineKey, cells: cellIndices };
-    }
-  }
-  return null;
-}
 
     // Classify into tiers:
     // Tier 1: Approved BINGO (Priority for Champion & Top 1)

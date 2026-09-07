@@ -824,7 +824,7 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-    function createThumbnail(dataUrl, maxWidth = 260) {
+    function createThumbnail(dataUrl, maxWidth = 480) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -833,8 +833,10 @@
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.65));
+        resolve(canvas.toDataURL('image/jpeg', 0.80));
       };
       img.onerror = () => resolve(dataUrl);
       img.src = dataUrl;
@@ -854,12 +856,14 @@
       rotCanvas.width = img.height;
       rotCanvas.height = img.width;
       const ctx = rotCanvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
       ctx.rotate((90 * Math.PI) / 180);
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
 
       currentPreviewRotation = (currentPreviewRotation + 90) % 360;
-      const rotatedDataUrl = rotCanvas.toDataURL('image/jpeg', 0.70);
+      const rotatedDataUrl = rotCanvas.toDataURL('image/jpeg', 0.82);
       if (els.previewImage) {
         els.previewImage.src = rotatedDataUrl;
       }
@@ -879,10 +883,12 @@
           rotCanvas.width = isPerpendicular ? img.height : img.width;
           rotCanvas.height = isPerpendicular ? img.width : img.height;
           const ctx = rotCanvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
           ctx.rotate((degrees * Math.PI) / 180);
           ctx.drawImage(img, -img.width / 2, -img.height / 2);
-          resolve(rotCanvas.toDataURL('image/jpeg', 0.70));
+          resolve(rotCanvas.toDataURL('image/jpeg', 0.82));
         } catch (err) {
           console.warn('rotateDataUrl canvas export error:', err);
           resolve(srcUrl);
@@ -1043,12 +1049,14 @@
     const canvas = els.cameraCanvas;
     const vw = video.videoWidth || 640;
     const vh = video.videoHeight || 480;
-    const maxDim = 480;
+    const maxDim = 960;
     const scale = Math.min(1, maxDim / Math.max(vw, vh));
     
     canvas.width = Math.round(vw * scale);
     canvas.height = Math.round(vh * scale);
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     const isFrontCamera = (facingMode === 'user');
 
@@ -1085,8 +1093,8 @@
     }
 
     currentPreviewRotation = 0;
-    // High speed compact JPEG (~25KB for instant transmission)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
+    // Crisp high-resolution JPEG (~80-110KB for crystal clarity and instant transmission)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
     els.previewImage.src = dataUrl;
 
     els.cameraControls.style.display = 'none';
@@ -1636,7 +1644,9 @@
     try {
       const constraints = {
         video: {
-          facingMode: facingMode
+          facingMode: facingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 960 }
         },
         audio: false
       };
@@ -1679,7 +1689,11 @@
     updateCameraOrientationState();
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode },
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 960 }
+        },
         audio: false
       });
       els.cameraVideo.srcObject = cameraStream;

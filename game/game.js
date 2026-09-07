@@ -416,6 +416,19 @@
         }
         const photoUrl = gameState.cellPhotos && gameState.cellPhotos[i];
         if (photoUrl) {
+          const rot = getRotationFromUrl(photoUrl);
+          if (rot > 0 && !photoUrl.startsWith('data:')) {
+            rotateDataUrl(photoUrl, rot).then(uprightUrl => {
+              if (gameState.cellPhotos && gameState.cellPhotos[i] === photoUrl) {
+                gameState.cellPhotos[i] = uprightUrl;
+                saveSession();
+                const targetC = $$('.bingo-cell')[i];
+                if (targetC) {
+                  targetC.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${uprightUrl}')`;
+                }
+              }
+            });
+          }
           cell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${photoUrl}')`;
           cell.style.backgroundSize = 'cover';
           cell.style.backgroundPosition = 'center';
@@ -880,16 +893,41 @@
     const vw = video.videoWidth || 640;
     const vh = video.videoHeight || 480;
     const maxDim = 480;
-    const scale = Math.min(1, maxDim / Math.max(vw, vh));
-    
-    canvas.width = Math.round(vw * scale);
-    canvas.height = Math.round(vh * scale);
+
+    // Detect if device is held in portrait mode while camera sensor is landscape
+    // On mobile devices held vertically (portrait), window.innerHeight > window.innerWidth.
+    // However, getUserMedia video streams are typically delivered in landscape (vw > vh).
+    // The top of the phone corresponds to the right edge (3 o'clock) of the video sensor.
+    // Rotating 270° clockwise (90° CCW) into a portrait canvas brings the head upright to the top.
+    const isScreenPortrait = window.innerHeight > window.innerWidth;
+    const isSensorLandscape = vw > vh;
+    const needsPortraitRotation = isScreenPortrait && isSensorLandscape;
+
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    if (needsPortraitRotation) {
+      const scale = Math.min(1, maxDim / Math.max(vw, vh));
+      const targetW = Math.round(vw * scale);
+      const targetH = Math.round(vh * scale);
+
+      canvas.width = targetH;
+      canvas.height = targetW;
+
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((270 * Math.PI) / 180);
+      ctx.drawImage(video, -targetW / 2, -targetH / 2, targetW, targetH);
+      ctx.restore();
+    } else {
+      const scale = Math.min(1, maxDim / Math.max(vw, vh));
+      canvas.width = Math.round(vw * scale);
+      canvas.height = Math.round(vh * scale);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
 
     currentPreviewRotation = 0;
     // High speed compact JPEG (~25KB for instant transmission)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
     els.previewImage.src = dataUrl;
 
     els.cameraControls.style.display = 'none';
@@ -1029,21 +1067,18 @@
       if (!gameState.cellAiReasons) gameState.cellAiReasons = {};
       gameState.cellAiReasons[targetIdx] = data.ai_reason || data.reason || (data.pending_review ? 'Photo queued for manual review.' : 'Challenge approved!');
 
-      // AI Orientation Auto-Correction: If Gemini detected that the photo needs rotation, adjust local cell photo
+      // AI Orientation Auto-Correction: If Gemini detected that the photo needs rotation, adjust photo to upright
+      let finalPhotoData = dataUrl;
       if (data.rotation && data.rotation > 0) {
-        rotateDataUrl(dataUrl, data.rotation).then(uprightUrl => {
-          if (!gameState.cellPhotos) gameState.cellPhotos = {};
-          gameState.cellPhotos[targetIdx] = uprightUrl;
-          const currentCell = $$('.bingo-cell')[targetIdx];
-          if (currentCell) {
-            currentCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${uprightUrl}')`;
-          }
-          saveSession();
-        });
+        try {
+          finalPhotoData = await rotateDataUrl(dataUrl, data.rotation);
+        } catch (rotErr) {
+          console.warn('Canvas rotation error:', rotErr);
+        }
       }
 
       if (data.pending_review) {
-        promoteToPendingReview(targetIdx, data.photo_url || dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
+        promoteToPendingReview(targetIdx, finalPhotoData, challenge, isPotentialBingo ? captureElapsedMs : null);
       } else {
         // AI Approved directly
         if (!gameState.completedCells.includes(targetIdx)) {
@@ -1053,12 +1088,12 @@
           gameState.pendingReviewCells = gameState.pendingReviewCells.filter(id => id !== targetIdx);
         }
         if (!gameState.cellPhotos) gameState.cellPhotos = {};
-        gameState.cellPhotos[targetIdx] = data.photo_url || dataUrl;
+        gameState.cellPhotos[targetIdx] = finalPhotoData;
 
         if (targetCell) {
           targetCell.classList.remove('verifying', 'pending-review');
           targetCell.classList.add('completed');
-          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${data.photo_url || dataUrl}')`;
+          targetCell.style.backgroundImage = `linear-gradient(rgba(11, 19, 43, 0.45), rgba(11, 19, 43, 0.70)), url('${finalPhotoData}')`;
           const hint = targetCell.querySelector('.cell-tap-hint');
           if (hint) hint.textContent = '';
           if (window.lucide) window.lucide.createIcons();

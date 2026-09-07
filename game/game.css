@@ -3029,6 +3029,15 @@ body.celebrating-bingo .bingo-cell:not(.bingo-line-cell) {
   color: var(--text-gold);
 }
 
+.photo-review-ai-box.is-approved .ai-box-tip {
+  color: #86efac;
+}
+
+.photo-review-ai-box.is-approved .ai-box-tip svg,
+.photo-review-ai-box.is-approved .ai-box-tip i {
+  color: #22c55e;
+}
+
 .photo-review-footer {
   display: flex;
   justify-content: stretch;

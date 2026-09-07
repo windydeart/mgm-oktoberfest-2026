@@ -875,9 +875,9 @@
         pill.innerHTML = '<i data-lucide="check-circle-2"></i> <span>DONE</span>';
       }
       if (aiBox) aiBox.className = 'photo-review-ai-box is-approved';
-      if (aiTitle) aiTitle.textContent = 'AI Assessment';
+      if (aiTitle) aiTitle.textContent = 'AI Assessment & Feedback';
       if (aiReasonEl) aiReasonEl.textContent = aiReason;
-      if (aiTip) aiTip.innerHTML = '<i data-lucide="check"></i> <span>Photo verified and matched challenge requirements!</span>';
+      if (aiTip) aiTip.innerHTML = '<i data-lucide="check-check"></i> <span>Approved and verified by the Organizing Committee ✓</span>';
     }
 
     openModal($('#photoReviewModal'));
@@ -2121,6 +2121,9 @@
             const reasonEl = $('#photoReviewAiReason');
             const pillEl = $('#photoReviewStatusPill');
             const catIconEl = $('#photoReviewCatIcon');
+            const aiBoxEl = $('#photoReviewAiBox');
+            const aiTitleEl = $('#photoReviewAiTitle');
+            const aiTipEl = $('#photoReviewAiTip');
 
             const rot = getRotationFromUrl(photoUrl);
             if (imgEl) {
@@ -2141,6 +2144,11 @@
               pillEl.innerHTML = '<i data-lucide="check"></i> <span>DONE</span>';
             }
             if (catIconEl) catIconEl.innerHTML = `<i data-lucide="${catIcon}"></i>`;
+            if (aiBoxEl) aiBoxEl.className = 'photo-review-ai-box is-approved';
+            if (aiTitleEl) aiTitleEl.textContent = 'AI Assessment & Feedback';
+            if (aiTipEl) {
+              aiTipEl.innerHTML = '<i data-lucide="check-check"></i> <span>Approved and verified by the Organizing Committee ✓</span>';
+            }
 
             openModal(els.photoReviewModal);
             if (window.lucide) window.lucide.createIcons();

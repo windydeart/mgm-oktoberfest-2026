@@ -226,8 +226,8 @@
       }
     }
 
-    // 3. Max duration: "Thời gian xuất hiện tối đa 2s => Tránh spam UI"
-    const effectiveDuration = Math.min(typeof duration === 'number' && duration > 0 ? duration : 2000, 2000);
+    // 3. Duration: respect requested duration (default 2000ms)
+    const effectiveDuration = typeof duration === 'number' && duration > 0 ? duration : 2000;
 
     const toast = document.createElement('div');
     toast.className = `toast-item toast-${type}`;
@@ -1229,7 +1229,7 @@
 
     // ─── 1. Instantly close camera & unblock player ───
     if (gameState.rejectedCells && gameState.rejectedCells.has(targetIdx)) {
-      showToast('This challenge was rejected. Each player has only 1 attempt.', 'error', 3000);
+      showToast('This challenge was rejected. Each player has only 1 attempt.', 'error', 4000);
       closeCamera();
       return;
     }

@@ -1096,9 +1096,11 @@
     /* ═══════════════════════════════════════════════════════
      PROMOTE CELL TO IN REVIEW (Organizers manual verify)
      ═══════════════════════════════════════════════════════ */
-  function promoteToPendingReview(targetIdx, dataUrl, challenge, lockedElapsedMs) {
+  function promoteToPendingReview(targetIdx, dataUrl, challenge, lockedElapsedMs, silent = false) {
     const targetCell = $$('.bingo-cell')[targetIdx];
     if (!targetCell) return;
+
+    const wasAlreadyPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(targetIdx);
 
     targetCell.classList.remove('verifying');
     targetCell.classList.add('completed', 'pending-review');
@@ -1124,7 +1126,11 @@
 
     saveSession();
     renderBoard();
-    showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
+
+    // Prevent duplicate toast if cell was already marked as in review
+    if (!wasAlreadyPending && !silent) {
+      showToast('Photo submitted! Marked as IN REVIEW for organizers.', 'info', 4000);
+    }
 
     // Check if this newly promoted cell completes BINGO (now that AI checking is done)!
     const winningLine = checkBingo(gameState.completedCells);
@@ -1143,7 +1149,7 @@
     startReviewPolling();
   }
 
-      async function submitPhoto() {
+  async function submitPhoto() {
     const dataUrl = els.previewImage.src;
     const base64 = dataUrl.split(',')[1];
     const targetIdx = currentCellIndex;
@@ -1164,7 +1170,6 @@
     }
 
     // ─── 2b. Freeze Timer IMMEDIATELY if this photo completes BINGO ───
-    // Time stops flowing right now at the instant photo is taken!
     const potentialCompleted = [...new Set([...(gameState.completedCells || []), targetIdx])];
     const potentialBingo = checkBingo(potentialCompleted);
     const isPotentialBingo = potentialBingo !== null;
@@ -1177,17 +1182,17 @@
       gameState._potentialBingoElapsedMs = captureElapsedMs;
     }
 
-    showToast('Photo submitted! AI is verifying in background...', 'info', 2200);
+    showToast('Photo submitted! AI is verifying in background...', 'info', 2500);
 
     let hasResolved = false;
 
-    // ─── 3. Automatic 5.5-Second Timer -> Fail-open to IN REVIEW ───
+    // ─── 3. Safety Fallback: Only triggers if network hangs (> 12 seconds) ───
     const fallbackTimer = setTimeout(() => {
       if (!hasResolved) {
         hasResolved = true;
         promoteToPendingReview(targetIdx, dataUrl, challenge, isPotentialBingo ? captureElapsedMs : null);
       }
-    }, 5500);
+    }, 12000);
 
     // ─── 4. Background Asynchronous Verification ───
     try {
@@ -1214,6 +1219,7 @@
         data = { verified: true, pending_review: true, ai_reason: 'Photo submitted. Queued for manual review by organizers.' };
       }
 
+      const alreadyResolvedByTimeout = hasResolved;
       hasResolved = true;
 
       const finalElapsedMs = isPotentialBingo ? captureElapsedMs : ((typeof data.elapsed_ms === 'number' && data.elapsed_ms > 0) ? data.elapsed_ms : gameState.elapsedMs);
@@ -1237,7 +1243,7 @@
       }
 
       if (data.pending_review) {
-        promoteToPendingReview(targetIdx, finalPhotoData, challenge, isPotentialBingo ? captureElapsedMs : null);
+        promoteToPendingReview(targetIdx, finalPhotoData, challenge, isPotentialBingo ? captureElapsedMs : null, alreadyResolvedByTimeout);
       } else {
         // AI Approved directly
         if (!gameState.completedCells.includes(targetIdx)) {

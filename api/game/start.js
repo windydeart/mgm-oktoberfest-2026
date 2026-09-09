@@ -54,20 +54,33 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Please select either Da Nang or HCMC.' });
   }
 
-  // Check if player name is already registered in scores database
+  // Check if player name is already registered in scores or reviews database
   try {
-    const checkNameUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=ilike.${encodeURIComponent(player_name.trim())}&select=id&limit=1`;
-    const nameRes = await fetch(checkNameUrl, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    const trimmedName = player_name.trim();
+    const encoded = encodeURIComponent(trimmedName);
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    };
+
+    // Parallel check across both tables for sub-50ms execution
+    const [nameRes, reviewRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=ilike.${encoded}&player_name=neq.__game_control__&select=id&limit=1`, { headers }),
+      fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=ilike.${encoded}&select=id&limit=1`, { headers })
+    ]);
+
+    let isTaken = false;
     if (nameRes.ok) {
       const existing = await nameRes.json();
-      if (existing && existing.length > 0) {
-        return res.status(400).json({ error: `The name "${player_name.trim()}" is already registered. Please choose another name.` });
-      }
+      if (existing && existing.length > 0) isTaken = true;
+    }
+    if (!isTaken && reviewRes.ok) {
+      const existingReviews = await reviewRes.json();
+      if (existingReviews && existingReviews.length > 0) isTaken = true;
+    }
+
+    if (isTaken) {
+      return res.status(400).json({ error: `The name "${trimmedName}" is already registered. Please choose another name.` });
     }
   } catch (e) {
     console.warn('Name check error in start API:', e);

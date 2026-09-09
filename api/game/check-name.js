@@ -21,27 +21,34 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const queryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=ilike.${encodeURIComponent(name)}&select=id,player_name&limit=1`;
-    
-    const sbRes = await fetch(queryUrl, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
+    const trimmed = name.trim();
+    const encoded = encodeURIComponent(trimmed);
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    };
 
-    if (!sbRes.ok) {
-      return res.status(200).json({ available: true, taken: false });
+    // Query both tables in parallel for sub-100ms response
+    const [scoresRes, reviewsRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=ilike.${encoded}&player_name=neq.__game_control__&select=id&limit=1`, { headers }),
+      fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=ilike.${encoded}&select=id&limit=1`, { headers })
+    ]);
+
+    let isTaken = false;
+    if (scoresRes.ok) {
+      const scores = await scoresRes.json();
+      if (scores && scores.length > 0) isTaken = true;
     }
-
-    const records = await sbRes.json();
-    const isTaken = records && records.length > 0;
+    if (!isTaken && reviewsRes.ok) {
+      const reviews = await reviewsRes.json();
+      if (reviews && reviews.length > 0) isTaken = true;
+    }
 
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.status(200).json({
       available: !isTaken,
       taken: isTaken,
-      player_name: name,
+      player_name: trimmed,
       message: isTaken ? 'This name is already registered.' : 'Name is available!'
     });
 

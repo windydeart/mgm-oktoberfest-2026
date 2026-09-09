@@ -563,12 +563,17 @@
      LIVE REAL-TIME NAME AVAILABILITY CHECKER
      ═══════════════════════════════════════════════════════ */
   let nameCheckDebounceTimer = null;
+  let nameCheckAbortController = null;
   let isCurrentNameTaken = false;
 
   async function checkNameAvailability(name) {
     const trimmed = (name || '').trim();
     if (trimmed.length < 2) {
       isCurrentNameTaken = false;
+      if (nameCheckAbortController) {
+        nameCheckAbortController.abort();
+        nameCheckAbortController = null;
+      }
       if (els.playerNameStatusHint) {
         els.playerNameStatusHint.style.display = 'none';
         els.playerNameStatusHint.className = 'name-status-hint';
@@ -580,6 +585,13 @@
       return;
     }
 
+    // Cancel any previous in-flight request immediately so we never lag behind typing
+    if (nameCheckAbortController) {
+      nameCheckAbortController.abort();
+    }
+    nameCheckAbortController = new AbortController();
+    const signal = nameCheckAbortController.signal;
+
     if (els.playerNameStatusHint) {
       els.playerNameStatusHint.style.display = 'flex';
       els.playerNameStatusHint.className = 'name-status-hint status-checking';
@@ -587,46 +599,56 @@
     }
 
     try {
-      const sbUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&player_name=ilike.${encodeURIComponent(trimmed)}&select=id,player_name&limit=1`;
-      const res = await fetch(sbUrl, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-      });
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      };
+
+      // Query both scores (completed + active session) and reviews in parallel for maximum speed
+      const encoded = encodeURIComponent(trimmed);
+      const [scoresRes, reviewsRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?player_name=ilike.${encoded}&player_name=neq.__game_control__&select=id&limit=1`, { headers, signal }),
+        fetch(`${SUPABASE_URL}/rest/v1/bingo_photo_reviews?player_name=ilike.${encoded}&select=id&limit=1`, { headers, signal })
+      ]);
 
       if (els.playerName && els.playerName.value.trim() !== trimmed) return;
 
-      if (res.ok) {
-        const records = await res.json();
-        const isTaken = records && records.length > 0;
-
-        if (isTaken) {
-          isCurrentNameTaken = true;
-          if (els.playerNameStatusHint) {
-            els.playerNameStatusHint.style.display = 'flex';
-            els.playerNameStatusHint.className = 'name-status-hint status-taken';
-            els.playerNameStatusHint.innerHTML = '<i data-lucide="x-circle"></i> <span>Name already taken. Please choose another name.</span>';
-          }
-          if (els.playerName) {
-            els.playerName.classList.add('input-status-taken');
-            els.playerName.classList.remove('input-status-available');
-          }
-        } else {
-          isCurrentNameTaken = false;
-          if (els.playerNameStatusHint) {
-            els.playerNameStatusHint.style.display = 'flex';
-            els.playerNameStatusHint.className = 'name-status-hint status-available';
-            els.playerNameStatusHint.innerHTML = '<i data-lucide="check-circle-2"></i> <span>Name is available</span>';
-          }
-          if (els.playerName) {
-            els.playerName.classList.add('input-status-available');
-            els.playerName.classList.remove('input-status-taken');
-          }
-        }
-        if (window.lucide) window.lucide.createIcons();
+      let isTaken = false;
+      if (scoresRes.ok) {
+        const scores = await scoresRes.json();
+        if (scores && scores.length > 0) isTaken = true;
       }
+      if (!isTaken && reviewsRes.ok) {
+        const reviews = await reviewsRes.json();
+        if (reviews && reviews.length > 0) isTaken = true;
+      }
+
+      if (isTaken) {
+        isCurrentNameTaken = true;
+        if (els.playerNameStatusHint) {
+          els.playerNameStatusHint.style.display = 'flex';
+          els.playerNameStatusHint.className = 'name-status-hint status-taken';
+          els.playerNameStatusHint.innerHTML = '<i data-lucide="x-circle"></i> <span>Name already taken. Please choose another name.</span>';
+        }
+        if (els.playerName) {
+          els.playerName.classList.add('input-status-taken');
+          els.playerName.classList.remove('input-status-available');
+        }
+      } else {
+        isCurrentNameTaken = false;
+        if (els.playerNameStatusHint) {
+          els.playerNameStatusHint.style.display = 'flex';
+          els.playerNameStatusHint.className = 'name-status-hint status-available';
+          els.playerNameStatusHint.innerHTML = '<i data-lucide="check-circle-2"></i> <span>Name is available</span>';
+        }
+        if (els.playerName) {
+          els.playerName.classList.add('input-status-available');
+          els.playerName.classList.remove('input-status-taken');
+        }
+      }
+      if (window.lucide) window.lucide.createIcons();
     } catch (e) {
+      if (e.name === 'AbortError') return; // Rapid typing, ignore aborted request
       console.warn('Name availability check error:', e);
     }
   }

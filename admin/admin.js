@@ -2,6 +2,12 @@
 const API_BASE = '/api/admin';
 const GAME_API_BASE = '/api/game';
 
+// Idle & Background Sync Optimization (Supabase Egress Conservation)
+const ADMIN_IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+let adminIdleTimer = null;
+let isAdminIdlePaused = false;
+let isAdminHiddenPaused = false;
+
 // State
 let adminToken = sessionStorage.getItem('admin_token') || null;
 let currentReviewFilter = 'pending';
@@ -17,6 +23,8 @@ const passwordInput = document.getElementById('passwordInput');
 const loginError = document.getElementById('loginError');
 const logoutBtn = document.getElementById('logoutBtn');
 const toastEl = document.getElementById('toast');
+const adminSyncBadge = document.getElementById('adminSyncBadge');
+const adminSyncText = document.getElementById('adminSyncText');
 const ctrlStatusDot = document.getElementById('ctrlStatusDot');
 const ctrlStatusText = document.getElementById('ctrlStatusText');
 const btnCtrlStart = document.getElementById('btnCtrlStart');
@@ -35,6 +43,7 @@ const confirmGameCtrlBtn = document.getElementById('confirmGameCtrlBtn');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    setupAdminActivityListeners();
     if (isAuthenticated()) {
         showDashboard();
     } else {
@@ -83,6 +92,10 @@ function logout() {
     adminToken = null;
     sessionStorage.removeItem('admin_token');
     stopAutoRefresh();
+    if (adminIdleTimer) {
+        clearTimeout(adminIdleTimer);
+        adminIdleTimer = null;
+    }
     showLogin();
 }
 
@@ -94,10 +107,14 @@ function showLogin() {
 function showDashboard() {
     loginScreen.classList.add('hidden');
     dashboardScreen.classList.remove('hidden');
+    isAdminIdlePaused = false;
+    isAdminHiddenPaused = false;
     fetchDashboardStats();
     fetchReviews();
     fetchGameControlState();
     startAutoRefresh();
+    updateAdminSyncUI('live');
+    resetAdminIdleTimer();
 }
 
 // Dashboard Functions
@@ -873,9 +890,10 @@ function bindEvents() {
     }
 }
 
-// Auto Refresh (Every 2 seconds)
+// Auto Refresh (Every 2 seconds when active)
 function startAutoRefresh() {
     stopAutoRefresh();
+    if (isAdminHiddenPaused || isAdminIdlePaused) return;
     refreshInterval = setInterval(() => {
         fetchDashboardStats();
         fetchReviews();
@@ -887,6 +905,97 @@ function stopAutoRefresh() {
     if (refreshInterval) {
         clearInterval(refreshInterval);
         refreshInterval = null;
+    }
+}
+
+// ─── IDLE & BANDWIDTH CONSERVATION CONTROLLER (30 MIN TIMEOUT) ───
+function updateAdminSyncUI(state, customText) {
+    if (!adminSyncBadge || !adminSyncText) return;
+    
+    adminSyncBadge.classList.remove('live', 'paused');
+    if (state === 'live') {
+        adminSyncBadge.classList.add('live');
+        adminSyncText.textContent = customText || 'Live (2s)';
+        adminSyncBadge.setAttribute('title', 'Đang cập nhật thời gian thực (tự động tạm dừng sau 30 phút không thao tác)');
+    } else {
+        adminSyncBadge.classList.add('paused');
+        adminSyncText.textContent = customText || 'Tạm dừng (30p chờ) ↻';
+        adminSyncBadge.setAttribute('title', 'Nhấp chuột hoặc thao tác để tiếp tục cập nhật thời gian thực');
+    }
+}
+
+function pauseAdminPolling(reason) {
+    stopAutoRefresh();
+    if (reason === 'idle') {
+        isAdminIdlePaused = true;
+        updateAdminSyncUI('paused', 'Tạm dừng (30p chờ) ↻');
+    } else if (reason === 'hidden') {
+        isAdminHiddenPaused = true;
+        updateAdminSyncUI('paused', 'Tab ẩn (Tạm dừng)');
+    }
+}
+
+function resumeAdminPolling() {
+    if (isAdminHiddenPaused || isAdminIdlePaused || !isAuthenticated()) return;
+    
+    // Refresh immediately on wake up
+    fetchDashboardStats();
+    fetchReviews();
+    fetchGameControlState();
+    
+    // Resume interval
+    startAutoRefresh();
+    updateAdminSyncUI('live');
+}
+
+function resetAdminIdleTimer() {
+    if (adminIdleTimer) clearTimeout(adminIdleTimer);
+    
+    if (isAdminIdlePaused) {
+        isAdminIdlePaused = false;
+        if (!document.hidden && isAuthenticated()) {
+            resumeAdminPolling();
+        }
+    }
+    
+    if (isAuthenticated()) {
+        adminIdleTimer = setTimeout(() => {
+            pauseAdminPolling('idle');
+        }, ADMIN_IDLE_TIMEOUT_MS);
+    }
+}
+
+function setupAdminActivityListeners() {
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetAdminIdleTimer, { passive: true });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            pauseAdminPolling('hidden');
+        } else {
+            isAdminHiddenPaused = false;
+            if (!isAdminIdlePaused && isAuthenticated()) {
+                resumeAdminPolling();
+            }
+            resetAdminIdleTimer();
+        }
+    });
+
+    window.addEventListener('focus', () => {
+        if (!document.hidden && !isAdminIdlePaused && isAuthenticated()) {
+            resumeAdminPolling();
+        }
+        resetAdminIdleTimer();
+    });
+
+    if (adminSyncBadge) {
+        adminSyncBadge.addEventListener('click', () => {
+            isAdminIdlePaused = false;
+            isAdminHiddenPaused = false;
+            resumeAdminPolling();
+            resetAdminIdleTimer();
+        });
     }
 }
 

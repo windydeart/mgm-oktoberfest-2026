@@ -54,6 +54,12 @@
   let isGamePausedByAdmin = false;
   let gameControlPollingInterval = null;
 
+  /* ─── IDLE & BANDWIDTH CONSERVATION (30 MIN AUTO-DISCONNECT) ─── */
+  const GAME_IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+  let gameIdleTimer = null;
+  let isGameIdlePaused = false;
+  let isGameHiddenPaused = false;
+
   /* ─── TIMER ─── */
   let timerInterval = null;
   let timerStartTime = null;
@@ -1811,8 +1817,9 @@
   let leaderboardPollingTimer = null;
 
   function startLeaderboardPolling() {
-    if (leaderboardPollingTimer) clearInterval(leaderboardPollingTimer);
-    
+    stopLeaderboardPolling();
+    if (isGameHiddenPaused || isGameIdlePaused) return;
+
     // Initial fetch
     loadSidebarLeaderboard();
 
@@ -1823,16 +1830,13 @@
         renderLeaderboard(currentLbLocation);
       }
     }, 10000);
+  }
 
-    // Refresh immediately when tab gains focus
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        loadSidebarLeaderboard();
-        if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
-          renderLeaderboard(currentLbLocation);
-        }
-      }
-    });
+  function stopLeaderboardPolling() {
+    if (leaderboardPollingTimer) {
+      clearInterval(leaderboardPollingTimer);
+      leaderboardPollingTimer = null;
+    }
   }
 
   async function fetchLeaderboard(location = 'all') {
@@ -2846,6 +2850,7 @@
 
   function startReviewPolling() {
     if (reviewPollInterval) return;
+    if (isGameHiddenPaused || isGameIdlePaused) return;
     reviewPollInterval = setInterval(pollReviewDecisions, 2000);
     // Also poll once immediately
     setTimeout(pollReviewDecisions, 300);
@@ -3217,8 +3222,93 @@
   }
 
   function startGameControlPolling() {
-    if (gameControlPollingInterval) clearInterval(gameControlPollingInterval);
+    stopGameControlPolling();
+    if (isGameHiddenPaused || isGameIdlePaused) return;
     gameControlPollingInterval = setInterval(pollGameControlState, 3000);
+  }
+
+  function stopGameControlPolling() {
+    if (gameControlPollingInterval) {
+      clearInterval(gameControlPollingInterval);
+      gameControlPollingInterval = null;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     AUTO-PAUSE & INACTIVITY MANAGEMENT (BANDWIDTH OPTIMIZATION)
+     - Pauses all network polling when tab is hidden or user is idle for 30 minutes
+     - Automatically wakes up and refreshes when tab is active or user interacts
+     ═══════════════════════════════════════════════════════ */
+  function pauseGamePolling(reason) {
+    if (reason === 'idle') isGameIdlePaused = true;
+    if (reason === 'hidden') isGameHiddenPaused = true;
+
+    stopLeaderboardPolling();
+    stopGameControlPolling();
+    stopReviewPolling();
+  }
+
+  function resumeGamePolling() {
+    if (isGameHiddenPaused || isGameIdlePaused) return;
+
+    // Wake-up fresh pulls
+    pollGameControlState();
+    loadSidebarLeaderboard();
+    if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+      renderLeaderboard(currentLbLocation);
+    }
+    if (gameState.status !== 'idle') {
+      pollReviewDecisions();
+    }
+
+    // Resume polling loops
+    startLeaderboardPolling();
+    startGameControlPolling();
+    if (gameState.status !== 'idle') {
+      startReviewPolling();
+    }
+  }
+
+  function resetGameIdleTimer() {
+    if (gameIdleTimer) clearTimeout(gameIdleTimer);
+
+    if (isGameIdlePaused) {
+      isGameIdlePaused = false;
+      if (!document.hidden) {
+        resumeGamePolling();
+      }
+    }
+
+    gameIdleTimer = setTimeout(() => {
+      pauseGamePolling('idle');
+    }, GAME_IDLE_TIMEOUT_MS);
+  }
+
+  function setupGameActivityListeners() {
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+      document.addEventListener(evt, resetGameIdleTimer, { passive: true });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        pauseGamePolling('hidden');
+      } else {
+        isGameHiddenPaused = false;
+        if (!isGameIdlePaused) {
+          resumeGamePolling();
+        }
+        resetGameIdleTimer();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      if (!document.hidden && !isGameIdlePaused) {
+        resumeGamePolling();
+      }
+      resetGameIdleTimer();
+    });
+
+    resetGameIdleTimer();
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -3234,6 +3324,8 @@
     cacheDom();
     bindEvents();
     if (window.lucide) window.lucide.createIcons();
+
+    setupGameActivityListeners();
 
     startLeaderboardPolling();
 
@@ -3263,16 +3355,6 @@
     if (gameState.status !== 'idle') {
       startReviewPolling();
     }
-
-    // Immediately check reviews & control state when user switches back to this tab
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        pollGameControlState();
-        if (gameState.status !== 'idle') {
-          pollReviewDecisions();
-        }
-      }
-    });
   }
 
   if (document.readyState === 'loading') {

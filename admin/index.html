@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard | Oktoberfest 2026</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=28">
+    <link rel="stylesheet" href="/admin/admin.css?v=31">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -40,6 +40,10 @@
                 </a>
             </div>
             <div class="top-bar-right">
+                <div class="sync-status-badge live" id="adminSyncBadge" title="Tự động tạm dừng cập nhật sau 30 phút không thao tác để tiết kiệm băng thông">
+                    <span class="sync-dot"></span>
+                    <span class="sync-text" id="adminSyncText">Live (2s)</span>
+                </div>
                 <button id="logoutBtn" class="btn-secondary" aria-label="Logout">
                     <i data-lucide="log-out"></i> <span>Logout</span>
                 </button>
@@ -359,7 +363,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/admin/admin.js?v=30"></script>
+    <script src="/admin/admin.js?v=31"></script>
     <script>
         lucide.createIcons();
     </script>

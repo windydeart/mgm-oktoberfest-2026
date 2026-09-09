@@ -449,7 +449,7 @@
           cell.style.backgroundPosition = 'center';
         }
         const hint = cell.querySelector('.cell-tap-hint');
-        if (hint) hint.textContent = 'Rejected';
+        if (hint) hint.textContent = 'Not Match';
       } else if (isCompleted) {
         cell.classList.remove('rejected', 'cell-unfilled', 'cell-inactive');
         cell.classList.add('completed', 'cell-locked');

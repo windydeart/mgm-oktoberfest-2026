@@ -1,0 +1,25 @@
+# ═══════════════════════════════════════════════════════
+# Vercel Deployment Ignore File (.vercelignore)
+# Excludes heavy local media archives and dev scripts from
+# Vercel builds, shrinking deployment size from ~1GB to ~23MB.
+# ═══════════════════════════════════════════════════════
+
+# Heavy media archives (All gallery images are served via Cloudinary, video via Cloudflare R2)
+assets/All seasons images/
+assets/processed_webp/
+assets/Video/
+
+# Python scripts and local utilities
+*.py
+
+# Test & schema files
+font_specimen.html
+oktoberfest_schema.sql
+
+# Local env, logs & system files
+.env*
+.DS_Store
+*.log
+.system_generated
+__pycache__/
+venv/

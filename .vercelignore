@@ -4,8 +4,7 @@
 # Vercel builds, shrinking deployment size from ~1GB to ~23MB.
 # ═══════════════════════════════════════════════════════
 
-# Heavy media archives (All gallery images are served via Cloudinary, video via Cloudflare R2)
-assets/All seasons images/
+# Heavy media archives (Video is served via Cloudflare R2)
 assets/processed_webp/
 assets/Video/
 

@@ -42,7 +42,7 @@ module.exports = async (req, res) => {
   const location = url.searchParams.get('location') || 'all';
 
   try {
-    let queryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&order=duration_seconds.asc&limit=50&select=id,player_name,office,duration_seconds,created_at,player_email`;
+    let queryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo&order=duration_seconds.asc&limit=100&select=id,player_name,office,duration_seconds,created_at,player_email`;
     let reviewQueryUrl = `${SUPABASE_URL}/rest/v1/bingo_photo_reviews?select=player_name,office,cell_index,status,reviewer_note,created_at`;
     let sessionQueryUrl = `${SUPABASE_URL}/rest/v1/oktoberfest_game_scores?game_name=eq.photo_bingo_session&select=player_name,player_email`;
     
@@ -207,7 +207,8 @@ module.exports = async (req, res) => {
       return new Date(a.created_at) - new Date(b.created_at);
     });
 
-    const uniqueRecords = categorized.slice(0, 10);
+    const maxEntries = (location === 'all') ? 100 : 20;
+    const uniqueRecords = categorized.slice(0, maxEntries);
 
     const leaderboard = uniqueRecords.map((record, index) => ({
       rank: index + 1,

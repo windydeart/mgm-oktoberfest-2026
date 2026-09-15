@@ -1862,32 +1862,82 @@
     }
   }
 
-  /* ─── LEADERBOARD IN-MEMORY CACHE (INSTANT 0MS TAB SWITCHING) ─── */
-  const leaderboardMemoryCache = {
-    all: null,
-    danang: null,
-    hcmc: null,
-    lastFetched: { all: 0, danang: 0, hcmc: 0 }
-  };
+  /* ─── LEADERBOARD ALL-OFFICES SINGLE SOURCE OF TRUTH & 0MS INSTANT LOCAL FILTERING ─── */
+  let cachedAllLeaderboardEntries = [];
+  let currentSidebarLbLocation = 'all';
+  let currentLbLocation = 'all';
+  let isFetchingLeaderboard = false;
+  let lastLeaderboardFetchTime = 0;
 
-  async function fetchLeaderboard(location = 'all', forceFresh = false) {
-    const loc = location || 'all';
+  function getFilteredLeaderboard(location = 'all') {
+    if (!cachedAllLeaderboardEntries || !cachedAllLeaderboardEntries.length) return [];
+    const loc = (location || 'all').toLowerCase().trim();
+    let list = cachedAllLeaderboardEntries;
+    if (loc !== 'all') {
+      list = cachedAllLeaderboardEntries.filter(e => (e.location || '').toLowerCase().trim() === loc);
+    }
+    // Re-index ranks 1..N so each location tab has its own relative rank #1, #2, etc.
+    return list.map((entry, idx) => ({
+      ...entry,
+      rank: idx + 1
+    }));
+  }
+
+  function updateUserRankFromCache() {
+    if (!gameState.playerName || !cachedAllLeaderboardEntries.length) return;
+    const myEntry = cachedAllLeaderboardEntries.find(e => 
+      (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && 
+      (e.location || '').toLowerCase() === (gameState.location || '').toLowerCase()
+    );
+    if (myEntry) {
+      const hasValidLine = findValidBingoLine(gameState.completedCells, gameState.rejectedCells) !== null;
+      const isDisq = myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.hadAchievedBingo && !hasValidLine && gameState.rejectedCells && gameState.rejectedCells.size > 0);
+      if (isDisq) {
+        gameState.isDisqualified = true;
+        if (els.statusRankText) els.statusRankText.textContent = 'OUT';
+        if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
+      } else if (gameState.status === 'completed' || hasValidLine) {
+        gameState.isDisqualified = false;
+        const myIdx = cachedAllLeaderboardEntries.indexOf(myEntry);
+        gameState.rank = myIdx + 1;
+        if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
+        if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
+        if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
+      }
+    }
+  }
+
+  async function fetchLeaderboard(forceFresh = false) {
     const now = Date.now();
-    if (!forceFresh && leaderboardMemoryCache[loc] && (now - (leaderboardMemoryCache.lastFetched[loc] || 0) < 4000)) {
-      return leaderboardMemoryCache[loc];
+    if (!forceFresh && (now - lastLeaderboardFetchTime < 3000) && cachedAllLeaderboardEntries.length > 0) {
+      return cachedAllLeaderboardEntries;
+    }
+    if (isFetchingLeaderboard) {
+      return cachedAllLeaderboardEntries;
     }
 
+    isFetchingLeaderboard = true;
     try {
-      const res = await fetch(`${API_BASE}/leaderboard?location=${loc}&_t=${now}`);
-      const data = await res.json();
-      const entries = data.leaderboard || [];
-      leaderboardMemoryCache[loc] = entries;
-      leaderboardMemoryCache.lastFetched[loc] = now;
-      return entries;
+      const res = await fetch(`${API_BASE}/leaderboard?location=all&_t=${now}`);
+      if (res.ok) {
+        const data = await res.json();
+        cachedAllLeaderboardEntries = data.leaderboard || [];
+        lastLeaderboardFetchTime = Date.now();
+
+        updateUserRankFromCache();
+
+        // Silently update DOM for whatever tabs are currently selected
+        renderSidebarLeaderboardDOM(getFilteredLeaderboard(currentSidebarLbLocation), currentSidebarLbLocation);
+        if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
+          renderLeaderboardModalDOM(getFilteredLeaderboard(currentLbLocation));
+        }
+      }
     } catch (err) {
       console.error('Leaderboard fetch error:', err);
-      return leaderboardMemoryCache[loc] || [];
+    } finally {
+      isFetchingLeaderboard = false;
     }
+    return cachedAllLeaderboardEntries;
   }
 
   function renderLeaderboardModalDOM(entries) {
@@ -1964,24 +2014,17 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-  async function renderLeaderboard(location) {
+  function renderLeaderboard(location) {
     if (location) currentLbLocation = location;
-    const loc = currentLbLocation;
-
-    // 1. Instant Optimistic Render from Memory (0ms latency!)
-    if (leaderboardMemoryCache[loc]) {
-      renderLeaderboardModalDOM(leaderboardMemoryCache[loc]);
-    } else if (loc !== 'all' && leaderboardMemoryCache['all']) {
-      const optimistic = leaderboardMemoryCache['all'].filter(e => (e.location || '').toLowerCase() === loc.toLowerCase());
-      renderLeaderboardModalDOM(optimistic);
-    }
-
-    // 2. Silent fresh update in background
-    const entries = await fetchLeaderboard(loc);
+    // Pure synchronous instant 0ms local render from all offices cache!
+    const entries = getFilteredLeaderboard(currentLbLocation);
     renderLeaderboardModalDOM(entries);
-  }
 
-  let currentSidebarLbLocation = 'all';
+    // If cache is empty or stale (>4s), fetch fresh in background
+    if (!cachedAllLeaderboardEntries.length || (Date.now() - lastLeaderboardFetchTime > 4000)) {
+      fetchLeaderboard();
+    }
+  }
 
   function renderSidebarLeaderboardDOM(entries, loc) {
     const tbody = document.getElementById('sidebarLbTableBody');
@@ -1996,27 +2039,6 @@
     }
 
     if (emptyEl) emptyEl.style.display = 'none';
-
-    // Update live rank for current user if found in leaderboard
-    if (gameState.playerName) {
-      const myEntry = entries.find(e => (e.player_name || '').trim().toLowerCase() === (gameState.playerName || '').trim().toLowerCase() && e.location === gameState.location);
-      if (myEntry) {
-        const hasValidLine = findValidBingoLine(gameState.completedCells, gameState.rejectedCells) !== null;
-        const isDisq = myEntry.is_disqualified || myEntry.status === 'rejected' || (gameState.hadAchievedBingo && !hasValidLine && gameState.rejectedCells && gameState.rejectedCells.size > 0);
-        if (isDisq) {
-          gameState.isDisqualified = true;
-          if (els.statusRankText) els.statusRankText.textContent = 'OUT';
-          if (els.statusRankPill) els.statusRankPill.classList.add('rank-disqualified');
-        } else if (gameState.status === 'completed' || hasValidLine) {
-          gameState.isDisqualified = false;
-          const myIdx = entries.indexOf(myEntry);
-          gameState.rank = myIdx + 1;
-          if (els.statusRankPill) els.statusRankPill.classList.remove('rank-disqualified');
-          if (els.statusRankText) els.statusRankText.textContent = `Rank #${gameState.rank}`;
-          if (els.victoryRank) els.victoryRank.textContent = `#${gameState.rank}`;
-        }
-      }
-    }
 
     const top10 = entries.slice(0, 10);
     top10.forEach((entry, idx) => {
@@ -2086,21 +2108,16 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
-  async function loadSidebarLeaderboard(location) {
+  function loadSidebarLeaderboard(location) {
     if (location) currentSidebarLbLocation = location;
-    const loc = currentSidebarLbLocation;
+    // Pure synchronous instant 0ms local render from all offices cache!
+    const entries = getFilteredLeaderboard(currentSidebarLbLocation);
+    renderSidebarLeaderboardDOM(entries, currentSidebarLbLocation);
 
-    // 1. Instant Optimistic Render from Memory (0ms latency!)
-    if (leaderboardMemoryCache[loc]) {
-      renderSidebarLeaderboardDOM(leaderboardMemoryCache[loc], loc);
-    } else if (loc !== 'all' && leaderboardMemoryCache['all']) {
-      const optimistic = leaderboardMemoryCache['all'].filter(e => (e.location || '').toLowerCase() === loc.toLowerCase());
-      renderSidebarLeaderboardDOM(optimistic, loc);
+    // If cache is empty or stale (>4s), fetch fresh in background
+    if (!cachedAllLeaderboardEntries.length || (Date.now() - lastLeaderboardFetchTime > 4000)) {
+      fetchLeaderboard();
     }
-
-    // 2. Silent fresh update in background
-    const entries = await fetchLeaderboard(loc);
-    renderSidebarLeaderboardDOM(entries, loc);
   }
 
     /* ═══════════════════════════════════════════════════════
@@ -2893,13 +2910,15 @@
       });
     }
 
-    els.leaderboardTabs.addEventListener('click', (e) => {
-      const tab = e.target.closest('.lb-filter-tab');
-      if (!tab) return;
-      $$('.lb-filter-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      renderLeaderboard(tab.dataset.lbLocation);
-    });
+    if (els.leaderboardTabs) {
+      els.leaderboardTabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.lb-filter-tab');
+        if (!tab) return;
+        els.leaderboardTabs.querySelectorAll('.lb-filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderLeaderboard(tab.dataset.lbLocation);
+      });
+    }
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {

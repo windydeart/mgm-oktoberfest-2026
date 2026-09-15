@@ -1835,7 +1835,6 @@
   /* ═══════════════════════════════════════════════════════
      LEADERBOARD WITH TOP 1 WINNER PRIZE HIGHLIGHT
      ═══════════════════════════════════════════════════════ */
-  let currentLbLocation = 'all';
   /* ─── LIVE 10-SECOND AUTO POLLING ─── */
   let leaderboardPollingTimer = null;
 

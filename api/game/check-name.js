@@ -16,8 +16,8 @@ module.exports = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const name = (url.searchParams.get('name') || '').trim();
 
-  if (!name || name.length < 2) {
-    return res.status(200).json({ available: false, message: 'Name must be at least 2 characters.' });
+  if (!name || name.length < 2 || name.length > 16) {
+    return res.status(200).json({ available: false, message: 'Name must be between 2 and 16 characters.' });
   }
 
   try {

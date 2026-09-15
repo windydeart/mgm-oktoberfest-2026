@@ -513,7 +513,11 @@
       if (els.headerUserLine) els.headerUserLine.style.display = 'inline-flex';
       if (els.gameStatusBar) els.gameStatusBar.style.display = 'flex';
       if (els.statusPlayerName) els.statusPlayerName.textContent = gameState.playerName || 'Player';
-      if (els.statusLocation) els.statusLocation.textContent = gameState.location === 'danang' ? 'Da Nang' : 'HCMC';
+      if (els.statusLocation) {
+        const isDanang = gameState.location === 'danang';
+        els.statusLocation.textContent = isDanang ? 'Da Nang' : 'HCMC';
+        els.statusLocation.className = `status-loc-badge ${isDanang ? 'loc-danang' : 'loc-hcmc'}`;
+      }
 
       if (gameState.isDisqualified) {
         if (els.statusRankText) els.statusRankText.textContent = 'OUT';

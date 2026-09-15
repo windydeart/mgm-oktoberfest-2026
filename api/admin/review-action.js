@@ -235,7 +235,7 @@ module.exports = async (req, res) => {
       } catch (e) {}
     }
 
-    const noteText = note || (action === 'reject' ? 'Photo does not match the challenge requirement.' : 'Approved by organizer.');
+    const noteText = note || (action === 'reject' ? 'The photo does not match the challenge requirement.' : 'Approved by organizer.');
 
     const updateData = {
       status: action === 'approve' ? 'approved' : 'rejected',
@@ -352,7 +352,7 @@ async function handleRejection(review, noteText) {
       console.log(`Rejecting cell ${cell_index} breaks BINGO for ${player_name}. Marking disqualified (OUT) at bottom of leaderboard.`);
       snapshot.is_disqualified = true;
       snapshot.review_status = 'rejected';
-      snapshot.rejection_reason = noteText || 'Photo does not match challenge requirement.';
+      snapshot.rejection_reason = noteText || 'The photo does not match the challenge requirement.';
       snapshot.rejected_cell = cell_index;
       snapshot.completed_cells = completedCells;
       if (score.duration_seconds && score.duration_seconds > 0 && score.duration_seconds < 9999) {

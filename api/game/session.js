@@ -320,7 +320,7 @@ module.exports = async (req, res) => {
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);
           if (!rejectedCells.includes(cellIdx)) rejectedCells.push(cellIdx);
           if (r.photo_url) cellPhotoUrls[cellIdx] = r.photo_url;
-          cellAiReasons[cellIdx] = r.reviewer_note || 'Photo does not match challenge requirement.';
+          cellAiReasons[cellIdx] = r.reviewer_note || 'The photo does not match the challenge requirement.';
         } else if (r.status === 'approved') {
           if (!completedCells.includes(cellIdx)) completedCells.push(cellIdx);
           pendingReviewCells = pendingReviewCells.filter(c => c !== cellIdx);

@@ -94,6 +94,9 @@ function sanitizeAiReason(reason) {
   if (!reason || typeof reason !== 'string') return reason;
   return reason
     .replace(/\s*(?:please\s+)?(?:try\s+again|retake(?:\s+the\s+photo)?|re-take|resubmit)[^.!?]*(?:[.!?]|$)/gi, '')
+    .replace(/\bPhoto does not match (?:the )?challenge requirement/gi, 'The photo does not match the challenge requirement')
+    .replace(/\bPhoto does not match (?:the )?challenge\b/gi, 'The photo does not match the challenge')
+    .replace(/\bPhoto is blurry\b/gi, 'The photo is blurry')
     .trim();
 }
 
@@ -442,7 +445,7 @@ Reply with ONLY a JSON object:
       if (result && typeof result.approved === 'boolean') {
         ai_decision_made = true;
         ai_verified = result.approved === true;
-        const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+        const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'The photo does not match the challenge requirement.');
         ai_reason = sanitizeAiReason(rawReason);
         
         const headPos = String(result.head_side || result.head_points_to || result.face_location || '').toLowerCase().trim();
@@ -515,7 +518,7 @@ Reply with ONLY a JSON object:
             if (result && typeof result.approved === 'boolean') {
               ai_decision_made = true;
               ai_verified = result.approved === true;
-              const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'Photo does not match the challenge requirement.');
+              const rawReason = result.reason || (ai_verified ? 'Challenge Approved!' : 'The photo does not match the challenge requirement.');
               ai_reason = sanitizeAiReason(rawReason);
               
               const headPos = String(result.head_side || result.head_points_to || result.face_location || '').toLowerCase().trim();

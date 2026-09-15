@@ -357,7 +357,19 @@ function renderReviews(reviews) {
 
         const rankTextHTML = review.rank ? `<span class="player-rank-text">Rank #${review.rank}</span>` : '';
 
-        const cleanReason = (review.reviewer_note || review.ai_reason || 'Photo does not match the challenge requirement.')
+        const cleanReason = (review.reviewer_note || review.ai_reason || 'The photo does not match the challenge requirement.')
+            .replace(/\bPhoto does not match (?:the )?challenge requirement\.?/gi, 'The photo does not match the challenge requirement.')
+            .replace(/\bPhoto does not match (?:the )?challenge\.?/gi, 'The photo does not match the challenge.')
+            .replace(/\bPhoto is blurry\b/gi, 'The photo is blurry')
+            .replace(/\bPhoto was rejected\b/gi, 'The photo was rejected')
+            .replace(/\s*\[phase1_ms:\d+\]/g, '')
+            .trim();
+
+        const cleanAiReason = (review.ai_reason || '')
+            .replace(/\bPhoto does not match (?:the )?challenge requirement\.?/gi, 'The photo does not match the challenge requirement.')
+            .replace(/\bPhoto does not match (?:the )?challenge\.?/gi, 'The photo does not match the challenge.')
+            .replace(/\bPhoto is blurry\b/gi, 'The photo is blurry')
+            .replace(/\bPhoto was rejected\b/gi, 'The photo was rejected')
             .replace(/\s*\[phase1_ms:\d+\]/g, '')
             .trim();
 
@@ -394,10 +406,10 @@ function renderReviews(reviews) {
                             <div class="reject-reason-header"><span>Rejection Reason:</span></div>
                             <div class="reject-reason-text">${escapeHTML(cleanReason)}</div>
                         </div>
-                    ` : (review.ai_reason ? `
+                    ` : (cleanAiReason ? `
                         <div class="ai-reason-box">
                             <div class="ai-reason-header"><strong>AI Verdict:</strong></div>
-                            <div class="ai-reason-text">${escapeHTML(review.ai_reason)}</div>
+                            <div class="ai-reason-text">${escapeHTML(cleanAiReason)}</div>
                         </div>
                     ` : '')}
                     ${review.status === 'approved' ? `
@@ -468,7 +480,7 @@ function openRejectModal(reviewId) {
     const rejectModal = document.getElementById('rejectModal');
     const input = document.getElementById('rejectReasonInput');
     if (input) {
-        input.value = 'Photo does not match challenge requirement.';
+        input.value = 'The photo does not match the challenge requirement.';
     }
     if (rejectModal) {
         rejectModal.classList.remove('hidden');
@@ -501,7 +513,7 @@ function setRejectReason(reason) {
 async function confirmRejection() {
     if (!pendingRejectReviewId) return;
     const input = document.getElementById('rejectReasonInput');
-    const reason = (input && input.value.trim()) || 'Photo does not match challenge requirement.';
+    const reason = (input && input.value.trim()) || 'The photo does not match the challenge requirement.';
     const reviewId = pendingRejectReviewId;
     closeRejectModal();
     await submitReviewAction(reviewId, 'reject', reason);

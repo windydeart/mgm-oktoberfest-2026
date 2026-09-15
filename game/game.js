@@ -829,10 +829,14 @@
     openCamera();
   }
 
-      function sanitizeAiReason(reason) {
+  function sanitizeAiReason(reason) {
     if (!reason || typeof reason !== 'string') return reason;
     return reason
       .replace(/\s*(?:please\s+)?(?:try\s+again|retake(?:\s+the\s+photo)?|re-take|resubmit)[^.!?]*(?:[.!?]|$)/gi, '')
+      .replace(/\bPhoto does not match (?:the )?challenge requirement/gi, 'The photo does not match the challenge requirement')
+      .replace(/\bPhoto does not match (?:the )?challenge\b/gi, 'The photo does not match the challenge')
+      .replace(/\bPhoto is blurry\b/gi, 'The photo is blurry')
+      .replace(/\bPhoto was rejected\b/gi, 'The photo was rejected')
       .trim();
   }
 
@@ -849,7 +853,7 @@
     const isRejected = gameState.rejectedCells && gameState.rejectedCells.has(cellIndex);
     const isPending = gameState.pendingReviewCells && gameState.pendingReviewCells.includes(cellIndex);
     const photoUrl = (gameState.cellPhotos && gameState.cellPhotos[cellIndex]) || '';
-    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isRejected ? 'Photo was rejected by organizers.' : (isPending ? 'Evaluating with AI... Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.'));
+    const rawAiReason = (gameState.cellAiReasons && gameState.cellAiReasons[cellIndex]) || (isRejected ? 'The photo was rejected by organizers.' : (isPending ? 'Evaluating with AI... Submitted for manual review by organizers.' : 'Challenge approved by AI photo engine.'));
     const aiReason = sanitizeAiReason(rawAiReason);
 
     const catIcon = CATEGORY_ICONS[challenge.category] || 'camera';
@@ -3015,24 +3019,25 @@
   }
 
   function condenseRejectNote(note) {
-    if (!note || typeof note !== 'string') return 'Does not match challenge';
+    if (!note || typeof note !== 'string') return 'Does not match the challenge';
     let s = note
       .replace(/Please try again\.?/gi, '')
       .replace(/Your BINGO has been invalidated\.?/gi, '')
-      .replace(/Photo does not match the challenge requirement\.?/gi, 'Does not match challenge')
-      .replace(/Photo does not match the challenge\.?/gi, 'Does not match challenge')
+      .replace(/(?:The\s+)?Photo does not match (?:the\s+)?challenge requirement\.?/gi, 'Does not match the challenge')
+      .replace(/(?:The\s+)?Photo does not match (?:the\s+)?challenge\.?/gi, 'Does not match the challenge')
+      .replace(/(?:The\s+)?Photo is blurry or unidentifiable\.?/gi, 'The photo is blurry')
       .trim();
     if (s.length > 35) {
       s = s.substring(0, 33) + '...';
     }
-    return s || 'Does not match challenge';
+    return s || 'Does not match the challenge';
   }
 
   function handleReviewRejected(decision) {
     const cellIdx = parseInt(decision.cell_index, 10);
     if (isNaN(cellIdx)) return;
 
-    const note = decision.reviewer_note || 'Photo does not match the challenge.';
+    const note = decision.reviewer_note || 'The photo does not match the challenge.';
 
     // Track rejected cell (single attempt rule: cell cannot be retaken)
     if (!gameState.rejectedCells) gameState.rejectedCells = new Set();

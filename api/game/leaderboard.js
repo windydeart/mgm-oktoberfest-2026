@@ -219,7 +219,7 @@ module.exports = async (req, res) => {
       is_disqualified: record.is_disqualified
     }));
 
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=5');
     return res.status(200).json({ leaderboard });
   } catch (err) {
     console.error('Leaderboard error:', err);

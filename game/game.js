@@ -1565,11 +1565,21 @@
         }
       }
 
+      // Sanitize cell_photos to exclude massive raw base64 data URLs from snapshot
+      const cleanCellPhotos = {};
+      if (gameState.cellPhotos) {
+        for (const [k, v] of Object.entries(gameState.cellPhotos)) {
+          if (typeof v === 'string' && v.startsWith('http')) {
+            cleanCellPhotos[k] = v;
+          }
+        }
+      }
+
       const snapshot = JSON.stringify({
         bingo_line: gameState.bingoLine || checkBingo(gameState.completedCells),
         completed_cells: gameState.completedCells || [],
         challenges: gameState.challenges || [],
-        cell_photos: gameState.cellPhotos || {},
+        cell_photos: cleanCellPhotos,
         cell_ai_reasons: gameState.cellAiReasons || {}
       });
 
@@ -1611,11 +1621,20 @@
   async function saveWinnerSnapshot(scoreId) {
     if (!scoreId) return;
     try {
+      const cleanCellPhotos = {};
+      if (gameState.cellPhotos) {
+        for (const [k, v] of Object.entries(gameState.cellPhotos)) {
+          if (typeof v === 'string' && v.startsWith('http')) {
+            cleanCellPhotos[k] = v;
+          }
+        }
+      }
+
       const snapshot = JSON.stringify({
         bingo_line: gameState.bingoLine,
         completed_cells: gameState.completedCells || [],
         challenges: gameState.challenges || [],
-        cell_photos: gameState.cellPhotos || {},
+        cell_photos: cleanCellPhotos,
         cell_ai_reasons: gameState.cellAiReasons || {}
       });
 
@@ -1839,29 +1858,45 @@
     }
   }
 
-  async function fetchLeaderboard(location = 'all') {
+  /* ─── LEADERBOARD IN-MEMORY CACHE (INSTANT 0MS TAB SWITCHING) ─── */
+  const leaderboardMemoryCache = {
+    all: null,
+    danang: null,
+    hcmc: null,
+    lastFetched: { all: 0, danang: 0, hcmc: 0 }
+  };
+
+  async function fetchLeaderboard(location = 'all', forceFresh = false) {
+    const loc = location || 'all';
+    const now = Date.now();
+    if (!forceFresh && leaderboardMemoryCache[loc] && (now - (leaderboardMemoryCache.lastFetched[loc] || 0) < 4000)) {
+      return leaderboardMemoryCache[loc];
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/leaderboard?location=${location}&_t=${Date.now()}`);
+      const res = await fetch(`${API_BASE}/leaderboard?location=${loc}&_t=${now}`);
       const data = await res.json();
-      return data.leaderboard || [];
+      const entries = data.leaderboard || [];
+      leaderboardMemoryCache[loc] = entries;
+      leaderboardMemoryCache.lastFetched[loc] = now;
+      return entries;
     } catch (err) {
       console.error('Leaderboard fetch error:', err);
-      return [];
+      return leaderboardMemoryCache[loc] || [];
     }
   }
 
-  async function renderLeaderboard(location) {
-    currentLbLocation = location || currentLbLocation;
-    const entries = await fetchLeaderboard(currentLbLocation);
+  function renderLeaderboardModalDOM(entries) {
     const tbody = els.leaderboardTableBody;
+    if (!tbody) return;
     tbody.innerHTML = '';
 
-    if (!entries.length) {
-      els.leaderboardEmpty.style.display = 'block';
+    if (!entries || !entries.length) {
+      if (els.leaderboardEmpty) els.leaderboardEmpty.style.display = 'block';
       return;
     }
 
-    els.leaderboardEmpty.style.display = 'none';
+    if (els.leaderboardEmpty) els.leaderboardEmpty.style.display = 'none';
 
     const top10 = entries.slice(0, 10);
     top10.forEach((entry, i) => {
@@ -1925,18 +1960,33 @@
     if (window.lucide) window.lucide.createIcons();
   }
 
+  async function renderLeaderboard(location) {
+    if (location) currentLbLocation = location;
+    const loc = currentLbLocation;
+
+    // 1. Instant Optimistic Render from Memory (0ms latency!)
+    if (leaderboardMemoryCache[loc]) {
+      renderLeaderboardModalDOM(leaderboardMemoryCache[loc]);
+    } else if (loc !== 'all' && leaderboardMemoryCache['all']) {
+      const optimistic = leaderboardMemoryCache['all'].filter(e => (e.location || '').toLowerCase() === loc.toLowerCase());
+      renderLeaderboardModalDOM(optimistic);
+    }
+
+    // 2. Silent fresh update in background
+    const entries = await fetchLeaderboard(loc);
+    renderLeaderboardModalDOM(entries);
+  }
+
   let currentSidebarLbLocation = 'all';
 
-  async function loadSidebarLeaderboard(location) {
-    currentSidebarLbLocation = location || currentSidebarLbLocation;
-    const entries = await fetchLeaderboard(currentSidebarLbLocation);
+  function renderSidebarLeaderboardDOM(entries, loc) {
     const tbody = document.getElementById('sidebarLbTableBody');
     const emptyEl = document.getElementById('sidebarLbEmpty');
     if (!tbody) return;
 
     tbody.innerHTML = '';
 
-    if (!entries.length) {
+    if (!entries || !entries.length) {
       if (emptyEl) emptyEl.style.display = 'block';
       return;
     }
@@ -1987,7 +2037,7 @@
         tr.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          openWinnerShowcase(currentSidebarLbLocation);
+          openWinnerShowcase(loc || currentSidebarLbLocation);
         });
       }
       if (isMe && !isWinner) tr.classList.add('current-player-row');
@@ -2030,6 +2080,23 @@
     });
 
     if (window.lucide) window.lucide.createIcons();
+  }
+
+  async function loadSidebarLeaderboard(location) {
+    if (location) currentSidebarLbLocation = location;
+    const loc = currentSidebarLbLocation;
+
+    // 1. Instant Optimistic Render from Memory (0ms latency!)
+    if (leaderboardMemoryCache[loc]) {
+      renderSidebarLeaderboardDOM(leaderboardMemoryCache[loc], loc);
+    } else if (loc !== 'all' && leaderboardMemoryCache['all']) {
+      const optimistic = leaderboardMemoryCache['all'].filter(e => (e.location || '').toLowerCase() === loc.toLowerCase());
+      renderSidebarLeaderboardDOM(optimistic, loc);
+    }
+
+    // 2. Silent fresh update in background
+    const entries = await fetchLeaderboard(loc);
+    renderSidebarLeaderboardDOM(entries, loc);
   }
 
     /* ═══════════════════════════════════════════════════════

@@ -174,6 +174,12 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // ─── EVENT CONCLUDED: BACKEND SHUTDOWN TO ELIMINATE CLOUD/AI COSTS ───
+  return res.status(200).json({
+    reply: "Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you! 🍻",
+    ended: true
+  });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

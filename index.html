@@ -35,7 +35,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="./css/styles.css?v=91">
+  <link rel="stylesheet" href="./css/styles.css?v=92">
 </head>
 <body class="dark-theme">
 
@@ -655,47 +655,33 @@
   </footer>
 
   <!-- ═══════════════════════════════════════════════════════
-       REGISTRATION POP-UP MODAL (JOTFORM IFRAME EMBED WITH TURNSTILE GATE)
+       REGISTRATION POP-UP MODAL (EVENT CONCLUDED NOTICE)
        ═══════════════════════════════════════════════════════ -->
   <div class="modal-backdrop" id="registrationModal">
-    <div class="modal-content glass-card reg-modal-content jotform-modal-content">
+    <div class="modal-content glass-card reg-modal-content event-ended-modal-content">
       <button class="modal-close" id="closeRegModalBtn" aria-label="Close Registration Form">
         <i data-lucide="x"></i>
       </button>
 
-      <!-- CLOUDFLARE TURNSTILE SECURITY GATEKEEPER -->
-      <div class="reg-turnstile-gate" id="regTurnstileGate">
-        <div class="reg-gate-card">
-          <div class="reg-gate-icon">
-            <i data-lucide="shield-check"></i>
-          </div>
-          <h3 class="reg-gate-title">Security Verification</h3>
-          <p class="reg-gate-desc">Verifying your connection to ensure a secure registration environment...</p>
-          
-          <div class="reg-turnstile-widget" id="regTurnstileWidget"></div>
-
-          <div class="reg-gate-footer">
-            <span class="reg-gate-secured"><i data-lucide="lock"></i> Protected by <strong>Cloudflare Turnstile</strong></span>
-          </div>
+      <div class="event-ended-card">
+        <div class="event-ended-icon-wrapper">
+          <span class="event-ended-icon">🍻</span>
         </div>
-      </div>
-
-      <div class="jotform-iframe-container" id="regIframeContainer">
-        <iframe
-          id="JotFormIFrame-262091577915061"
-          title="mgm Oktoberfest 2026"
-          onload="window.parent.scrollTo(0,0)"
-          allowtransparency="true"
-          allow="geolocation; microphone; camera; fullscreen; payment"
-          src="https://form.jotform.com/262091577915061"
-          frameborder="0"
-          style="min-width:100%;max-width:100%;height:539px;border:none;"
-          scrolling="no"
-          class="jotform-iframe"
-        >
-        </iframe>
-        <script src="https://cdn.jotfor.ms/s/umd/latest/for-form-embed-handler.js"></script>
-        <script>window.jotformEmbedHandler("iframe[id='JotFormIFrame-262091577915061']", "https://form.jotform.com/")</script>
+        <div class="event-ended-badge">
+          <i data-lucide="sparkles"></i> Sự kiện đã kết thúc • Event Concluded
+        </div>
+        <h3 class="event-ended-title gold-gradient-text">Sự kiện đã kết thúc, cảm ơn bạn!</h3>
+        <p class="event-ended-desc-vi">
+          mgm Vietnam <strong>Oktoberfest 2026</strong> đã diễn ra thành công tốt đẹp. Chúng tôi xin chân thành cảm ơn những lời chúc, đóng góp ý kiến (feedback) và sự quan tâm nồng nhiệt của toàn thể thành viên!
+        </p>
+        <p class="event-ended-desc-en">
+          The mgm Vietnam Oktoberfest 2026 has officially wrapped up. Thank you so much for your warm wishes, valuable feedback, and enthusiastic participation!
+        </p>
+        <div class="event-ended-actions">
+          <button type="button" class="btn btn-hero-primary" id="closeRegEndedBtn">
+            <i data-lucide="check"></i> Đóng / Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -767,25 +753,23 @@
       </button>
     </div>
     <div class="chat-messages" id="chatMessages">
-      <div class="chat-welcome">
-        <div class="chat-welcome-title">🍻 Prost!</div>
-        <div class="chat-welcome-sub">Hi! I'm Bierly, your Oktoberfest guide. Ask me anything about the event!</div>
+      <div class="chat-welcome chat-welcome-ended">
+        <div class="chat-welcome-title">🍻 Sự kiện đã kết thúc!</div>
+        <div class="chat-welcome-sub">
+          <strong>Sự kiện đã kết thúc, cảm ơn bạn!</strong><br>
+          <span style="opacity: 0.85; font-size: 0.9em;">The mgm Oktoberfest 2026 event has officially ended. Thank you for your warm wishes and support! 🍻</span>
+        </div>
       </div>
     </div>
     <div class="chat-suggestions" id="chatSuggestions">
-      <button class="chat-chip" data-q="When is the event?">🗓️ When is the event?</button>
-      <button class="chat-chip" data-q="What should I wear?">👗 What should I wear?</button>
-      <button class="chat-chip" data-q="How do I register?">📝 How do I register?</button>
-      <button class="chat-chip" data-q="What food & drinks?">🍺 What food & drinks?</button>
-    </div>
-
-    <!-- Cloudflare Turnstile Managed Widget (Compact & Elegant) -->
-    <div class="chat-turnstile-wrapper" id="chatTurnstileWrapper">
-      <div id="chatTurnstile"></div>
+      <button class="chat-chip" data-q="When is the event?">🗓️ When was the event?</button>
+      <button class="chat-chip" data-q="What should I wear?">👗 Event Recap</button>
+      <button class="chat-chip" data-q="How do I register?">📝 Event Concluded</button>
+      <button class="chat-chip" data-q="What food & drinks?">🍺 Thank you!</button>
     </div>
 
     <div class="chat-input-bar">
-      <textarea class="chat-input" id="chatInput" placeholder="Ask Bierly about the event..." rows="1"></textarea>
+      <textarea class="chat-input" id="chatInput" placeholder="Sự kiện đã kết thúc, cảm ơn bạn! / Event has ended, thank you!" rows="1" disabled></textarea>
       <button class="chat-send-btn" id="chatSendBtn" disabled aria-label="Send message">
         <i data-lucide="send"></i>
       </button>
@@ -823,10 +807,10 @@
 
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/supabase.js?v=1"></script>
+  <script src="./js/supabase.js?v=2"></script>
 
   <!-- Custom App JavaScript -->
-  <script src="./js/app.js?v=74"></script>
+  <script src="./js/app.js?v=75"></script>
 </body>
 </html>
 

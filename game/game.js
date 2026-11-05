@@ -49,7 +49,7 @@
   };
 
   /* ─── GAME REMOTE CONTROLLER STATE ─── */
-  let gameControlState = 'active'; // 'active' | 'waiting' | 'paused' | 'finished'
+  let gameControlState = 'finished'; // 'active' | 'waiting' | 'paused' | 'finished'
   let currentRoundId = null;
   let isGamePausedByAdmin = false;
   let gameControlPollingInterval = null;
@@ -667,16 +667,8 @@
      GAME FLOW
      ═══════════════════════════════════════════════════════ */
   function onStartGame() {
-    if (gameControlState !== 'active') {
-      if (gameControlState === 'waiting') {
-        showToast("Game hasn't started yet! Please wait for the organizer.", 'info');
-      } else if (gameControlState === 'paused') {
-        showToast("The game is temporarily paused by the organizer. Please stand by!", 'info');
-      } else if (gameControlState === 'finished') {
-        showToast("Game finished! Thank you for joining!", 'info');
-      }
-      return;
-    }
+    showToast("Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you! 🍻", 'info');
+    return;
 
     isCurrentNameTaken = false;
     if (els.playerNameStatusHint) {
@@ -1844,18 +1836,8 @@
 
   function startLeaderboardPolling() {
     stopLeaderboardPolling();
-    if (isGameHiddenPaused || isGameIdlePaused) return;
-
-    // Initial fetch
+    // Initial fetch once for hall of fame, no background continuous polling
     loadSidebarLeaderboard();
-
-    // Poll every 10 seconds automatically
-    leaderboardPollingTimer = setInterval(() => {
-      loadSidebarLeaderboard();
-      if (els.leaderboardModal && els.leaderboardModal.classList.contains('active')) {
-        renderLeaderboard(currentLbLocation);
-      }
-    }, 10000);
   }
 
   function stopLeaderboardPolling() {
@@ -2737,6 +2719,12 @@
       });
     }
     if (els.playerName) {
+      els.playerName.addEventListener('click', () => {
+        showToast("Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you! 🍻", 'info');
+      });
+      els.playerName.addEventListener('focus', () => {
+        showToast("Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you! 🍻", 'info');
+      });
       els.playerName.addEventListener('input', (e) => {
         if (nameCheckDebounceTimer) clearTimeout(nameCheckDebounceTimer);
         nameCheckDebounceTimer = setTimeout(() => {
@@ -3317,8 +3305,7 @@
 
   function startGameControlPolling() {
     stopGameControlPolling();
-    if (isGameHiddenPaused || isGameIdlePaused) return;
-    gameControlPollingInterval = setInterval(pollGameControlState, 3000);
+    // Event concluded - no continuous polling
   }
 
   function stopGameControlPolling() {

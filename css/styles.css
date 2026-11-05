@@ -2910,6 +2910,88 @@ h1, h2, h3, h4 {
   scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
 }
 
+/* ─── EVENT CONCLUDED MODAL CARD ─── */
+.reg-modal-content.event-ended-modal-content {
+  max-width: 580px;
+  width: 90%;
+  height: auto;
+  max-height: 85vh;
+  padding: 2.8rem 2rem;
+  background: linear-gradient(145deg, rgba(14, 24, 52, 0.98), rgba(9, 16, 36, 0.99));
+}
+
+.event-ended-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.event-ended-icon-wrapper {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.15);
+  border: 2px solid rgba(245, 158, 11, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.3);
+}
+
+.event-ended-icon {
+  font-size: 2.5rem;
+}
+
+.event-ended-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-amber);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+}
+
+.event-ended-badge i {
+  width: 15px;
+  height: 15px;
+}
+
+.event-ended-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  margin: 0.2rem 0;
+  line-height: 1.3;
+}
+
+.event-ended-desc-vi {
+  color: #f1f5f9;
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 480px;
+  margin: 0;
+}
+
+.event-ended-desc-en {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  max-width: 480px;
+  margin: 0;
+  font-style: italic;
+}
+
+.event-ended-actions {
+  margin-top: 0.8rem;
+}
+
 /* ─── JOTFORM EMBED MODAL ─── */
 .reg-modal-content.jotform-modal-content {
   max-width: 1020px;

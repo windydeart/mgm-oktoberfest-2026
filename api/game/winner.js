@@ -180,7 +180,7 @@ module.exports = async (req, res) => {
       cell_ai_reasons: snapshotData.cell_ai_reasons || {}
     };
 
-    res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=5');
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
     return res.status(200).json({ success: true, winner });
 
   } catch (err) {

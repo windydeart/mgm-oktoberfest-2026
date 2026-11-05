@@ -832,81 +832,19 @@ function initLightbox() {
   });
 }
 
-/* ─── POP-UP REGISTRATION MODAL (JOTFORM EMBED WITH TURNSTILE GATE) ─── */
+/* ─── POP-UP REGISTRATION MODAL (EVENT CONCLUDED NOTICE) ─── */
 function initRegistrationModal() {
   const regModal = document.getElementById('registrationModal');
   const closeRegBtn = document.getElementById('closeRegModalBtn');
-  const regGate = document.getElementById('regTurnstileGate');
-  const regTurnstileWidget = document.getElementById('regTurnstileWidget');
+  const closeRegEndedBtn = document.getElementById('closeRegEndedBtn');
 
   if (!regModal) return;
-
-  const isLocalEnv = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const TURNSTILE_SITE_KEY = isLocalEnv 
-    ? '1x00000000000000000000AA'
-    : '0x4AAAAAAET4fD_Tfcn4nfGF';
-
-  let regTurnstileId = null;
-  let isRegVerified = false;
-
-  function renderRegTurnstile() {
-    if (isRegVerified) {
-      if (regGate) {
-        regGate.classList.add('verified');
-        regGate.style.display = 'none';
-      }
-      return;
-    }
-
-    if (window.turnstile && regTurnstileWidget && regTurnstileId === null) {
-      try {
-        regTurnstileId = window.turnstile.render(regTurnstileWidget, {
-          sitekey: TURNSTILE_SITE_KEY,
-          theme: 'dark',
-          size: 'compact',
-          callback: (token) => {
-            isRegVerified = true;
-            // Short smooth delay so user sees verification checkmark
-            setTimeout(() => {
-              if (regGate) {
-                regGate.classList.add('verified');
-                setTimeout(() => {
-                  regGate.style.display = 'none';
-                }, 300);
-              }
-            }, 300);
-          },
-          'expired-callback': () => {
-            isRegVerified = false;
-            if (window.turnstile && regTurnstileId !== null) {
-              window.turnstile.reset(regTurnstileId);
-            }
-          },
-          'error-callback': (code) => {
-            console.warn('Registration Turnstile bypass on error:', code);
-            if (regGate) {
-              regGate.classList.add('verified');
-              regGate.style.display = 'none';
-            }
-          }
-        });
-      } catch (e) {
-        console.warn('Registration Turnstile init notice:', e);
-        if (regGate) {
-          regGate.classList.add('verified');
-          regGate.style.display = 'none';
-        }
-      }
-    }
-  }
 
   const openModal = () => {
     regModal.classList.add('active');
     document.body.style.overflow = 'hidden';
     if (window.lucide) window.lucide.createIcons();
-
-    // Render Turnstile verification after modal transition
-    setTimeout(renderRegTurnstile, 300);
+    showEventEndedToast();
   };
 
   const closeModal = () => {
@@ -922,6 +860,7 @@ function initRegistrationModal() {
   });
 
   if (closeRegBtn) closeRegBtn.addEventListener('click', closeModal);
+  if (closeRegEndedBtn) closeRegEndedBtn.addEventListener('click', closeModal);
 
   regModal.addEventListener('click', (e) => {
     if (e.target === regModal) closeModal();
@@ -1336,8 +1275,8 @@ function initCharacterGreetings() {
   });
 }
 
-/* ─── TOAST NOTIFICATION SYSTEM (COMING SOON) ─── */
-function showComingSoonToast(title = 'Minigame Coming Soon! 🎮', message = 'Our Oktoberfest mini-game is currently under brewing. Stay tuned!') {
+/* ─── TOAST NOTIFICATION SYSTEM (EVENT ENDED) ─── */
+function showEventEndedToast(customVi, customEn) {
   let toastContainer = document.getElementById('toastContainer');
   if (!toastContainer) {
     toastContainer = document.createElement('div');
@@ -1346,15 +1285,20 @@ function showComingSoonToast(title = 'Minigame Coming Soon! 🎮', message = 'Ou
     document.body.appendChild(toastContainer);
   }
 
+  // Throttle: don't spawn duplicate toast if one is already showing
+  if (toastContainer.querySelector('.toast-event-ended')) {
+    return;
+  }
+
   const toast = document.createElement('div');
-  toast.className = 'toast-item toast-coming-soon';
+  toast.className = 'toast-item toast-event-ended';
   toast.innerHTML = `
     <div class="toast-icon-circle">
-      <i data-lucide="gamepad-2"></i>
+      <i data-lucide="sparkles"></i>
     </div>
     <div class="toast-body">
-      <strong class="toast-title">${title}</strong>
-      <p class="toast-msg">${message}</p>
+      <strong class="toast-title">${customVi || 'Sự kiện đã kết thúc, cảm ơn bạn!'}</strong>
+      <p class="toast-msg">${customEn || 'The event has ended. Thank you for your interest and support! 🍻'}</p>
     </div>
     <button class="toast-close-btn" aria-label="Close">&times;</button>
   `;
@@ -1380,8 +1324,13 @@ function showComingSoonToast(title = 'Minigame Coming Soon! 🎮', message = 'Ou
   // Auto dismiss after 4.5 seconds
   setTimeout(removeToast, 4500);
 }
+window.showEventEndedToast = showEventEndedToast;
 
-/* ─── CHATBOT WIDGET — BIERLY AI ASSISTANT (PROTECTED BY CLOUDFLARE TURNSTILE) ─── */
+function showComingSoonToast(title, message) {
+  showEventEndedToast(title || 'Sự kiện đã kết thúc, cảm ơn bạn!', message || 'The event has ended. Thank you for your interest and support! 🍻');
+}
+
+/* ─── CHATBOT WIDGET — BIERLY AI ASSISTANT (EVENT CONCLUDED MODE) ─── */
 function initChatbot() {
   const fab = document.getElementById('chatFab');
   const panel = document.getElementById('chatPanel');
@@ -1393,53 +1342,6 @@ function initChatbot() {
 
   if (!fab || !panel) return;
 
-  const conversationHistory = [];
-  let isWaiting = false;
-  let turnstileToken = null;
-  let turnstileWidgetId = null;
-  // Dynamic Sitekey: Official Cloudflare Test Key for localhost/127.0.0.1, Production Key for live domains
-  const isLocalEnv = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const TURNSTILE_SITE_KEY = isLocalEnv 
-    ? '1x00000000000000000000AA' // Cloudflare Official Test Key (always passes on any local port)
-    : '0x4AAAAAAET4fD_Tfcn4nfGF'; // Production Key for mgm-oktoberfest-2026.vercel.app & oktoberfest.mgmvn.events
-
-  // Determine API endpoint
-  const chatApiUrl = '/api/chat';
-
-  // Initialize Cloudflare Turnstile Widget ONLY when visible
-  function initTurnstile() {
-    if (!window.turnstile || turnstileWidgetId !== null) return;
-
-    const wrapper = document.getElementById('chatTurnstileWrapper');
-    const container = document.getElementById('chatTurnstile');
-    if (!container) return;
-
-    try {
-      turnstileWidgetId = window.turnstile.render(container, {
-        sitekey: TURNSTILE_SITE_KEY,
-        theme: 'dark',
-        size: 'compact',
-        callback: (token) => {
-          turnstileToken = token;
-          if (wrapper) wrapper.style.display = 'none'; // Hide once verified smoothly
-        },
-        'expired-callback': () => {
-          turnstileToken = null;
-          if (window.turnstile && turnstileWidgetId !== null) {
-            window.turnstile.reset(turnstileWidgetId);
-          }
-        },
-        'error-callback': (code) => {
-          console.warn('Turnstile gracefully bypassed:', code);
-          if (wrapper) wrapper.style.display = 'none'; // Never show an ugly error box
-        }
-      });
-    } catch (e) {
-      console.warn('Turnstile init notice:', e);
-      if (wrapper) wrapper.style.display = 'none';
-    }
-  }
-
   // Toggle chat panel
   function toggleChat() {
     const isOpen = panel.classList.contains('open');
@@ -1449,9 +1351,7 @@ function initChatbot() {
     } else {
       panel.classList.add('open');
       fab.classList.add('active');
-      // Initialize Turnstile after panel animation completes
-      setTimeout(initTurnstile, 350);
-      if (input) input.focus();
+      showEventEndedToast();
     }
   }
 
@@ -1465,67 +1365,55 @@ function initChatbot() {
     }
   });
 
-  // Enable/disable send button based on input
-  if (input && sendBtn) {
-    input.addEventListener('input', () => {
-      sendBtn.disabled = input.value.trim().length === 0 || isWaiting;
-      // Auto-resize textarea
-      input.style.height = 'auto';
-      input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+  // Event Concluded: input is disabled & intercept clicks to show event ended toast
+  if (input) {
+    input.disabled = true;
+    input.placeholder = "Sự kiện đã kết thúc, cảm ơn bạn! / Event has ended, thank you!";
+    input.style.cursor = "not-allowed";
+    input.style.opacity = "0.75";
+    input.addEventListener('click', () => showEventEndedToast());
+    input.addEventListener('focus', () => {
+      input.blur();
+      showEventEndedToast();
     });
-
-    // Send on Enter (Shift+Enter for new line)
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        if (!sendBtn.disabled) handleSend();
-      }
-    });
-
-    sendBtn.addEventListener('click', handleSend);
+    // If input container is clicked
+    if (input.parentElement) {
+      input.parentElement.addEventListener('click', () => showEventEndedToast());
+    }
   }
 
-  // Suggestion chips
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.style.cursor = "not-allowed";
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showEventEndedToast();
+    });
+  }
+
+  // Suggestion chips: reply with ended notice, zero backend cost
   if (suggestionsEl) {
     suggestionsEl.querySelectorAll('.chat-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const q = chip.getAttribute('data-q');
-        if (q) {
-          appendMessage('user', q);
-          sendToAI(q);
-          suggestionsEl.style.display = 'none';
-        }
+      chip.addEventListener('click', (e) => {
+        e.preventDefault();
+        const q = chip.getAttribute('data-q') || chip.textContent;
+        showEventEndedToast();
+        appendMessage('user', q);
+        setTimeout(() => {
+          appendMessage('bot', 'Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you! 🍻');
+        }, 300);
       });
     });
   }
 
-  function handleSend() {
-    const text = input.value.trim();
-    if (!text || isWaiting) return;
-
-    appendMessage('user', text);
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-
-    // Hide suggestions after first message
-    if (suggestionsEl) suggestionsEl.style.display = 'none';
-
-    sendToAI(text);
-  }
-
   function formatChatText(rawText) {
     if (!rawText) return '';
-    // 1. Escape HTML entities
     const escaped = rawText
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    // 2. Format **bold**
     const bolded = escaped.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-gold); font-weight:700;">$1</strong>');
-    // 3. Format *italic*
     const italicized = bolded.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    // 4. Convert double newlines to paragraph breaks, single newlines to <br>
     return italicized.replace(/\n\n/g, '<div style="height:8px;"></div>').replace(/\n/g, '<br>');
   }
 
@@ -1548,74 +1436,12 @@ function initChatbot() {
     // Auto-scroll to bottom
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
-
-  function showTyping() {
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'chat-typing';
-    typingDiv.id = 'chatTyping';
-    typingDiv.innerHTML = `
-      <div class="chat-msg-avatar" style="background: linear-gradient(135deg, var(--accent-amber), var(--accent-amber-dark)); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">🍺</div>
-      <div class="chat-typing-dots"><span></span><span></span><span></span></div>
-    `;
-    messagesEl.appendChild(typingDiv);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  function hideTyping() {
-    const t = document.getElementById('chatTyping');
-    if (t) t.remove();
-  }
-
-  async function sendToAI(userMessage) {
-    isWaiting = true;
-    sendBtn.disabled = true;
-    showTyping();
-
-    // Add to history
-    conversationHistory.push({ role: 'user', text: userMessage });
-
-    // Trim history to last 20 turns
-    const historyToSend = conversationHistory.slice(-20);
-
-    try {
-      const response = await fetch(chatApiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage,
-          history: historyToSend.slice(0, -1), // exclude current message
-          turnstileToken: turnstileToken
-        })
-      });
-
-      const data = await response.json();
-
-      hideTyping();
-
-      if (response.ok && data.reply) {
-        appendMessage('bot', data.reply);
-        conversationHistory.push({ role: 'model', text: data.reply });
-      } else {
-        const errMsg = data.error || 'Oops! Something went wrong. Please try again. 🍺';
-        appendMessage('bot', errMsg);
-      }
-    } catch (err) {
-      hideTyping();
-      appendMessage('bot', 'Could not connect to Bierly right now. Please try again later! 🍻');
-      console.error('Chatbot fetch error:', err);
-    }
-
-    // Reset Turnstile token for next interaction
-    if (window.turnstile && turnstileWidgetId !== null) {
-      try {
-        window.turnstile.reset(turnstileWidgetId);
-        turnstileToken = null;
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    isWaiting = false;
-    if (input.value.trim().length > 0) sendBtn.disabled = false;
-  }
 }
+
+// Global click interceptor: if user clicks any input or textarea on the page
+document.addEventListener('click', (e) => {
+  const target = e.target;
+  if (target && target.closest('input:not([type="checkbox"]):not([type="radio"]), textarea, [data-ended-notice]')) {
+    showEventEndedToast();
+  }
+});

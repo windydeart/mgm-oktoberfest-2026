@@ -11,6 +11,14 @@ function handleCors(req, res) {
 module.exports = async (req, res) => {
   handleCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // ─── EVENT CONCLUDED: BACKEND SHUTDOWN TO ELIMINATE CLOUD/AI COSTS ───
+  return res.status(200).json({
+    available: false,
+    taken: false,
+    message: 'Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you!',
+    ended: true
+  });
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const url = new URL(req.url, `http://${req.headers.host}`);

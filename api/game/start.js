@@ -39,6 +39,13 @@ function handleCors(req, res) {
 module.exports = async (req, res) => {
   handleCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // ─── EVENT CONCLUDED: BACKEND SHUTDOWN TO ELIMINATE CLOUD/AI COSTS ───
+  return res.status(200).json({
+    success: false,
+    error: 'Sự kiện đã kết thúc, cảm ơn bạn! / The event has ended, thank you!',
+    ended: true
+  });
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || req.socket?.remoteAddress || 'unknown';
